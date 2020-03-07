@@ -1,0 +1,6 @@
+[submodule "pyjpeg/src/--depth=1"]
+	path = pyjpeg/src/--depth=1
+	url = https://github.com/uclouvain/openjpeg.git
+[submodule "pyjpeg/src/openjpeg"]
+	path = pyjpeg/src/openjpeg
+	url = https://github.com/uclouvain/openjpeg.git
