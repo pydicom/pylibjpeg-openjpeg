@@ -52,13 +52,13 @@ from pydicom.uid import (
 
 from pyjpeg import decode as decode_j2k
 try:
-    from pylibjpeg import decode as decode_jpg
+    import pylibjpeg
     HAS_LIBJPEG = True
 except ImportError
     HAS_LIBJPEG = False
 
 
-HANDLER_NAME = 'pylibjpeg-j2k'
+HANDLER_NAME = 'pylibjpeg'
 
 DEPENDENCIES = {
     'numpy': ('http://www.numpy.org/', 'NumPy'),
@@ -79,12 +79,8 @@ if HAS_LIBJPEG:
     SUPPORTED_TRANSFER_SYNTAXES += _LIBJPEG_TRANSFER_SYNTAXES
 
 
-# When pylibjpeg-jpg is available it should add itself into here
-#   so the GPL'd code is separate from the pylibjpeg package
-_DECODERS = {
-    JPEG2000Lossless : decode_j2k,
-    JPEG2000 : decode_j2k,
-}
+_DECODERS = {JPEG2000Lossless: decode_j2k, JPEG2000: decode_j2k}
+_ENCODERS = {}
 
 
 def is_available():
@@ -153,21 +149,21 @@ def get_pixeldata(ds):
     """
     tsyntax = ds.file_meta.TransferSyntaxUID
     # The check of transfer syntax must be first
-    if tsyntax not in SUPPORTED_TRANSFER_SYNTAXES:
-        msg = (
-            "Unable to convert the pixel data as the transfer syntax "
-            "is not supported by the pylibjpeg pixel data handler."
-        )
-        raise NotImplementedError(msg)
-
-    # TODO: fix this up so it works as intended
     try:
         decode = _DECODERS[tsyntax]
     except KeyError:
-        raise RuntimeError(
-            "The pylibjpeg-jpg package is required to convert the "
-            "pixel data but it is not installed."
-        )
+        if tsyntax in _LIBJPEG_TRANSFER_SYNTAXES:
+            msg = (
+                "The pylibjpeg-jpeg plugin is required to convert the "
+                "pixel data but it is not installed."
+            )
+        elif tsyntax not in SUPPORTED_TRANSFER_SYNTAXES:
+            msg = (
+                "Unable to convert the pixel data as the transfer syntax "
+                "is not supported by the pylibjpeg pixel data handler."
+            )
+
+        raise NotImplementedError(msg)
 
     # Check required elements
     required_elements = [
@@ -206,3 +202,29 @@ def get_pixeldata(ds):
         arr[offset:offset + frame_len] = decode(frame, p_interp, reshape=False)
 
     return arr.view(pixel_dtype(ds))
+
+
+def encode(frame, transfer_syntax):
+    """Encode the `frame` using the JPEG format corresponding to
+    `transfer_syntax`.
+
+    Parameters
+    ----------
+    frame : numpy.ndarray
+        A single frame of image data to be encoded in the JPEG format.
+    transfer_syntax : str or uid.UID
+        The *Transfer Syntax UID* that corresponds to the JPEG format.
+
+    Returns
+    -------
+    bytes
+        The encoded JPEG image data.
+    """
+    try:
+        encoder = _ENCODERS[transfer_syntax]
+    except KeyError:
+        raise RuntimeError(
+            "The pylibjpeg handler does not support compressing pixel data "
+            "using the JPEG format corresponding to '{}'"
+            .format(transfer_syntax)
+        )
