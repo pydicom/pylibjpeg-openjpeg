@@ -2,7 +2,7 @@
 
 import logging
 
-from .s10918 import parse, JPEG
+from pyjpeg.tools.s10918 import parse, JPEG
 
 
 LOGGER = logging.getLogger('pyljpg-tools.jpegio')
