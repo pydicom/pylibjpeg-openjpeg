@@ -26,9 +26,9 @@ class build(build_orig):
 
 # Maybe use cythonize instead
 ext = Extension(
-    '_libjpeg',
+    '_openjpeg',
     source_files,
-    language='c++',
+    language='c',
     include_dirs=include_dirs,
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
@@ -36,7 +36,7 @@ ext = Extension(
 
 # Version
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
-VERSION_FILE = os.path.join(BASE_DIR, 'pyjpeg', '_version.py')
+VERSION_FILE = os.path.join(BASE_DIR, 'openjpeg', '_version.py')
 with open(VERSION_FILE) as fp:
     exec(fp.read())
 
@@ -44,20 +44,20 @@ with open("README.md", "r") as fp:
     long_description = fp.read()
 
 setup(
-    name = "pylibjpeg-j2k",
+    name = "pylibjpeg-openjpeg",
     packages = find_packages(),
     include_package_data = True,
     version = __version__,
     zip_safe = False,
     description = (
-        "A Python wrapper for decoding JPEG2000 files using openjpeg, with a "
-        "focus on supporting pydicom"
+        "A Python wrapper for openjpeg, with a focus on use as a plugin for "
+        "for pylibjpeg"
     ),
     long_description = long_description,
     long_description_content_type = 'text/markdown',
     author = "scaramallion",
     author_email = "scaramallion@users.noreply.github.com",
-    url = "https://github.com/scaramallion/pylibjpeg-j2k",
+    url = "https://github.com/scaramallion/pylibjpeg-openjpeg",
     license = "MIT",
     keywords = (
         "dicom python medicalimaging radiotherapy oncology pydicom imaging "
@@ -85,7 +85,7 @@ setup(
     ],
     python_requires = ">=3.6",
     setup_requires = ['setuptools>=18.0', 'cython', 'numpy'],
-    install_requires = ['cython', "numpy"],
+    install_requires = ["numpy"],
     cmdclass = {'build': build},
     ext_modules = [ext],
 )
