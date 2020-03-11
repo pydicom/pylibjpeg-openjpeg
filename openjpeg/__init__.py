@@ -3,7 +3,7 @@
 import sys
 
 from ._version import __version__
-from .utils import decode
+#from .utils import decode
 
 
 # Add the testing data to openjpeg (if available)

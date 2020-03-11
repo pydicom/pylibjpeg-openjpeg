@@ -41,7 +41,7 @@ PERFORMANCE OF THIS SOFTWARE.
  * Copyright (c) 2014 by Alastair Houghton
  */
 
-#include <openjpeg.h>
+#include <../openjpeg/src/lib/openjp2/openjpeg.h>
 
 /* 1MB for now */
 #define BUFFER_SIZE OPJ_J2K_STREAM_CHUNK_SIZE
