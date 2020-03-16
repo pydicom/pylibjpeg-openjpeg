@@ -41,7 +41,7 @@ PERFORMANCE OF THIS SOFTWARE.
  * Copyright (c) 2014 by Alastair Houghton
  */
 
-#include <openjpeg.h>
+#include <../openjpeg/src/lib/openjp2/openjpeg.h>
 
 /* 1MB for now */
 #define BUFFER_SIZE OPJ_J2K_STREAM_CHUNK_SIZE
@@ -101,7 +101,7 @@ typedef struct {
 
     /* Quality layers (a sequence of numbers giving *either* rates or dB) */
     int            quality_is_in_db;
-    PyObject      *quality_layers;
+    //PyObject      *quality_layers;
 
     /* Number of resolutions (DWT decompositions + 1 */
     int            num_resolutions;

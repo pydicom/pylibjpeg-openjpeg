@@ -12,6 +12,12 @@ from distutils.command.build import build as build_orig
 import distutils.sysconfig
 
 
+OPENJPEG_SRC = os.path.join(
+    'openjpeg', 'src', 'openjpeg', 'src', 'lib', 'openjp2'
+)
+INTERFACE_SRC = os.path.join('openjpeg', 'src', 'interface')
+
+
 # Workaround for needing cython and numpy
 # Solution from: https://stackoverflow.com/a/54128391/12606901
 class build(build_orig):
@@ -24,12 +30,49 @@ class build(build_orig):
         )
         extension.include_dirs.append(numpy.get_include())
 
+
+def get_source_files():
+    """Return a list of paths to the source files to be compiled."""
+    source_files = [
+        'openjpeg/_openjpeg.pyx',
+        os.path.join(INTERFACE_SRC, 'utils.c'),
+    ]
+    for fname in Path(OPENJPEG_SRC).glob('*'):
+        if fname.parts[-1].startswith('test'):
+            continue
+
+        #if fname.parts[-1].startswith('t1'):
+        #    continue
+
+        if fname.parts[-1].startswith('bench'):
+            continue
+
+
+
+        fname = str(fname)
+        if fname.endswith('.c'):
+            source_files.append(fname)
+
+    print(source_files)
+
+    return source_files
+
+
+# Compiler and linker arguments
+extra_compile_args = []
+extra_link_args = []
+
 # Maybe use cythonize instead
 ext = Extension(
     '_openjpeg',
-    source_files,
+    get_source_files(),
     language='c',
-    include_dirs=include_dirs,
+    include_dirs=[
+        OPENJPEG_SRC,
+        INTERFACE_SRC,
+        distutils.sysconfig.get_python_inc(),
+        # Numpy includes get added by the `build` subclass
+    ],
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
 )
