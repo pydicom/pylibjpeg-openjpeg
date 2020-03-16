@@ -62,8 +62,6 @@ def get_source_files():
 extra_compile_args = []
 extra_link_args = []
 
-print(OPENJPEG_SRC)
-
 # Maybe use cythonize instead
 ext = Extension(
     '_openjpeg',
