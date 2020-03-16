@@ -35,12 +35,25 @@ def get_source_files():
     """Return a list of paths to the source files to be compiled."""
     source_files = [
         'openjpeg/_openjpeg.pyx',
-        #os.path.join(INTERFACE_SRC, 'decode.cpp'),
-        #os.path.join(INTERFACE_SRC, 'streamhook.cpp'),
+        os.path.join(INTERFACE_SRC, 'utils.c'),
     ]
-    for fname in Path(OPENJPEG_SRC).glob('*/*'):
-        if '.c' in str(fname):
-            source_files.append(str(fname))
+    for fname in Path(OPENJPEG_SRC).glob('*'):
+        if fname.parts[-1].startswith('test'):
+            continue
+
+        #if fname.parts[-1].startswith('t1'):
+        #    continue
+
+        if fname.parts[-1].startswith('bench'):
+            continue
+
+
+
+        fname = str(fname)
+        if fname.endswith('.c'):
+            source_files.append(fname)
+
+    print(source_files)
 
     return source_files
 
@@ -48,6 +61,8 @@ def get_source_files():
 # Compiler and linker arguments
 extra_compile_args = []
 extra_link_args = []
+
+print(OPENJPEG_SRC)
 
 # Maybe use cythonize instead
 ext = Extension(

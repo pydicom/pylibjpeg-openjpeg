@@ -101,7 +101,7 @@ typedef struct {
 
     /* Quality layers (a sequence of numbers giving *either* rates or dB) */
     int            quality_is_in_db;
-    PyObject      *quality_layers;
+    //PyObject      *quality_layers;
 
     /* Number of resolutions (DWT decompositions + 1 */
     int            num_resolutions;
