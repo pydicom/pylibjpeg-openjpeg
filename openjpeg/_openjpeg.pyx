@@ -13,11 +13,16 @@
 #cdef extern from "Jpeg2KDecode.c":
 #cdef extern from "utils.c":
 cdef extern char* OpenJpegVersion()
-
+cdef extern int decode()
 
 
 def get_version():
-    """Return the openjpeg version."""
+    """Return the openjpeg version as bytes."""
     cdef char *version = OpenJpegVersion()
 
     return version
+
+def opj_decode():
+    cdef int result = decode()
+
+    return result

@@ -13,9 +13,9 @@ import distutils.sysconfig
 
 
 OPENJPEG_SRC = os.path.join(
-    'openjpeg', 'src', 'openjpeg', 'src', 'lib', 'openjp2'
+    "openjpeg", "src", "openjpeg", "src", "lib", "openjp2"
 )
-INTERFACE_SRC = os.path.join('openjpeg', 'src', 'interface')
+INTERFACE_SRC = os.path.join("openjpeg", "src", "interface")
 
 
 # Workaround for needing cython and numpy
@@ -34,23 +34,21 @@ class build(build_orig):
 def get_source_files():
     """Return a list of paths to the source files to be compiled."""
     source_files = [
-        'openjpeg/_openjpeg.pyx',
-        os.path.join(INTERFACE_SRC, 'utils.c'),
+        "openjpeg/_openjpeg.pyx",
+        os.path.join(INTERFACE_SRC, "utils.c"),
     ]
-    for fname in Path(OPENJPEG_SRC).glob('*'):
-        if fname.parts[-1].startswith('test'):
+    for fname in Path(OPENJPEG_SRC).glob("*"):
+        if fname.parts[-1].startswith("test"):
             continue
 
-        #if fname.parts[-1].startswith('t1'):
+        #if fname.parts[-1].startswith("t1"):
         #    continue
 
-        if fname.parts[-1].startswith('bench'):
+        if fname.parts[-1].startswith("bench"):
             continue
 
-
-
         fname = str(fname)
-        if fname.endswith('.c'):
+        if fname.endswith(".c"):
             source_files.append(fname)
 
     print(source_files)
@@ -64,9 +62,9 @@ extra_link_args = []
 
 # Maybe use cythonize instead
 ext = Extension(
-    '_openjpeg',
+    "_openjpeg",
     get_source_files(),
-    language='c',
+    language="c",
     include_dirs=[
         OPENJPEG_SRC,
         INTERFACE_SRC,
@@ -79,7 +77,7 @@ ext = Extension(
 
 # Version
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
-VERSION_FILE = os.path.join(BASE_DIR, 'openjpeg', '_version.py')
+VERSION_FILE = os.path.join(BASE_DIR, "openjpeg", "_version.py")
 with open(VERSION_FILE) as fp:
     exec(fp.read())
 
@@ -97,7 +95,7 @@ setup(
         "for pylibjpeg"
     ),
     long_description = long_description,
-    long_description_content_type = 'text/markdown',
+    long_description_content_type = "text/markdown",
     author = "scaramallion",
     author_email = "scaramallion@users.noreply.github.com",
     url = "https://github.com/scaramallion/pylibjpeg-openjpeg",
@@ -127,8 +125,16 @@ setup(
         "Topic :: Software Development :: Libraries",
     ],
     python_requires = ">=3.6",
-    setup_requires = ['setuptools>=18.0', 'cython', 'numpy'],
+    setup_requires = ["setuptools>=18.0", "cython", "numpy"],
     install_requires = ["numpy"],
-    cmdclass = {'build': build},
+    cmdclass = {"build": build},
     ext_modules = [ext],
+    # Plugin registrations
+    entry_points = {
+        "pylibjpeg.pixel_data_decoders": [
+            "1.2.840.10008.1.2.4.90 = openjpeg:decode_pixel_data",
+            "1.2.840.10008.1.2.4.91 = openjpeg:decode_pixel_data",
+        ],
+        "pylibjpeg.jpeg2k_decoders": "openjpeg = openjpeg:decode",
+    }
 )

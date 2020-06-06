@@ -75,10 +75,14 @@ static void j2k_error(const char *msg, void *client_data)
 /* Buffer input stream                                                  */
 /* -------------------------------------------------------------------- */
 
-static OPJ_SIZE_T j2k_read(void *p_buffer, OPJ_SIZE_T p_nb_bytes, void *p_user_data)
+static OPJ_SIZE_T j2k_read(
+        void *p_buffer, OPJ_SIZE_T p_nb_bytes, void *p_user_data
+)
 {
     ImagingCodecState state = (ImagingCodecState)p_user_data;
 
+    // FIXME: need to implement read for numpy char array ?
+    // state->fd should go to state->stream or something
     size_t len = _imaging_read_pyFd(state->fd, p_buffer, p_nb_bytes);
 
     return len ? len : (OPJ_SIZE_T) - 1;
@@ -90,6 +94,7 @@ static OPJ_OFF_T j2k_skip(OPJ_OFF_T p_nb_bytes, void *p_user_data)
     off_t pos;
     ImagingCodecState state = (ImagingCodecState)p_user_data;
 
+    // FIXME: need to implement seek and tell for numpy char array
     _imaging_seek_pyFd(state->fd, p_nb_bytes, SEEK_CUR);
     pos = _imaging_tell_pyFd(state->fd);
 
@@ -106,36 +111,28 @@ typedef void (*j2k_unpacker_t)(
     const UINT8 *data, Imaging im
 );
 
-// NOTE: OPJ_COLOR_SPACE -1 to 5
-struct j2k_decode_unpacker {
-    const char *mode;
-    OPJ_COLOR_SPACE color_space;
-    unsigned components;
-    j2k_unpacker_t unpacker;
-};
 
-
-// FIXME: Don't shift
-static inline unsigned j2ku_shift(unsigned x, int n)
-{
-    if (n < 0)
-        return x >> -n;
-    else
-        return x << n;
-}
-
-
-// Unsigned monochrome
+// You know, I don't think these unpacker functions do anything but convert
+//  the raw decoded data to the "correct" pillow image mode format
+// Which is good, because it means they aren't needed at all
+// Unsigned monochrome 8 bit output
 // FIXME: Imaging here
-static void j2ku_gray_l(opj_image_t *in, const JPEG2KTILEINFO *tileinfo,
-    const UINT8 *tiledata, Imaging im)
+static void j2ku_gray_l(
+    opj_image_t *in, const JPEG2KTILEINFO *tileinfo, const UINT8 *tiledata,
+    Imaging im)
 {
+    // x0, y0:
     unsigned x0 = tileinfo->x0 - in->x0, y0 = tileinfo->y0 - in->y0;
+    // w:
     unsigned w = tileinfo->x1 - tileinfo->x0;
+    // h:
     unsigned h = tileinfo->y1 - tileinfo->y0;
 
+    // shift:
     int shift = 8 - in->comps[0].prec;
+    // offset:
     int offset = in->comps[0].sgnd ? 1 << (in->comps[0].prec - 1) : 0;
+    // csiz:
     int csiz = (in->comps[0].prec + 7) >> 3;
 
     unsigned x, y;
@@ -146,12 +143,18 @@ static void j2ku_gray_l(opj_image_t *in, const JPEG2KTILEINFO *tileinfo,
     if (shift < 0)
         offset += 1 << (-shift - 1);
 
+    // csiz is number of components? or precision...? bytes?
     switch (csiz) {
     case 1:
+        // for each row
         for (y = 0; y < h; ++y) {
+            // `data` must be the pixel data for the current row
             const UINT8 *data = &tiledata[y * w];
+            // pointer to corresponding row in the pillow image?
             UINT8 *row = (UINT8 *)im->image[y0 + y] + x0;
+            // For each pixel in the row
             for (x = 0; x < w; ++x)
+                // shift the raw pixel data, increment the row pointer
                 *row++ = j2ku_shift(offset + *data++, shift);
         }
         break;
@@ -175,7 +178,7 @@ static void j2ku_gray_l(opj_image_t *in, const JPEG2KTILEINFO *tileinfo,
 }
 
 
-// Unsigned monochrome
+// Unsigned monochrome 16 bit output
 // FIXME: Imaging here
 static void j2ku_gray_i(opj_image_t *in, const JPEG2KTILEINFO *tileinfo,
     const UINT8 *tiledata, Imaging im)
@@ -224,120 +227,6 @@ static void j2ku_gray_i(opj_image_t *in, const JPEG2KTILEINFO *tileinfo,
     }
 }
 
-static void j2ku_gray_rgb(opj_image_t *in, const JPEG2KTILEINFO *tileinfo,
-    const UINT8 *tiledata, Imaging im)
-{
-    unsigned x0 = tileinfo->x0 - in->x0, y0 = tileinfo->y0 - in->y0;
-    unsigned w = tileinfo->x1 - tileinfo->x0;
-    unsigned h = tileinfo->y1 - tileinfo->y0;
-
-    int shift = 8 - in->comps[0].prec;
-    int offset = in->comps[0].sgnd ? 1 << (in->comps[0].prec - 1) : 0;
-    int csiz = (in->comps[0].prec + 7) >> 3;
-
-    unsigned x, y;
-
-    if (shift < 0)
-        offset += 1 << (-shift - 1);
-
-    if (csiz == 3)
-        csiz = 4;
-
-    switch (csiz) {
-    case 1:
-        for (y = 0; y < h; ++y) {
-            const UINT8 *data = &tiledata[y * w];
-            UINT8 *row = (UINT8 *)im->image[y0 + y] + x0;
-            for (x = 0; x < w; ++x) {
-                UINT8 byte = j2ku_shift(offset + *data++, shift);
-                row[0] = row[1] = row[2] = byte;
-                row[3] = 0xff;
-                row += 4;
-            }
-        }
-        break;
-    case 2:
-        for (y = 0; y < h; ++y) {
-            const UINT16 *data = (UINT16 *)&tiledata[2 * y * w];
-            UINT8 *row = (UINT8 *)im->image[y0 + y] + x0;
-            for (x = 0; x < w; ++x) {
-                UINT8 byte = j2ku_shift(offset + *data++, shift);
-                row[0] = row[1] = row[2] = byte;
-                row[3] = 0xff;
-                row += 4;
-            }
-        }
-        break;
-    case 4:
-        for (y = 0; y < h; ++y) {
-            const UINT32 *data = (UINT32 *)&tiledata[4 * y * w];
-            UINT8 *row = (UINT8 *)im->image[y0 + y] + x0;
-            for (x = 0; x < w; ++x) {
-                UINT8 byte = j2ku_shift(offset + *data++, shift);
-                row[0] = row[1] = row[2] = byte;
-                row[3] = 0xff;
-                row += 4;
-            }
-        }
-        break;
-    }
-}
-
-static void j2ku_graya_la(opj_image_t *in, const JPEG2KTILEINFO *tileinfo,
-    const UINT8 *tiledata, Imaging im)
-{
-    unsigned x0 = tileinfo->x0 - in->x0, y0 = tileinfo->y0 - in->y0;
-    unsigned w = tileinfo->x1 - tileinfo->x0;
-    unsigned h = tileinfo->y1 - tileinfo->y0;
-
-    int shift = 8 - in->comps[0].prec;
-    int offset = in->comps[0].sgnd ? 1 << (in->comps[0].prec - 1) : 0;
-    int csiz = (in->comps[0].prec + 7) >> 3;
-    int ashift = 8 - in->comps[1].prec;
-    int aoffset = in->comps[1].sgnd ? 1 << (in->comps[1].prec - 1) : 0;
-    int acsiz = (in->comps[1].prec + 7) >> 3;
-    const UINT8 *atiledata;
-
-    unsigned x, y;
-
-    if (csiz == 3)
-        csiz = 4;
-    if (acsiz == 3)
-        acsiz = 4;
-
-    if (shift < 0)
-        offset += 1 << (-shift - 1);
-    if (ashift < 0)
-        aoffset += 1 << (-ashift - 1);
-
-    atiledata = tiledata + csiz * w * h;
-
-    for (y = 0; y < h; ++y) {
-        const UINT8 *data = &tiledata[csiz * y * w];
-        const UINT8 *adata = &atiledata[acsiz * y * w];
-        UINT8 *row = (UINT8 *)im->image[y0 + y] + x0 * 4;
-        for (x = 0; x < w; ++x) {
-            UINT32 word = 0, aword = 0, byte;
-
-            switch (csiz) {
-            case 1: word = *data++; break;
-            case 2: word = *(const UINT16 *)data; data += 2; break;
-            case 4: word = *(const UINT32 *)data; data += 4; break;
-            }
-
-            switch (acsiz) {
-            case 1: aword = *adata++; break;
-            case 2: aword = *(const UINT16 *)adata; adata += 2; break;
-            case 4: aword = *(const UINT32 *)adata; adata += 4; break;
-            }
-
-            byte = j2ku_shift(offset + word, shift);
-            row[0] = row[1] = row[2] = byte;
-            row[3] = j2ku_shift(aoffset + aword, ashift);
-            row += 4;
-        }
-    }
-}
 
 static void j2ku_srgb_rgb(opj_image_t *in, const JPEG2KTILEINFO *tileinfo,
     const UINT8 *tiledata, Imaging im)
@@ -547,24 +436,6 @@ static void j2ku_sycca_rgba(opj_image_t *in, const JPEG2KTILEINFO *tileinfo,
     }
 }
 
-static const struct j2k_decode_unpacker j2k_unpackers[] = {
-    { "L", OPJ_CLRSPC_GRAY, 1, j2ku_gray_l },
-    { "I;16", OPJ_CLRSPC_GRAY, 1, j2ku_gray_i },
-    { "I;16B", OPJ_CLRSPC_GRAY, 1, j2ku_gray_i },
-    { "LA", OPJ_CLRSPC_GRAY, 2, j2ku_graya_la },
-    { "RGB", OPJ_CLRSPC_GRAY, 1, j2ku_gray_rgb },
-    { "RGB", OPJ_CLRSPC_GRAY, 2, j2ku_gray_rgb },
-    { "RGB", OPJ_CLRSPC_SRGB, 3, j2ku_srgb_rgb },
-    { "RGB", OPJ_CLRSPC_SYCC, 3, j2ku_sycc_rgb },
-    { "RGB", OPJ_CLRSPC_SRGB, 4, j2ku_srgb_rgb },
-    { "RGB", OPJ_CLRSPC_SYCC, 4, j2ku_sycc_rgb },
-    { "RGBA", OPJ_CLRSPC_GRAY, 1, j2ku_gray_rgb },
-    { "RGBA", OPJ_CLRSPC_GRAY, 2, j2ku_graya_la },
-    { "RGBA", OPJ_CLRSPC_SRGB, 3, j2ku_srgb_rgb },
-    { "RGBA", OPJ_CLRSPC_SYCC, 3, j2ku_sycc_rgb },
-    { "RGBA", OPJ_CLRSPC_SRGB, 4, j2ku_srgba_rgba },
-    { "RGBA", OPJ_CLRSPC_SYCC, 4, j2ku_sycca_rgba },
-};
 
 
 /* -------------------------------------------------------------------- */
@@ -578,18 +449,23 @@ enum {
     J2K_STATE_FAILED = 3,
 };
 
+// Decodes
 static int j2k_decode_entry(Imaging im, ImagingCodecState state)
 {
     JPEG2KDECODESTATE *context = (JPEG2KDECODESTATE *) state->context;
+    // J2K stream
     opj_stream_t *stream = NULL;
+    // struct defining image data and characteristics
     opj_image_t *image = NULL;
+    // J2K codec
     opj_codec_t *codec = NULL;
+    // struct with decompression parameters
     opj_dparameters_t params;
-    OPJ_COLOR_SPACE color_space;
-    j2k_unpacker_t unpack = NULL;
+    // buffer size I guess
     size_t buffer_size = 0;
     unsigned n;
 
+    // Creates an abstract input stream; allocates memory
     stream = opj_stream_create(BUFFER_SIZE, OPJ_TRUE);
 
     if (!stream) {
@@ -598,13 +474,14 @@ static int j2k_decode_entry(Imaging im, ImagingCodecState state)
         goto quick_exit;
     }
 
+    // j2k_read and j2k_skip are functions, but do we need this?
     opj_stream_set_read_function(stream, j2k_read);
     opj_stream_set_skip_function(stream, j2k_skip);
 
-    /* OpenJPEG 2.0 doesn't have OPJ_VERSION_MAJOR */
-#ifndef OPJ_VERSION_MAJOR
-    opj_stream_set_user_data(stream, state);
-#else
+    // Sets the given data to be used as user data for the stream
+    //  stream: the stream to modify
+    //  state: the data to set
+    //  NULL: function to free the data when obj_stream_destroy() is called
     opj_stream_set_user_data(stream, state, NULL);
 
     /* Hack: if we don't know the length, the largest file we can
@@ -615,7 +492,6 @@ static int j2k_decode_entry(Imaging im, ImagingCodecState state)
         opj_stream_set_user_data_length(stream, 0xffffffff);
     else
         opj_stream_set_user_data_length(stream, context->length);
-#endif
 
     /* Setup decompression context */
     context->error_msg = NULL;
@@ -635,6 +511,10 @@ static int j2k_decode_entry(Imaging im, ImagingCodecState state)
     opj_set_error_handler(codec, j2k_error, context);
     opj_setup_decoder(codec, &params);
 
+    // Decodes an image header
+    //  stream: the j2k stream
+    //  codec: the j2k codec to read
+    //  image: the image structure with the characteristics of the encoded im
     if (!opj_read_header(stream, codec, &image)) {
         state->errcode = IMAGING_CODEC_BROKEN;
         state->state = J2K_STATE_FAILED;
@@ -657,52 +537,6 @@ static int j2k_decode_entry(Imaging im, ImagingCodecState state)
         }
     }
 
-    /*
-         Colorspace    Number of components    PIL mode
-       ------------------------------------------------------
-         sRGB          3                       RGB
-         sRGB          4                       RGBA
-         gray          1                       L or I
-         gray          2                       LA
-         YCC           3                       YCbCr
-
-
-       If colorspace is unspecified, we assume:
-
-           Number of components   Colorspace
-         -----------------------------------------
-           1                      gray
-           2                      gray (+ alpha)
-           3                      sRGB
-           4                      sRGB (+ alpha)
-
-    */
-
-    /* Find the correct unpacker */
-    color_space = image->color_space;
-
-    if (color_space == OPJ_CLRSPC_UNSPECIFIED) {
-        switch (image->numcomps) {
-        case 1: case 2: color_space = OPJ_CLRSPC_GRAY; break;
-        case 3: case 4: color_space = OPJ_CLRSPC_SRGB; break;
-        }
-    }
-
-    for (n = 0; n < sizeof(j2k_unpackers) / sizeof (j2k_unpackers[0]); ++n) {
-        if (color_space == j2k_unpackers[n].color_space
-            && image->numcomps == j2k_unpackers[n].components
-            && strcmp (im->mode, j2k_unpackers[n].mode) == 0) {
-            unpack = j2k_unpackers[n].unpacker;
-            break;
-        }
-    }
-
-    if (!unpack) {
-        state->errcode = IMAGING_CODEC_BROKEN;
-        state->state = J2K_STATE_FAILED;
-        goto quick_exit;
-    }
-
     /* Decode the image tile-by-tile; this means we only need use as much
        memory as is required for one tile's worth of components. */
     for (;;) {
@@ -710,14 +544,18 @@ static int j2k_decode_entry(Imaging im, ImagingCodecState state)
         OPJ_BOOL should_continue;
         unsigned correction = (1 << params.cp_reduce) - 1;
 
-        if (!opj_read_tile_header(codec,
-                                  stream,
-                                  &tile_info.tile_index,
-                                  &tile_info.data_size,
-                                  &tile_info.x0, &tile_info.y0,
-                                  &tile_info.x1, &tile_info.y1,
-                                  &tile_info.nb_comps,
-                                  &should_continue)) {
+        // Reads a tile header, compulsory
+        if (!opj_read_tile_header(
+                codec,
+                stream,
+                &tile_info.tile_index,
+                &tile_info.data_size,
+                &tile_info.x0, &tile_info.y0,
+                &tile_info.x1, &tile_info.y1,
+                &tile_info.nb_comps,
+                &should_continue
+            )
+        ){
             state->errcode = IMAGING_CODEC_BROKEN;
             state->state = J2K_STATE_FAILED;
             goto quick_exit;
@@ -745,6 +583,8 @@ static int j2k_decode_entry(Imaging im, ImagingCodecState state)
             buffer_size = tile_info.data_size;
         }
 
+        // Reads and decodes a tile's data, compulsory, should be called after
+        //  opj_read_tile_header
         if (!opj_decode_tile_data(codec,
                                   tile_info.tile_index,
                                   (OPJ_BYTE *)state->buffer,
@@ -755,6 +595,7 @@ static int j2k_decode_entry(Imaging im, ImagingCodecState state)
             goto quick_exit;
         }
 
+        // FIXME: im - uses the output image size I believe - replaceable
         /* Check the tile bounds; if the tile is outside the image area,
            or if it has a negative width or height (i.e. the coordinates are
            swapped), bail. */
@@ -769,9 +610,13 @@ static int j2k_decode_entry(Imaging im, ImagingCodecState state)
             goto quick_exit;
         }
 
-        unpack(image, &tile_info, state->buffer, im);
+        // FIXME: im - fed to unpacker function but not necessary
+        // Replace with a function that just writes the results to our output
+        // array or whatever
+        //unpack(image, &tile_info, state->buffer, im);
     }
 
+    // Read after the codestream if necessary (?)
     if (!opj_end_decompress(codec, stream)) {
         state->errcode = IMAGING_CODEC_BROKEN;
         state->state = J2K_STATE_FAILED;
@@ -798,7 +643,9 @@ static int j2k_decode_entry(Imaging im, ImagingCodecState state)
     return -1;
 }
 
-int ImagingJpeg2KDecode(Imaging im, ImagingCodecState state, UINT8* buf, Py_ssize_t bytes)
+int ImagingJpeg2KDecode(
+    Imaging im, ImagingCodecState state, UINT8* buf, Py_ssize_t bytes
+)
 {
 
     if (bytes){
@@ -840,7 +687,7 @@ int ImagingJpeg2KDecodeCleanup(ImagingCodecState state) {
     return -1;
 }
 
-const char * ImagingJpeg2KVersion(void)
+/*const char * ImagingJpeg2KVersion(void)
 {
     return opj_version();
-}
+}*/
