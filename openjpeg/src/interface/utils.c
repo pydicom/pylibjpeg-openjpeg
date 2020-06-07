@@ -300,7 +300,6 @@ int decode(PyObject* fd, unsigned char *out) {
         int height = (int)image->comps[c_index].h;
         int precision = (int)image->comps[c_index].prec;
         int bpp = (int)image->comps[c_index].bpp;
-
         int nr_bytes = ((precision + 7) & -8) / 8;
 
         printf(
@@ -312,37 +311,52 @@ int decode(PyObject* fd, unsigned char *out) {
             nr_bytes
         );
 
-        //int mask = (1 << precision) - 1;
-        //union {
-        //    unsigned short val;
-        //    unsigned char vals[2];
-        //} uc16;
-
         // Copy image data to the output uint8 numpy array
         // The decoded data type is OPJ_INT32, so we need to convert... ugh!
         int *ptr = image->comps[c_index].data;
         int mask = (1 << precision) - 1;
+
         union {
             unsigned short val;
             unsigned char vals[2];
-        } uc16;
+        } u16;
 
-        for (int row = 0; row < height; row++)
+        if (precision <= 8)
         {
-            for (int col = 0; col < width; col++)
+            // 8-bit signed/unsigned
+            for (int row = 0; row < height; row++)
             {
-                uc16.val = (unsigned short)(*ptr & mask);
-                //for (int ii = 0; ii < nr_bytes; ii++)
-                //{
-                    // ptr is 1 byte, out is 1 byte
-                *out = uc16.vals[0];
-                out++;
-                *out = uc16.vals[1];
-                out++;
-                //}
-                ptr++;
+                for (int col = 0; col < width; col++)
+                {
+                    *out = (unsigned char)(*ptr & mask);
+                    out++;
+                    ptr++;
+                }
             }
         }
+        else if (precision <= 16)
+        {
+            // 16-bit
+            for (int row = 0; row < height; row++)
+            {
+                for (int col = 0; col < width; col++)
+                {
+                    u16.val = (unsigned short)(*ptr & mask);
+                    *out = u16.vals[0];
+                    out++;
+                    *out = u16.vals[1];
+                    out++;
+                    ptr++;
+                }
+            }
+        }
+        else
+        {
+            fprintf(stderr, "ERROR -> More than 16-bits per component not implemented\n");
+            goto quick_exit;
+        }
+
+
     }
 
     opj_destroy_codec(codec);

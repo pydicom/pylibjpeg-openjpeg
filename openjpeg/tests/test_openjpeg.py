@@ -33,16 +33,12 @@ def test_decode():
     b = BytesIO(next(frame_gen))
     result, arr = decode(b, get_expected_length(ds, 'bytes'))
 
-    dtype = pixel_dtype(ds)
-    print(ds[0x00280000:0x00300000])
-    print(dtype)
-
-    arr = arr.view(dtype)
+    arr = arr.view(pixel_dtype(ds))
     arr = reshape_pixel_array(ds, arr)
     plt.imshow(arr)
     plt.show()
 
-@pytest.mark.skip()
+#@pytest.mark.skip()
 def test_decode_3s():
     #with open('')
     #arr = np.frombytes()
@@ -53,7 +49,7 @@ def test_decode_3s():
 
     arr = arr.view(pixel_dtype(ds))
     # Currently planar configuration 1, need to switch to 0
-    arr = arr.transpose()
-    arr = reshape_pixel_array(ds, arr)
+    arr = arr.reshape(ds.SamplesPerPixel, ds.Rows, ds.Columns)
+    arr = arr.transpose(1, 2, 0)
     plt.imshow(arr)
     plt.show()
