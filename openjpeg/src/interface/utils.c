@@ -94,61 +94,6 @@ typedef struct {
 } CodecState;
 
 
-Py_ssize_t read_data(PyObject* fd, char* destination, Py_ssize_t nr_bytes)
-{
-    PyObject* result;
-    char* buffer;
-    Py_ssize_t length;
-    int bytes_result;
-
-    printf("read_data::Reading %d bytes from input\n", nr_bytes);
-
-    result = PyObject_CallMethod(fd, "read", "n", BUFFER_SIZE);
-    bytes_result = PyBytes_AsStringAndSize(result, &buffer, &length);
-
-    //int val = <int>&buffer[0];
-
-    printf("read_data::Read data of length: %d\n", length);
-
-    if (bytes_result == -1) {
-        goto error;
-    }
-
-    if (length > nr_bytes) {
-        goto error;
-    }
-    //printf("Reading data: %d\n", buffer[0]);
-
-    memcpy(destination, buffer, length);
-
-    printf("read_data::First 6 bytes read are: ");
-    for (int ii = 0; ii <= 5; ii++)
-        printf("%x ", destination[ii]);
-
-    printf("\n");
-
-    Py_DECREF(result);
-    return length;
-
-error:
-    printf("read_data::Error reading data");
-    Py_DECREF(result);
-    return -1;
-}
-
-int seek_data(PyObject *fd, Py_ssize_t offset, int whence)
-{
-    PyObject *result;
-
-    printf("seek_data::Seeking offset %d from %d\n", offset, whence);
-
-    result = PyObject_CallMethod(fd, "seek", "ni", offset, whence);
-
-    Py_DECREF(result);
-    return 0;
-
-}
-
 Py_ssize_t tell_data(PyObject *fd)
 {
     PyObject *result;
@@ -163,6 +108,80 @@ Py_ssize_t tell_data(PyObject *fd)
     return location;
 }
 
+
+OPJ_SIZE_T read_data(PyObject* fd, char* destination, Py_ssize_t nr_bytes)
+{
+    PyObject* result;
+    char* buffer;
+    OPJ_SIZE_T length;
+    int bytes_result;
+    Py_ssize_t pos;
+
+    printf("read_data::Reading %u bytes from input\n", nr_bytes);
+    pos = tell_data(fd);
+    printf("read_data::Start position: %d\n", pos);
+
+    result = PyObject_CallMethod(fd, "read", "n", nr_bytes);
+    bytes_result = PyBytes_AsStringAndSize(result, &buffer, &length);
+
+    pos = tell_data(fd);
+
+    //int val = <int>&buffer[0];
+
+    printf("read_data::Read data of length: %u\n", length);
+    printf("read_data::End position: %d\n", pos);
+
+    if (bytes_result == -1) {
+        goto error;
+    }
+
+    if (length > nr_bytes) {
+        goto error;
+    }
+    //printf("Reading data: %d\n", buffer[0]);
+
+    memcpy(destination, buffer, length);
+
+    if (length > 6)
+    {
+        printf("read_data::First 6 bytes read are: ");
+        for (int ii = 0; ii <= 5; ii++)
+            printf("%x ", destination[ii] & 0xff);
+        printf("\n");
+    }
+
+    //printf("Converting to size_t\n");
+    //OPJ_SIZE_T newlen = (OPJ_SIZE_T)(PyLong_AsSize_t(length));
+    //printf("Converted\n");
+
+    Py_DECREF(result);
+    return length;
+
+error:
+    printf("read_data::Error reading data");
+    Py_DECREF(result);
+    return -1;
+}
+
+
+int seek_data(PyObject *fd, OPJ_SIZE_T offset, int whence)
+{
+    PyObject *result;
+
+    printf("seek_data::Seeking offset %d from %d\n", offset, whence);
+
+    // n: convert C Py_ssize_t to a Python integer
+    // i: convert C int to a Python integer
+    result = PyObject_CallMethod(fd, "seek", "Ii", offset, whence);
+
+    //printf("seek_data::current position: %d\n", (unsigned int)(result));
+
+    Py_DECREF(result);
+    return 0;
+}
+
+
+
 static OPJ_SIZE_T j2k_read(
     void *p_buffer, OPJ_SIZE_T p_nb_bytes, void *p_user_data
 )
@@ -176,14 +195,40 @@ static OPJ_SIZE_T j2k_read(
     return len ? len : (OPJ_SIZE_T) - 1;
 }
 
-static OPJ_OFF_T j2k_skip(OPJ_OFF_T p_nb_bytes, void *p_user_data)
+static OPJ_BOOL j2k_seek(OPJ_OFF_T nr_bytes, void *p_user_data)
+{
+    /**
+    * The function to be used as a seek function, the stream is
+      then seekable, using SEEK_SET behavior.
+    */
+    // Python and C:
+    //  SEEK_SET 0
+    //  SEEK_CUR 1
+    //  SEEK_END 2
+    seek_data(p_user_data, nr_bytes, SEEK_SET);
+
+    return OPJ_TRUE;
+}
+
+static OPJ_OFF_T j2k_skip(OPJ_OFF_T nr_bytes, void *p_user_data)
 {
     off_t pos;
 
-    seek_data(p_user_data, p_nb_bytes, SEEK_CUR);
+    seek_data(p_user_data, nr_bytes, SEEK_CUR);
     pos = tell_data(p_user_data);
 
     return pos ? pos : (OPJ_OFF_T)-1;
+}
+
+static OPJ_UINT64 get_input_size(void * p_user_data)
+{
+    OPJ_OFF_T input_length = 0;
+
+    seek_data(p_user_data, 0, SEEK_END);
+    input_length = (OPJ_OFF_T)tell_data(p_user_data);
+    seek_data(p_user_data, 0, SEEK_SET);
+
+    return (OPJ_UINT64)input_length;
 }
 
 /*static void j2k_error(const char *msg, void *client_data)
@@ -233,8 +278,9 @@ int decode(PyObject* fd, unsigned char *out) {
 
     opj_stream_set_read_function(stream, j2k_read);
     opj_stream_set_skip_function(stream, j2k_skip);
+    opj_stream_set_seek_function(stream, j2k_seek);
     opj_stream_set_user_data(stream, fd, NULL);
-    opj_stream_set_user_data_length(stream, 0xffffffff);
+    opj_stream_set_user_data_length(stream, get_input_size(fd));
     //opj_set_error_handler(codec, j2k_error, 00);
 
     // FIXME: should be automatic?
