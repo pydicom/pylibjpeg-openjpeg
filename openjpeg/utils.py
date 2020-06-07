@@ -8,5 +8,5 @@ def get_openjpeg_version():
     version = _openjpeg.get_version().decode('ascii').split('.')
     return tuple([int(ii) for ii in version])
 
-def decode():
-    return _openjpeg.opj_decode()
+def decode(arr, nr_bytes):
+    return _openjpeg.opj_decode(arr, nr_bytes)
