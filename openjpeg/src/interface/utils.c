@@ -49,7 +49,7 @@ typedef struct opj_decompress_params {
     /* force output colorspace to RGB */
     //int force_rgb;
     /** number of threads */
-    int num_threads;
+    //int num_threads;
     /* Quiet */
     //int quiet;
     /** number of components to decode */
@@ -108,18 +108,15 @@ static OPJ_SIZE_T py_read(void *destination, Py_ssize_t nr_bytes, PyObject *fd)
     char* buffer;
     OPJ_SIZE_T length;
     int bytes_result;
-    Py_ssize_t pos;
 
     result = PyObject_CallMethod(fd, "read", "n", nr_bytes);
     bytes_result = PyBytes_AsStringAndSize(result, &buffer, &length);
 
-    if (bytes_result == -1) {
+    if (bytes_result == -1)
         goto error;
-    }
 
-    if (length > nr_bytes) {
+    if (length > nr_bytes)
         goto error;
-    }
 
     memcpy(destination, buffer, length);
 
@@ -237,10 +234,10 @@ static OPJ_UINT64 py_length(PyObject * stream)
 }
 
 
-// OJ
 static void set_default_parameters(opj_decompress_parameters* parameters)
 {
-    if (parameters) {
+    if (parameters)
+    {
         memset(parameters, 0, sizeof(opj_decompress_parameters));
 
         /* default decoding parameters (command line specific) */
@@ -253,14 +250,25 @@ static void set_default_parameters(opj_decompress_parameters* parameters)
 
 static void destroy_parameters(opj_decompress_parameters* parameters)
 {
-    if (parameters) {
+    if (parameters)
+    {
         free(parameters->comps_indices);
         parameters->comps_indices = NULL;
     }
 }
 
 
-extern int get_parameters(PyObject* fd, int codec_format)
+typedef struct JPEG2000Parameters {
+    OPJ_UINT32 columns;  // width in pixels
+    OPJ_UINT32 rows;  // height in pixels
+    OPJ_COLOR_SPACE colourspace;  // the colour space
+    OPJ_UINT32 nr_components;  // number of components
+    OPJ_UINT32 precision;  // precision of the components (in bits)
+    unsigned int is_signed;  // 0 for unsigned, 1 for signed
+} j2k_parameters_t;
+
+
+extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *output)
 {
     /* Decode a JPEG 2000 header for the image meta data.
 
@@ -273,8 +281,14 @@ extern int get_parameters(PyObject* fd, int codec_format)
         * ``0`` - OPJ_CODEC_J2K : JPEG-2000 codestream
         * ``1`` - OPJ_CODEC_JPT : JPT-stream (JPEG 2000, JPIP)
         * ``2`` - OPJ_CODEC_JP2 : JP2 file format
-    */
+    output : j2k_parameters_t *
+        The struct where the parameters will be stored.
 
+    Returns
+    -------
+    int
+        The exit status, 0 for success, failure otherwise.
+    */
     // J2K stream
     opj_stream_t *stream = NULL;
     // struct defining image data and characteristics
@@ -285,11 +299,16 @@ extern int get_parameters(PyObject* fd, int codec_format)
     opj_decompress_parameters parameters;
     set_default_parameters(&parameters);
 
+    int error_code = EXIT_FAILURE;
+
     // Creates an abstract input stream; allocates memory
     stream = opj_stream_create(BUFFER_SIZE, OPJ_TRUE);
 
-    if (!stream) {
-        goto quick_exit;
+    if (!stream)
+    {
+        // Failed to create the input stream
+        error_code = 1;
+        goto failure;
     }
 
     // Functions for the stream
@@ -306,53 +325,34 @@ extern int get_parameters(PyObject* fd, int codec_format)
     /* Setup the decoder parameters */
     if (!opj_setup_decoder(codec, &(parameters.core)))
     {
-        fprintf(stderr, "ERROR -> opj_decompress: failed to setup the decoder\n");
-        goto quick_exit;
-    }
-
-    if (parameters.num_threads >= 1 && !opj_codec_set_threads(codec, parameters.num_threads))
-    {
-        fprintf(stderr, "ERROR -> opj_decompress: failed to set number of threads\n");
-        goto quick_exit;
+        // failed to setup the decoder
+        error_code = 2;
+        goto failure;
     }
 
     /* Read the main header of the codestream and if necessary the JP2 boxes*/
-    // Working! Excellent progress... :p
-    if (! opj_read_header(stream, codec, &image)) {
-        fprintf(stderr, "ERROR -> opj_decompress: failed to read the header\n");
-        goto quick_exit;
-    }
-
-    printf("Number of components: %d\n", image->numcomps);
-    printf("Number of threads: %d\n", parameters.num_threads);
-    printf("Colour space: %d\n", image->color_space);
-    printf("Size: %d x %d\n", image->x1, image->y1);
-    printf("Number of tiles to decode: %d\n", parameters.nb_tile_to_decode);
-
-    for (unsigned int c_index = 0; c_index < image->numcomps; c_index++)
+    if (! opj_read_header(stream, codec, &image))
     {
-        int width = (int)image->comps[c_index].w;
-        int height = (int)image->comps[c_index].h;
-        int precision = (int)image->comps[c_index].prec;
-        int nr_bytes = ((precision + 7) & -8) / 8;
-
-        printf(
-            "Component %u characteristics: %d x %d, %s %d bit, %d byte\n",
-            c_index, width, height,
-            image->comps[c_index].sgnd == 1 ? "signed" : "unsigned",
-            precision,
-            nr_bytes
-        );
+        // failed to read the header
+        error_code = 3;
+        goto failure;
     }
+
+    output->colourspace = image->color_space;
+    output->columns = image->x1;
+    output->rows = image->y1;
+    output->nr_components = image->numcomps;
+    output->precision = (int)image->comps[0].prec;
+    output->is_signed = (int)image->comps[0].sgnd;
 
     destroy_parameters(&parameters);
     opj_destroy_codec(codec);
     opj_image_destroy(image);
     opj_stream_destroy(stream);
 
-    return 1;
+    return EXIT_SUCCESS;
 
-    quick_exit:
+    failure:
         destroy_parameters(&parameters);
         if (codec)
             opj_destroy_codec(codec);
@@ -361,11 +361,11 @@ extern int get_parameters(PyObject* fd, int codec_format)
         if (stream)
             opj_stream_destroy(stream);
 
-        return -1;
+        return error_code;
 }
 
 
-extern int decode(PyObject* fd, unsigned char *out, int codec_format)
+extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
 {
     /* Decode JPEG 2000 data.
 
@@ -380,6 +380,11 @@ extern int decode(PyObject* fd, unsigned char *out, int codec_format)
         * ``0`` - OPJ_CODEC_J2K : JPEG-2000 codestream
         * ``1`` - OPJ_CODEC_JPT : JPT-stream (JPEG 2000, JPIP)
         * ``2`` - OPJ_CODEC_JP2 : JP2 file format
+
+    Returns
+    -------
+    int
+        The exit status, 0 for success, failure otherwise.
     */
 
     // J2K stream
@@ -392,11 +397,16 @@ extern int decode(PyObject* fd, unsigned char *out, int codec_format)
     opj_decompress_parameters parameters;
     set_default_parameters(&parameters);
 
+    int error_code = EXIT_FAILURE;
+
     // Creates an abstract input stream; allocates memory
     stream = opj_stream_create(BUFFER_SIZE, OPJ_TRUE);
 
-    if (!stream) {
-        goto quick_exit;
+    if (!stream)
+    {
+        // Failed to create the input stream
+        error_code = 1;
+        goto failure;
     }
 
     // Functions for the stream
@@ -413,36 +423,29 @@ extern int decode(PyObject* fd, unsigned char *out, int codec_format)
     /* Setup the decoder parameters */
     if (!opj_setup_decoder(codec, &(parameters.core)))
     {
-        fprintf(stderr, "ERROR -> opj_decompress: failed to setup the decoder\n");
-        goto quick_exit;
-    }
-
-    if (parameters.num_threads >= 1 && !opj_codec_set_threads(codec, parameters.num_threads))
-    {
-        fprintf(stderr, "ERROR -> opj_decompress: failed to set number of threads\n");
-        goto quick_exit;
+        // failed to setup the decoder
+        error_code = 2;
+        goto failure;
     }
 
     /* Read the main header of the codestream and if necessary the JP2 boxes*/
-    // Working! Excellent progress... :p
-    if (! opj_read_header(stream, codec, &image)) {
-        fprintf(stderr, "ERROR -> opj_decompress: failed to read the header\n");
-        goto quick_exit;
+    if (! opj_read_header(stream, codec, &image))
+    {
+        // failed to read the header
+        error_code = 3;
+        goto failure;
     }
 
-    printf("Number of components: %d\n", image->numcomps);
-    printf("Number of threads: %d\n", parameters.num_threads);
-    printf("Colour space: %d\n", image->color_space);
-    printf("Size: %d x %d\n", image->x1, image->y1);
-    printf("Number of tiles to decode: %d\n", parameters.nb_tile_to_decode);
-
-    if (parameters.numcomps) {
+    if (parameters.numcomps)
+    {
         if (!opj_set_decoded_components(
-                codec, parameters.numcomps, parameters.comps_indices, OPJ_FALSE
-            ))
+                codec, parameters.numcomps,
+                parameters.comps_indices, OPJ_FALSE)
+            )
         {
-            fprintf(stderr, "ERROR -> opj_decompress: failed to set the component indices!\n");
-            goto quick_exit;
+            // failed to set the component indices
+            error_code = 4;
+            goto failure;
         }
     }
 
@@ -454,15 +457,17 @@ extern int decode(PyObject* fd, unsigned char *out, int codec_format)
             (OPJ_INT32)parameters.DA_y1)
         )
     {
-        fprintf(stderr, "ERROR -> opj_decompress: failed to set the decoded area\n");
-        goto quick_exit;
+        // failed to set the decoded area
+        error_code = 5;
+        goto failure;
     }
 
     /* Get the decoded image */
     if (!(opj_decode(codec, stream, image) && opj_end_decompress(codec, stream)))
     {
-        fprintf(stderr, "ERROR -> opj_decompress: failed to decode image!\n");
-        goto quick_exit;
+        // failed to decode image
+        error_code = 6;
+        goto failure;
     }
 
     for (unsigned int c_index = 0; c_index < image->numcomps; c_index++)
@@ -470,15 +475,6 @@ extern int decode(PyObject* fd, unsigned char *out, int codec_format)
         int width = (int)image->comps[c_index].w;
         int height = (int)image->comps[c_index].h;
         int precision = (int)image->comps[c_index].prec;
-        int nr_bytes = ((precision + 7) & -8) / 8;
-
-        printf(
-            "Component %u characteristics: %d x %d, %s %d bit, %d byte\n",
-            c_index, width, height,
-            image->comps[c_index].sgnd == 1 ? "signed" : "unsigned",
-            precision,
-            nr_bytes
-        );
 
         // Copy image data to the output uint8 numpy array
         // The decoded data type is OPJ_INT32, so we need to convert... ugh!
@@ -521,8 +517,9 @@ extern int decode(PyObject* fd, unsigned char *out, int codec_format)
         }
         else
         {
-            fprintf(stderr, "ERROR -> More than 16-bits per component not implemented\n");
-            goto quick_exit;
+            // Support for more than 16-bits per component is not implemented
+            error_code = 7;
+            goto failure;
         }
     }
 
@@ -531,9 +528,9 @@ extern int decode(PyObject* fd, unsigned char *out, int codec_format)
     opj_image_destroy(image);
     opj_stream_destroy(stream);
 
-    return 1;
+    return EXIT_SUCCESS;
 
-    quick_exit:
+    failure:
         destroy_parameters(&parameters);
         if (codec)
             opj_destroy_codec(codec);
@@ -542,5 +539,5 @@ extern int decode(PyObject* fd, unsigned char *out, int codec_format)
         if (stream)
             opj_stream_destroy(stream);
 
-        return -1;
+        return error_code;
 }

@@ -30,15 +30,15 @@ DIR_15444 = os.path.join(JPEG_DIRECTORY, '15444')
 REF_DCM = {
     '1.2.840.10008.1.2.4.90' : [
         # filename, (rows, columns, samples/px, bits/sample)
-        ('693_J2KR.dcm', (512, 512, 1, 16)),
-        ('966_fixed.dcm', (2128, 2000, 1, 16)),
-        ('emri_small_jpeg_2k_lossless.dcm', (64, 64, 1, 16)),
-        ('explicit_VR-UN.dcm', (512, 512, 1, 16)),
-        ('JPEG2KLossless_1s_1f_u_16_16.dcm', (1416, 1420, 1, 16)),
-        ('MR2_J2KR.dcm', (1024, 1024, 1, 16)),
-        ('MR_small_jp2klossless.dcm', (64, 64, 1, 16)),
-        ('RG1_J2KR.dcm', (1955, 1841, 1, 16)),
-        ('RG3_J2KR.dcm', (1760, 1760, 1, 16)),
+        #('693_J2KR.dcm', (512, 512, 1, 16)),
+        #('966_fixed.dcm', (2128, 2000, 1, 16)),
+        #('emri_small_jpeg_2k_lossless.dcm', (64, 64, 1, 16)),
+        #('explicit_VR-UN.dcm', (512, 512, 1, 16)),
+        #('JPEG2KLossless_1s_1f_u_16_16.dcm', (1416, 1420, 1, 16)),
+        #('MR2_J2KR.dcm', (1024, 1024, 1, 16)),
+        #('MR_small_jp2klossless.dcm', (64, 64, 1, 16)),
+        #('RG1_J2KR.dcm', (1955, 1841, 1, 16)),
+        #('RG3_J2KR.dcm', (1760, 1760, 1, 16)),
         ('US1_J2KR.dcm', (480, 640, 3, 8)),
     ],
     '1.2.840.10008.1.2.4.91' : [
@@ -72,19 +72,23 @@ def test_get_parameters():
     ds = index['MR2_J2KR.dcm']['ds']
     frame = next(generate_frames(ds))
     result = get_parameters(BytesIO(frame))
+    print(result)
 
     ds = index['US1_J2KR.dcm']['ds']
     frame = next(generate_frames(ds))
     result = get_parameters(BytesIO(frame))
+    print(result)
 
     index = get_indexed_datasets('1.2.840.10008.1.2.4.91')
     ds = index['SC_rgb_gdcm_KY.dcm']['ds']
     frame = next(generate_frames(ds))
     result = get_parameters(BytesIO(frame))
+    print(result)
 
     ds = index['US1_J2KI.dcm']['ds']
     frame = next(generate_frames(ds))
     result = get_parameters(BytesIO(frame))
+    print(result)
 
 
 @pytest.mark.skipif(not HAS_PYDICOM, reason="No pydicom")
@@ -103,18 +107,14 @@ class TestDecodeDCM(object):
         ds = index[fname]['ds']
 
         frame = next(self.generate_frames(ds))
-        length = get_expected_length(ds)
-        nr_frames = getattr(ds, 'NumberOfFrames', 1)
-        length = length // nr_frames
-        result, arr = decode(BytesIO(frame), length)
+        arr = decode(BytesIO(frame), reshape=False)
 
         ds.NumberOfFrames = 1
         arr = arr.view(pixel_dtype(ds))
         if ds.SamplesPerPixel == 1:
             arr = reshape_pixel_array(ds, arr)
         else:
-            arr = arr.reshape(ds.SamplesPerPixel, ds.Rows, ds.Columns)
-            arr = arr.transpose(1, 2, 0)
+            arr = arr.reshape(ds.Rows, ds.Columns, ds.SamplesPerPixel)
 
         plt.imshow(arr)
         plt.show()
@@ -138,7 +138,7 @@ class TestDecodeDCM(object):
         ds = index[fname]['ds']
 
         frame = next(self.generate_frames(ds))
-        result, arr = decode(BytesIO(frame), get_expected_length(ds))
+        arr = decode(BytesIO(frame))
 
         arr = arr.view(pixel_dtype(ds))
         if ds.SamplesPerPixel == 1:
