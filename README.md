@@ -4,7 +4,7 @@ A Python 3.6+ wrapper for
 [openjpeg](https://github.com/uclouvain/openjpeg), with a focus on use as a
 plugin for [pylibjpeg](http://github.com/pydicom/pylibjpeg).
 
-Linux, OSX and Windows will all supported.
+Linux, OSX and Windows will all be supported.
 
 ### Installation
 #### Dependencies

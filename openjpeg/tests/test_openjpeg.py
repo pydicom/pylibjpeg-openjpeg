@@ -20,7 +20,7 @@ import numpy as np
 import pytest
 
 import openjpeg
-from openjpeg.utils import get_openjpeg_version, decode
+from openjpeg.utils import get_openjpeg_version, decode, get_parameters
 
 from openjpeg.data import get_indexed_datasets, JPEG_DIRECTORY
 
@@ -29,11 +29,12 @@ DIR_15444 = os.path.join(JPEG_DIRECTORY, '15444')
 
 REF_DCM = {
     '1.2.840.10008.1.2.4.90' : [
+        # filename, (rows, columns, samples/px, bits/sample)
         ('693_J2KR.dcm', (512, 512, 1, 16)),
         ('966_fixed.dcm', (2128, 2000, 1, 16)),
         ('emri_small_jpeg_2k_lossless.dcm', (64, 64, 1, 16)),
-        ('explicit_VR-UN.dcm', (512, 512, 1, 16)),  # orientation?
-        ('JPEG2KLossless_1s_1f_u_16_16.dcm', (1416, 1420, 1, 16)),  # blank?
+        ('explicit_VR-UN.dcm', (512, 512, 1, 16)),
+        ('JPEG2KLossless_1s_1f_u_16_16.dcm', (1416, 1420, 1, 16)),
         ('MR2_J2KR.dcm', (1024, 1024, 1, 16)),
         ('MR_small_jp2klossless.dcm', (64, 64, 1, 16)),
         ('RG1_J2KR.dcm', (1955, 1841, 1, 16)),
@@ -41,7 +42,6 @@ REF_DCM = {
         ('US1_J2KR.dcm', (480, 640, 3, 8)),
     ],
     '1.2.840.10008.1.2.4.91' : [
-        # filename, (rows, columns, samples/px, bits/sample)
         ('693_J2KI.dcm', (512, 512, 1, 16)),
         ('JPEG2000.dcm', (1024, 256, 1, 16)),
         ('MR2_J2KI.dcm', (1024, 1024, 1, 16)),
@@ -60,6 +60,31 @@ def test_version():
     assert isinstance(version[0], int)
     assert 3 == len(version)
     assert 2 == version[0]
+
+
+def generate_frames(ds):
+    nr_frames = ds.get('NumberOfFrames', 1)
+    return generate_pixel_data_frame(ds.PixelData, nr_frames)
+
+
+def test_get_parameters():
+    index = get_indexed_datasets('1.2.840.10008.1.2.4.90')
+    ds = index['MR2_J2KR.dcm']['ds']
+    frame = next(generate_frames(ds))
+    result = get_parameters(BytesIO(frame))
+
+    ds = index['US1_J2KR.dcm']['ds']
+    frame = next(generate_frames(ds))
+    result = get_parameters(BytesIO(frame))
+
+    index = get_indexed_datasets('1.2.840.10008.1.2.4.91')
+    ds = index['SC_rgb_gdcm_KY.dcm']['ds']
+    frame = next(generate_frames(ds))
+    result = get_parameters(BytesIO(frame))
+
+    ds = index['US1_J2KI.dcm']['ds']
+    frame = next(generate_frames(ds))
+    result = get_parameters(BytesIO(frame))
 
 
 @pytest.mark.skipif(not HAS_PYDICOM, reason="No pydicom")

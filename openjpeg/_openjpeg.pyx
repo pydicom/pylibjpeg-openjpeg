@@ -13,8 +13,8 @@ cimport numpy as np
 #cdef extern from "Jpeg2KDecode.c":
 #cdef extern from "utils.c":
 cdef extern char* OpenJpegVersion()
-cdef extern int decode(void* fp, unsigned char* out)
-cdef extern int read_data(PyObject* fp, char* destination, int nr_bytes)
+cdef extern int decode(void* fp, unsigned char* out, int codec)
+cdef extern int get_parameters(void* fp, int codec)
 
 
 def get_version():
@@ -23,11 +23,18 @@ def get_version():
 
     return version
 
-def opj_decode(fp, nr_bytes):
+def opj_decode(fp, nr_bytes, codec=0):
     cdef PyObject* ptr = <PyObject*>fp
     output_buffer = np.zeros(nr_bytes, dtype=np.uint8)
     cdef unsigned char *p_out = <unsigned char *>np.PyArray_DATA(output_buffer)
 
-    cdef int result = decode(ptr, p_out)
+    cdef int result = decode(ptr, p_out, codec)
 
     return result, output_buffer
+
+def opj_get_parameters(fp, codec=0):
+    cdef PyObject* ptr = <PyObject*>fp
+
+    cdef int result = get_parameters(ptr, codec)
+
+    return result
