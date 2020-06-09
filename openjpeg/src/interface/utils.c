@@ -1,3 +1,46 @@
+/*
+
+py_read, py_seek, py_skip and py_tell are adapted from
+Pillow/src/libimaging.codec_fd.c which is licensed under the PIL Software
+License:
+
+The Python Imaging Library (PIL) is
+
+    Copyright © 1997-2011 by Secret Labs AB
+    Copyright © 1995-2011 by Fredrik Lundh
+
+Pillow is the friendly PIL fork. It is
+
+    Copyright © 2010-2020 by Alex Clark and contributors
+
+Like PIL, Pillow is licensed under the open source PIL Software License:
+
+By obtaining, using, and/or copying this software and/or its associated
+documentation, you agree that you have read, understood, and will comply
+with the following terms and conditions:
+
+Permission to use, copy, modify, and distribute this software and its
+associated documentation for any purpose and without fee is hereby granted,
+provided that the above copyright notice appears in all copies, and that
+both that copyright notice and this permission notice appear in supporting
+documentation, and that the name of Secret Labs AB or the author not be
+used in advertising or publicity pertaining to distribution of the software
+without specific, written prior permission.
+
+SECRET LABS AB AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS
+SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
+IN NO EVENT SHALL SECRET LABS AB OR THE AUTHOR BE LIABLE FOR ANY SPECIAL,
+INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+
+------------------------------------------------------------------------------
+
+Bits and pieces of the rest are adapted from
+openjpeg/src/bin/jp2/opj_decompress.c which is licensed under the 2-clause BSD
+license (see the main LICENSE file).
+*/
 
 #include "Python.h"
 #include <stdlib.h>
@@ -81,6 +124,8 @@ static Py_ssize_t py_tell(PyObject *stream)
     location = PyLong_AsSsize_t(result);
 
     Py_DECREF(result);
+
+    //printf("py_tell(): %u\n", location);
     return location;
 }
 
@@ -101,8 +146,9 @@ static OPJ_SIZE_T py_read(void *destination, OPJ_SIZE_T nr_bytes, void *fd)
 
     Returns
     -------
-    int
-        The number of bytes read or -1 if reading failed.
+    OPJ_SIZE_T
+        The number of bytes read or -1 if reading failed or if trying to read
+        while at the end of the data.
     */
     PyObject* result;
     char* buffer;
@@ -115,22 +161,30 @@ static OPJ_SIZE_T py_read(void *destination, OPJ_SIZE_T nr_bytes, void *fd)
     // Returns the null-terminated contents of `result`
     // `length` is Py_ssize_t *
     // `buffer` is char **
+    // If `length` is NULL, returns -1
     bytes_result = PyBytes_AsStringAndSize(result, &buffer, &length);
 
-    // Convert Py_ssize_t to OPJ_SIZE_T
-    PyObject *as_long = PyLong_FromSsize_t(length);
-    OPJ_SIZE_T as_size_t = (OPJ_SIZE_T)(PyLong_AsUnsignedLong(as_long));
-
+    // `length` is NULL
     if (bytes_result == -1)
         goto error;
 
-    if (as_size_t > nr_bytes)
+    // More bytes read then asked for
+    if (length > (long)(nr_bytes))
         goto error;
 
-    memcpy(destination, buffer, as_size_t);
+    // Convert `length` to OPJ_SIZE_T - shouldn't have negative lengths
+    if (length < 0)
+        goto error;
+
+    OPJ_SIZE_T len_size_t = (OPJ_SIZE_T)(length);
+
+    // memcpy(void *dest, const void *src, size_t n)
+    memcpy(destination, buffer, len_size_t);
+
+    //printf("py_read(): %u bytes asked, %u bytes read\n", nr_bytes, len_size_t);
 
     Py_DECREF(result);
-    return as_size_t;
+    return len_size_t ? len_size_t: (OPJ_SIZE_T)-1;
 
 error:
     Py_DECREF(result);
@@ -155,12 +209,15 @@ static OPJ_BOOL py_seek(OPJ_OFF_T offset, void *stream, int whence)
     -------
     OPJ_TRUE : OBJ_BOOL
     */
-    // Python and C; SEEK_SET is 0:
-    // n: convert C Py_ssize_t to a Python integer
+    // Python and C; SEEK_SET is 0, SEEK_CUR is 1 and SEEK_END is 2
+    // fd.seek(nr_bytes),
+    // k: convert C unsigned long int to Python int
     // i: convert C int to a Python integer
     PyObject *result;
-    result = PyObject_CallMethod(stream, "seek", "ni", offset, whence);
+    result = PyObject_CallMethod(stream, "seek", "ki", offset, whence);
     Py_DECREF(result);
+
+    //printf("py_seek(): offset %u bytes from %u\n", offset, whence);
 
     return OPJ_TRUE;
 }
@@ -273,6 +330,7 @@ typedef struct JPEG2000Parameters {
     OPJ_UINT32 nr_components;  // number of components
     OPJ_UINT32 precision;  // precision of the components (in bits)
     unsigned int is_signed;  // 0 for unsigned, 1 for signed
+    OPJ_UINT32 nr_tiles;  // number of tiles
 } j2k_parameters_t;
 
 
@@ -326,8 +384,6 @@ extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *outpu
     opj_stream_set_user_data(stream, fd, NULL);
     opj_stream_set_user_data_length(stream, py_length(fd));
 
-    //opj_set_error_handler(codec, j2k_error, 00);
-
     codec = opj_create_decompress(codec_format);
 
     /* Setup the decoder parameters */
@@ -339,7 +395,7 @@ extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *outpu
     }
 
     /* Read the main header of the codestream and if necessary the JP2 boxes*/
-    if (! opj_read_header(stream, codec, &image))
+    if (!opj_read_header(stream, codec, &image))
     {
         // failed to read the header
         error_code = 3;
@@ -352,6 +408,7 @@ extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *outpu
     output->nr_components = image->numcomps;
     output->precision = (int)image->comps[0].prec;
     output->is_signed = (int)image->comps[0].sgnd;
+    output->nr_tiles = parameters.nb_tile_to_decode;
 
     destroy_parameters(&parameters);
     opj_destroy_codec(codec);
@@ -394,7 +451,6 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     int
         The exit status, 0 for success, failure otherwise.
     */
-
     // J2K stream
     opj_stream_t *stream = NULL;
     // struct defining image data and characteristics

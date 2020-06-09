@@ -15,6 +15,7 @@ cdef extern struct JPEG2000Parameters:
     uint32_t nr_components
     uint32_t precision
     unsigned int is_signed
+    uint32_t nr_tiles
 
 cdef extern char* OpenJpegVersion()
 cdef extern int Decode(void* fp, unsigned char* out, int codec)
@@ -48,7 +49,7 @@ def decode(fp, codec=0):
     numpy.ndarray
         An ndarray of uint8 containing the decoded image data.
     """
-    param = get_parameters(fp)
+    param = get_parameters(fp, codec)
     bpp = ceil(param['precision'] / 8)
     nr_bytes = param['rows'] * param['columns'] * param['nr_components'] * bpp
 
@@ -83,9 +84,9 @@ def get_parameters(fp, codec=0):
     dict
         A :class:`dict` containing the J2K image parameters:
         ``{'columns': int, 'rows': int, 'colourspace': str,
-        'nr_components: int, 'precision': int, `is_signed`: bool}``. Possible
-        colour spaces are "unknown", "unspecified", "sRGB", "monochrome",
-        "YUV", "e-YCC" and "CYMK".
+        'nr_components: int, 'precision': int, `is_signed`: bool,
+        'nr_tiles: int'}``. Possible colour spaces are "unknown",
+        "unspecified", "sRGB", "monochrome", "YUV", "e-YCC" and "CYMK".
     """
     cdef JPEG2000Parameters param
     param.columns = 0
@@ -94,6 +95,7 @@ def get_parameters(fp, codec=0):
     param.nr_components = 0
     param.precision = 0
     param.is_signed = 0
+    param.nr_tiles = 0
 
     # Pointer to the JPEGParameters object
     cdef JPEG2000Parameters *p_param = &param
@@ -105,7 +107,7 @@ def get_parameters(fp, codec=0):
     result = GetParameters(ptr, codec, p_param)
 
     if result != 0:
-        raise RuntimeError("Error reading J2K header")
+        raise RuntimeError(f"Error reading J2K header: {result}")
 
     # From openjpeg.h#L309
     colours = {
@@ -130,6 +132,7 @@ def get_parameters(fp, codec=0):
         'nr_components' : param.nr_components,
         'precision' : param.precision,
         'is_signed' : bool(param.is_signed),
+        'nr_tiles' : param.nr_tiles,
     }
 
     return parameters
