@@ -1,4 +1,5 @@
 
+from math import ceil
 
 import _openjpeg
 
@@ -44,7 +45,7 @@ def decode(stream, codec_format=0, reshape=True):
     if not reshape:
         return arr
 
-    meta = _libjpeg.decode(stream, codec_format)
+    meta = _openjpeg.get_parameters(stream, codec_format)
     bpp = ceil(meta["precision"] / 8)
 
     dtype = f"uint{8 * bpp}"

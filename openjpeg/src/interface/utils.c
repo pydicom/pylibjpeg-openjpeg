@@ -85,7 +85,7 @@ static Py_ssize_t py_tell(PyObject *stream)
 }
 
 
-static OPJ_SIZE_T py_read(void *destination, Py_ssize_t nr_bytes, PyObject *fd)
+static OPJ_SIZE_T py_read(void *destination, OPJ_SIZE_T nr_bytes, void *fd)
 {
     /* Read `nr_bytes` from Python object `fd` and copy it to `destination`.
 
@@ -93,7 +93,7 @@ static OPJ_SIZE_T py_read(void *destination, Py_ssize_t nr_bytes, PyObject *fd)
     ----------
     destination : void *
         The object where the read data will be copied.
-    nr_bytes : Py_ssize_t
+    nr_bytes : OPJ_SIZE_T
         The number of bytes to be read.
     fd : PyObject *
         The Python file-like to read the data from (must have a ``read()``
@@ -106,31 +106,39 @@ static OPJ_SIZE_T py_read(void *destination, Py_ssize_t nr_bytes, PyObject *fd)
     */
     PyObject* result;
     char* buffer;
-    OPJ_SIZE_T length;
+    Py_ssize_t length;
     int bytes_result;
 
-    result = PyObject_CallMethod(fd, "read", "n", nr_bytes);
+    // Py_ssize_t: signed int samed size as size_t
+    // fd.read(nr_bytes), "k" => C unsigned long int to Python int
+    result = PyObject_CallMethod(fd, "read", "k", nr_bytes);
+    // Returns the null-terminated contents of `result`
+    // `length` is Py_ssize_t *
+    // `buffer` is char **
     bytes_result = PyBytes_AsStringAndSize(result, &buffer, &length);
+
+    // Convert Py_ssize_t to OPJ_SIZE_T
+    PyObject *as_long = PyLong_FromSsize_t(length);
+    OPJ_SIZE_T as_size_t = (OPJ_SIZE_T)(PyLong_AsUnsignedLong(as_long));
 
     if (bytes_result == -1)
         goto error;
 
-    if (length > nr_bytes)
+    if (as_size_t > nr_bytes)
         goto error;
 
-    memcpy(destination, buffer, length);
+    memcpy(destination, buffer, as_size_t);
 
     Py_DECREF(result);
-    return length;
+    return as_size_t;
 
 error:
-    //printf("read_data::Error reading data");
     Py_DECREF(result);
     return -1;
 }
 
 
-static OPJ_BOOL py_seek(OPJ_OFF_T offset, PyObject *stream, int whence)
+static OPJ_BOOL py_seek(OPJ_OFF_T offset, void *stream, int whence)
 {
     /* Change the `stream` position to the given `offset` from `whence`.
 
@@ -158,7 +166,7 @@ static OPJ_BOOL py_seek(OPJ_OFF_T offset, PyObject *stream, int whence)
 }
 
 
-static OPJ_BOOL py_seek_set(OPJ_OFF_T offset, PyObject *stream)
+static OPJ_BOOL py_seek_set(OPJ_OFF_T offset, void *stream)
 {
     /* Change the `stream` position to the given `offset` from SEEK_SET.
 
@@ -184,7 +192,7 @@ static OPJ_BOOL py_seek_set(OPJ_OFF_T offset, PyObject *stream)
 }
 
 
-static OPJ_OFF_T py_skip(OPJ_OFF_T offset, PyObject *stream)
+static OPJ_OFF_T py_skip(OPJ_OFF_T offset, void *stream)
 {
     /* Change the `stream` position by `offset` from SEEK_CUR and return the
     new position.
@@ -396,6 +404,8 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     // Setup decompression parameters
     opj_decompress_parameters parameters;
     set_default_parameters(&parameters);
+    // Array of pointers to the first element of each component
+    int **p_component = NULL;
 
     int error_code = EXIT_FAILURE;
 
@@ -436,6 +446,8 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
         goto failure;
     }
 
+    // TODO: add check that all components match
+
     if (parameters.numcomps)
     {
         if (!opj_set_decoded_components(
@@ -470,59 +482,75 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
         goto failure;
     }
 
-    for (unsigned int c_index = 0; c_index < image->numcomps; c_index++)
+    // Set our component pointers
+    const unsigned int NR_COMPONENTS = image->numcomps;  // 15444-1 A.5.1
+    p_component = malloc(NR_COMPONENTS);
+    for (unsigned int ii = 0; ii < NR_COMPONENTS; ii++)
     {
-        int width = (int)image->comps[c_index].w;
-        int height = (int)image->comps[c_index].h;
-        int precision = (int)image->comps[c_index].prec;
+        p_component[ii] = image->comps[ii].data;
+    }
 
-        // Copy image data to the output uint8 numpy array
-        // The decoded data type is OPJ_INT32, so we need to convert... ugh!
-        int *ptr = image->comps[c_index].data;
-        int mask = (1 << precision) - 1;
+    int width = (int)image->comps[0].w;
+    int height = (int)image->comps[0].h;
+    int precision = (int)image->comps[0].prec;
+    int mask = (1 << precision) - 1;
 
+    // Our output should have planar configuration of 0, i.e. for RGB data
+    //  we have R1, B1, G1 | R2, G2, B2 | ..., where 1 is the first pixel,
+    //  2 the second, etc
+    // See DICOM Standard, Part 3, Annex C.7.6.3.1.3
+    if (precision <= 8)
+    {
+        // 8-bit signed/unsigned
+        for (int row = 0; row < height; row++)
+        {
+            for (int col = 0; col < width; col++)
+            {
+                for (unsigned int ii = 0; ii < NR_COMPONENTS; ii++)
+                {
+                    *out = (unsigned char)(*p_component[ii] & mask);
+                    out++;
+                    p_component[ii]++;
+                }
+            }
+        }
+    }
+    else if (precision <= 16)
+    {
         union {
             unsigned short val;
             unsigned char vals[2];
         } u16;
 
-        if (precision <= 8)
+        // 16-bit signed/unsigned
+        for (int row = 0; row < height; row++)
         {
-            // 8-bit signed/unsigned
-            for (int row = 0; row < height; row++)
+            for (int col = 0; col < width; col++)
             {
-                for (int col = 0; col < width; col++)
+                for (unsigned int ii = 0; ii < NR_COMPONENTS; ii++)
                 {
-                    *out = (unsigned char)(*ptr & mask);
-                    out++;
-                    ptr++;
-                }
-            }
-        }
-        else if (precision <= 16)
-        {
-            // 16-bit signed/unsigned
-            for (int row = 0; row < height; row++)
-            {
-                for (int col = 0; col < width; col++)
-                {
-                    u16.val = (unsigned short)(*ptr & mask);
+                    u16.val = (unsigned short)(*p_component[ii] & mask);
                     *out = u16.vals[0];
                     out++;
                     *out = u16.vals[1];
                     out++;
-                    ptr++;
+                    p_component[ii]++;
                 }
             }
         }
-        else
-        {
-            // Support for more than 16-bits per component is not implemented
-            error_code = 7;
-            goto failure;
-        }
+    }
+    else
+    {
+        // Support for more than 16-bits per component is not implemented
+        error_code = 7;
+        goto failure;
     }
 
+    if (p_component)
+    {
+        free(p_component);
+        p_component = NULL;
+    }
     destroy_parameters(&parameters);
     opj_destroy_codec(codec);
     opj_image_destroy(image);
@@ -531,6 +559,11 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     return EXIT_SUCCESS;
 
     failure:
+        if (p_component)
+        {
+            free(p_component);
+            p_component = NULL;
+        }
         destroy_parameters(&parameters);
         if (codec)
             opj_destroy_codec(codec);

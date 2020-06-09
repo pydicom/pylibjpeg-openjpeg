@@ -29,26 +29,26 @@ DIR_15444 = os.path.join(JPEG_DIRECTORY, '15444')
 
 REF_DCM = {
     '1.2.840.10008.1.2.4.90' : [
-        # filename, (rows, columns, samples/px, bits/sample)
-        #('693_J2KR.dcm', (512, 512, 1, 16)),
-        #('966_fixed.dcm', (2128, 2000, 1, 16)),
-        #('emri_small_jpeg_2k_lossless.dcm', (64, 64, 1, 16)),
-        #('explicit_VR-UN.dcm', (512, 512, 1, 16)),
-        #('JPEG2KLossless_1s_1f_u_16_16.dcm', (1416, 1420, 1, 16)),
-        #('MR2_J2KR.dcm', (1024, 1024, 1, 16)),
-        #('MR_small_jp2klossless.dcm', (64, 64, 1, 16)),
-        #('RG1_J2KR.dcm', (1955, 1841, 1, 16)),
-        #('RG3_J2KR.dcm', (1760, 1760, 1, 16)),
-        ('US1_J2KR.dcm', (480, 640, 3, 8)),
+        # filename, (rows, columns, samples/px, bits/sample, signed?)
+        ('693_J2KR.dcm', (512, 512, 1, 16, True)),
+        ('966_fixed.dcm', (2128, 2000, 1, 16, False)),
+        ('emri_small_jpeg_2k_lossless.dcm', (64, 64, 1, 16, False)),
+        ('explicit_VR-UN.dcm', (512, 512, 1, 16, True)),
+        ('JPEG2KLossless_1s_1f_u_16_16.dcm', (1416, 1420, 1, 16, False)),
+        ('MR2_J2KR.dcm', (1024, 1024, 1, 16, False)),
+        ('MR_small_jp2klossless.dcm', (64, 64, 1, 16, True)),
+        ('RG1_J2KR.dcm', (1955, 1841, 1, 16, False)),
+        ('RG3_J2KR.dcm', (1760, 1760, 1, 16, False)),
+        ('US1_J2KR.dcm', (480, 640, 3, 8, False)),
     ],
     '1.2.840.10008.1.2.4.91' : [
-        ('693_J2KI.dcm', (512, 512, 1, 16)),
-        ('JPEG2000.dcm', (1024, 256, 1, 16)),
-        ('MR2_J2KI.dcm', (1024, 1024, 1, 16)),
-        ('RG1_J2KI.dcm', (1955, 1841, 1, 16)),
-        ('RG3_J2KI.dcm', (1760, 1760, 1, 16)),
-        ('SC_rgb_gdcm_KY.dcm', (100, 100, 3, 8)),
-        ('US1_J2KI.dcm', (480, 640, 3, 8)),
+        ('693_J2KI.dcm', (512, 512, 1, 16, True)),
+        ('JPEG2000.dcm', (1024, 256, 1, 16, True)),
+        ('MR2_J2KI.dcm', (1024, 1024, 1, 16, False)),
+        ('RG1_J2KI.dcm', (1955, 1841, 1, 16, False)),
+        ('RG3_J2KI.dcm', (1760, 1760, 1, 16, False)),
+        ('SC_rgb_gdcm_KY.dcm', (100, 100, 3, 8, False)),
+        ('US1_J2KI.dcm', (480, 640, 3, 8, False)),
     ],
 }
 
@@ -105,30 +105,31 @@ class TestDecodeDCM(object):
         #info: (rows, columns, spp, bps)
         index = get_indexed_datasets('1.2.840.10008.1.2.4.90')
         ds = index[fname]['ds']
-
         frame = next(self.generate_frames(ds))
         arr = decode(BytesIO(frame), reshape=False)
 
         ds.NumberOfFrames = 1
         arr = arr.view(pixel_dtype(ds))
-        if ds.SamplesPerPixel == 1:
-            arr = reshape_pixel_array(ds, arr)
+        arr = reshape_pixel_array(ds, arr)
+
+        #plt.imshow(arr)
+        #plt.show()
+
+        if info[2] == 1:
+            assert (info[0], info[1]) == arr.shape
         else:
-            arr = arr.reshape(ds.Rows, ds.Columns, ds.SamplesPerPixel)
+            assert (info[0], info[1], info[2]) == arr.shape
 
-        plt.imshow(arr)
-        plt.show()
-
-
-        #if info[2] == 1:
-        #    assert (info[0], info[1]) == arr.shape
-        #else:
-        #    assert (info[0], info[1], info[2]) == arr.shape
-
-        #if 1 <= info[3] <= 8:
-        #    assert arr.dtype == 'uint8'
-        #if 9 <= info[3] <= 16:
-        #    assert arr.dtype == 'uint16'
+        if 1 <= info[3] <= 8:
+            if info[4] == 1:
+                assert arr.dtype == 'int8'
+            else:
+                assert arr.dtype == 'uint8'
+        if 9 <= info[3] <= 16:
+            if info[4] == 1:
+                assert arr.dtype == 'int16'
+            else:
+                assert arr.dtype == 'uint16'
 
     @pytest.mark.parametrize("fname, info", REF_DCM['1.2.840.10008.1.2.4.91'])
     def test_jpeg2000i(self, fname, info):
@@ -138,25 +139,27 @@ class TestDecodeDCM(object):
         ds = index[fname]['ds']
 
         frame = next(self.generate_frames(ds))
-        arr = decode(BytesIO(frame))
+        arr = decode(BytesIO(frame), reshape=False)
 
+        ds.NumberOfFrames = 1
         arr = arr.view(pixel_dtype(ds))
-        if ds.SamplesPerPixel == 1:
-            arr = reshape_pixel_array(ds, arr)
+        arr = reshape_pixel_array(ds, arr)
+
+        #plt.imshow(arr)
+        #plt.show()
+
+        if info[2] == 1:
+            assert (info[0], info[1]) == arr.shape
         else:
-            arr = arr.reshape(ds.SamplesPerPixel, ds.Rows, ds.Columns)
-            arr = arr.transpose(1, 2, 0)
+            assert (info[0], info[1], info[2]) == arr.shape
 
-        plt.imshow(arr)
-        plt.show()
-
-
-        #if info[2] == 1:
-        #    assert (info[0], info[1]) == arr.shape
-        #else:
-        #    assert (info[0], info[1], info[2]) == arr.shape
-
-        #if 1 <= info[3] <= 8:
-        #    assert arr.dtype == 'uint8'
-        #if 9 <= info[3] <= 16:
-        #    assert arr.dtype == 'uint16'
+        if 1 <= info[3] <= 8:
+            if info[4] == 1:
+                assert arr.dtype == 'int8'
+            else:
+                assert arr.dtype == 'uint8'
+        if 9 <= info[3] <= 16:
+            if info[4] == 1:
+                assert arr.dtype == 'int16'
+            else:
+                assert arr.dtype == 'uint16'
