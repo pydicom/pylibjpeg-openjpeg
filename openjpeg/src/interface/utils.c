@@ -1,43 +1,77 @@
+/*
+
+py_read, py_seek, py_skip and py_tell are adapted from
+Pillow/src/libimaging.codec_fd.c which is licensed under the PIL Software
+License:
+
+The Python Imaging Library (PIL) is
+
+    Copyright © 1997-2011 by Secret Labs AB
+    Copyright © 1995-2011 by Fredrik Lundh
+
+Pillow is the friendly PIL fork. It is
+
+    Copyright © 2010-2020 by Alex Clark and contributors
+
+Like PIL, Pillow is licensed under the open source PIL Software License:
+
+By obtaining, using, and/or copying this software and/or its associated
+documentation, you agree that you have read, understood, and will comply
+with the following terms and conditions:
+
+Permission to use, copy, modify, and distribute this software and its
+associated documentation for any purpose and without fee is hereby granted,
+provided that the above copyright notice appears in all copies, and that
+both that copyright notice and this permission notice appear in supporting
+documentation, and that the name of Secret Labs AB or the author not be
+used in advertising or publicity pertaining to distribution of the software
+without specific, written prior permission.
+
+SECRET LABS AB AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS
+SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
+IN NO EVENT SHALL SECRET LABS AB OR THE AUTHOR BE LIABLE FOR ANY SPECIAL,
+INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+
+------------------------------------------------------------------------------
+
+Bits and pieces of the rest are adapted from
+openjpeg/src/bin/jp2/opj_decompress.c which is licensed under the 2-clause BSD
+license (see the main LICENSE file).
+*/
 
 #include "Python.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include "utils.h"
+#include <../openjpeg/src/lib/openjp2/openjpeg.h>
 
 
+// Size of the buffer for the input stream
 #define BUFFER_SIZE OPJ_J2K_STREAM_CHUNK_SIZE
 
 
 const char * OpenJpegVersion(void)
 {
-    // return the openjpeg version as char array
+    /* Return the openjpeg version as char array
+
+    Returns
+    -------
+    char *
+        The openjpeg version as MAJOR.MINOR.PATCH
+    */
     return opj_version();
 }
 
-typedef enum opj_prec_mode {
-    OPJ_PREC_MODE_CLIP,
-    OPJ_PREC_MODE_SCALE
-} opj_precision_mode;
 
-typedef struct opj_prec {
-    OPJ_UINT32         prec;
-    opj_precision_mode mode;
-} opj_precision;
-
+// parameters for decoding
 typedef struct opj_decompress_params {
     /** core library parameters */
     opj_dparameters_t core;
 
-    /** input file name */
-    char infile[OPJ_PATH_LEN];
-    /** output file name */
-    char outfile[OPJ_PATH_LEN];
     /** input file format 0: J2K, 1: JP2, 2: JPT */
     int decod_format;
-    /** output file format 0: PGX, 1: PxM, 2: BMP */
-    int cod_format;
-    /** index file name */
-    char indexfilename[OPJ_PATH_LEN];
 
     /** Decoding area left boundary */
     OPJ_UINT32 DA_x0;
@@ -55,19 +89,12 @@ typedef struct opj_decompress_params {
     /** Nb of tile to decode */
     OPJ_UINT32 nb_tile_to_decode;
 
-    opj_precision* precision;
-    OPJ_UINT32     nb_precision;
-
     /* force output colorspace to RGB */
-    int force_rgb;
-    /* upsample components according to their dx/dy values */
-    int upsample;
-    /* split output components to different files */
-    int split_pnm;
+    //int force_rgb;
     /** number of threads */
-    int num_threads;
+    //int num_threads;
     /* Quiet */
-    int quiet;
+    //int quiet;
     /** number of components to decode */
     OPJ_UINT32 numcomps;
     /** indices of components to decode */
@@ -75,203 +102,418 @@ typedef struct opj_decompress_params {
 } opj_decompress_parameters;
 
 
-enum {
-    J2K_STATE_START = 0,
-    J2K_STATE_DECODING = 1,
-    J2K_STATE_DONE = 2,
-    J2K_STATE_FAILED = 3,
-    IMAGING_CODEC_BROKEN = -1,
-};
-
-
-
-typedef struct {
-    OPJ_INT8 error_code;
-    OPJ_INT8 state;
-    //OPJ_UINT32 data_size;
-    //OPJ_INT32  x0, y0, x1, y1;
-    //OPJ_UINT32 nb_comps;
-} CodecState;
-
-
-Py_ssize_t read_data(PyObject* fd, char* destination, Py_ssize_t nr_bytes)
+// Python stream methods
+static Py_ssize_t py_tell(PyObject *stream)
 {
+    /* Return the current position of the `stream`.
+
+    Parameters
+    ----------
+    stream : PyObject *
+        The Python stream object to use (must have a ``tell()`` method).
+
+    Returns
+    -------
+    Py_ssize_t
+        The new position in the `stream`.
+    */
+    PyObject *result;
+    Py_ssize_t location;
+
+    result = PyObject_CallMethod(stream, "tell", NULL);
+    location = PyLong_AsSsize_t(result);
+
+    Py_DECREF(result);
+
+    //printf("py_tell(): %u\n", location);
+    return location;
+}
+
+
+static OPJ_SIZE_T py_read(void *destination, OPJ_SIZE_T nr_bytes, void *fd)
+{
+    /* Read `nr_bytes` from Python object `fd` and copy it to `destination`.
+
+    Parameters
+    ----------
+    destination : void *
+        The object where the read data will be copied.
+    nr_bytes : OPJ_SIZE_T
+        The number of bytes to be read.
+    fd : PyObject *
+        The Python file-like to read the data from (must have a ``read()``
+        method).
+
+    Returns
+    -------
+    OPJ_SIZE_T
+        The number of bytes read or -1 if reading failed or if trying to read
+        while at the end of the data.
+    */
     PyObject* result;
     char* buffer;
     Py_ssize_t length;
     int bytes_result;
 
-    printf("read_data::Reading %d bytes from input\n", nr_bytes);
-
-    result = PyObject_CallMethod(fd, "read", "n", BUFFER_SIZE);
+    // Py_ssize_t: signed int samed size as size_t
+    // fd.read(nr_bytes), "k" => C unsigned long int to Python int
+    result = PyObject_CallMethod(fd, "read", "k", nr_bytes);
+    // Returns the null-terminated contents of `result`
+    // `length` is Py_ssize_t *
+    // `buffer` is char **
+    // If `length` is NULL, returns -1
     bytes_result = PyBytes_AsStringAndSize(result, &buffer, &length);
 
-    //int val = <int>&buffer[0];
-
-    printf("read_data::Read data of length: %d\n", length);
-
-    if (bytes_result == -1) {
+    // `length` is NULL
+    if (bytes_result == -1)
         goto error;
-    }
 
-    if (length > nr_bytes) {
+    // More bytes read then asked for
+    if (length > (long)(nr_bytes))
         goto error;
-    }
-    //printf("Reading data: %d\n", buffer[0]);
 
-    memcpy(destination, buffer, length);
+    // Convert `length` to OPJ_SIZE_T - shouldn't have negative lengths
+    if (length < 0)
+        goto error;
 
-    printf("read_data::First 6 bytes read are: ");
-    for (int ii = 0; ii <= 5; ii++)
-        printf("%x ", destination[ii]);
+    OPJ_SIZE_T len_size_t = (OPJ_SIZE_T)(length);
 
-    printf("\n");
+    // memcpy(void *dest, const void *src, size_t n)
+    memcpy(destination, buffer, len_size_t);
+
+    //printf("py_read(): %u bytes asked, %u bytes read\n", nr_bytes, len_size_t);
 
     Py_DECREF(result);
-    return length;
+    return len_size_t ? len_size_t: (OPJ_SIZE_T)-1;
 
 error:
-    printf("read_data::Error reading data");
     Py_DECREF(result);
     return -1;
 }
 
-int seek_data(PyObject *fd, Py_ssize_t offset, int whence)
+
+static OPJ_BOOL py_seek(OPJ_OFF_T offset, void *stream, int whence)
 {
+    /* Change the `stream` position to the given `offset` from `whence`.
+
+    Parameters
+    ----------
+    offset : OPJ_OFF_T
+        The offset relative to `whence`.
+    stream : PyObject *
+        The Python stream object to seek (must have a ``seek()`` method).
+    whence : int
+        0 for SEEK_SET, 1 for SEEK_CUR, 2 for SEEK_END
+
+    Returns
+    -------
+    OPJ_TRUE : OBJ_BOOL
+    */
+    // Python and C; SEEK_SET is 0, SEEK_CUR is 1 and SEEK_END is 2
+    // fd.seek(nr_bytes),
+    // k: convert C unsigned long int to Python int
+    // i: convert C int to a Python integer
     PyObject *result;
-
-    printf("seek_data::Seeking offset %d from %d\n", offset, whence);
-
-    result = PyObject_CallMethod(fd, "seek", "ni", offset, whence);
-
+    result = PyObject_CallMethod(stream, "seek", "ki", offset, whence);
     Py_DECREF(result);
-    return 0;
 
+    //printf("py_seek(): offset %u bytes from %u\n", offset, whence);
+
+    return OPJ_TRUE;
 }
 
-Py_ssize_t tell_data(PyObject *fd)
+
+static OPJ_BOOL py_seek_set(OPJ_OFF_T offset, void *stream)
 {
-    PyObject *result;
-    Py_ssize_t location;
+    /* Change the `stream` position to the given `offset` from SEEK_SET.
 
-    printf("tell_data::Telling\n");
+    Parameters
+    ----------
+    offset : OPJ_OFF_T
+        The offset relative to SEEK_SET.
+    stream : PyObject *
+        The Python stream object to seek (must have a ``seek()`` method).
 
-    result = PyObject_CallMethod(fd, "tell", NULL);
-    location = PyLong_AsSsize_t(result);
+    Returns
+    -------
+    OPJ_TRUE : OBJ_BOOL
+    */
+    // Python and C; SEEK_SET is 0:
+    // n: convert C Py_ssize_t to a Python integer
+    // i: convert C int to a Python integer
+    //PyObject *result;
+    //result = PyObject_CallMethod(stream, "seek", "ni", offset, SEEK_SET);
+    //Py_DECREF(result);
 
-    Py_DECREF(result);
-    return location;
+    return py_seek(offset, stream, SEEK_SET);
 }
 
-static OPJ_SIZE_T j2k_read(
-    void *p_buffer, OPJ_SIZE_T p_nb_bytes, void *p_user_data
-)
+
+static OPJ_OFF_T py_skip(OPJ_OFF_T offset, void *stream)
 {
-    //ImagingCodecState state = (ImagingCodecState)p_user_data;
+    /* Change the `stream` position by `offset` from SEEK_CUR and return the
+    new position.
 
-    // FIXME: need to implement read for numpy char array ?
-    // state->fd should go to state->stream or something
-    size_t len = read_data(p_user_data, p_buffer, p_nb_bytes);
+    Parameters
+    ----------
+    offset : OPJ_OFF_T
+        The offset relative to SEEK_CUR.
+    stream : PyObject *
+        The Python stream object to seek (must have a ``seek()`` method).
 
-    return len ? len : (OPJ_SIZE_T) - 1;
-}
+    Returns
+    -------
+    off_t
+        The new position in the `stream`.
+    */
+    py_seek(offset, stream, SEEK_CUR);
 
-static OPJ_OFF_T j2k_skip(OPJ_OFF_T p_nb_bytes, void *p_user_data)
-{
     off_t pos;
+    pos = py_tell(stream);
 
-    seek_data(p_user_data, p_nb_bytes, SEEK_CUR);
-    pos = tell_data(p_user_data);
-
-    return pos ? pos : (OPJ_OFF_T)-1;
+    return pos ? pos : (OPJ_OFF_T) -1;
 }
 
-/*static void j2k_error(const char *msg, void *client_data)
+
+static OPJ_UINT64 py_length(PyObject * stream)
 {
-    //JPEG2KDECODESTATE *state = (JPEG2KDECODESTATE *) client_data;
-    //free((void *)state->error_msg);
-    //printf("%s", msg);
-}*/
+    /* Return the total length of the `stream`.
+
+    Parameters
+    ----------
+    stream : PyObject *
+        The Python stream object (must have ``seek()`` and ``tell()`` methods).
+
+    Returns
+    -------
+    OPJ_UINT64
+        The total length of the `stream`.
+    */
+    OPJ_OFF_T input_length = 0;
+
+    py_seek(0, stream, SEEK_END);
+    input_length = (OPJ_OFF_T)py_tell(stream);
+    py_seek(0, stream, SEEK_SET);
+
+    return (OPJ_UINT64)input_length;
+}
 
 
 static void set_default_parameters(opj_decompress_parameters* parameters)
 {
-    if (parameters) {
+    if (parameters)
+    {
         memset(parameters, 0, sizeof(opj_decompress_parameters));
 
         /* default decoding parameters (command line specific) */
         parameters->decod_format = -1;
-        parameters->cod_format = -1;
-
         /* default decoding parameters (core) */
         opj_set_default_decoder_parameters(&(parameters->core));
     }
 }
 
 
-int decode(PyObject* fd, unsigned char *out) {
+static void destroy_parameters(opj_decompress_parameters* parameters)
+{
+    if (parameters)
+    {
+        free(parameters->comps_indices);
+        parameters->comps_indices = NULL;
+    }
+}
+
+
+typedef struct JPEG2000Parameters {
+    OPJ_UINT32 columns;  // width in pixels
+    OPJ_UINT32 rows;  // height in pixels
+    OPJ_COLOR_SPACE colourspace;  // the colour space
+    OPJ_UINT32 nr_components;  // number of components
+    OPJ_UINT32 precision;  // precision of the components (in bits)
+    unsigned int is_signed;  // 0 for unsigned, 1 for signed
+    OPJ_UINT32 nr_tiles;  // number of tiles
+} j2k_parameters_t;
+
+
+extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *output)
+{
+    /* Decode a JPEG 2000 header for the image meta data.
+
+    Parameters
+    ----------
+    fd : PyObject *
+        The Python stream object containing the JPEG 2000 data to be decoded.
+    codec_format : int
+        The format of the JPEG 2000 data, one of:
+        * ``0`` - OPJ_CODEC_J2K : JPEG-2000 codestream
+        * ``1`` - OPJ_CODEC_JPT : JPT-stream (JPEG 2000, JPIP)
+        * ``2`` - OPJ_CODEC_JP2 : JP2 file format
+    output : j2k_parameters_t *
+        The struct where the parameters will be stored.
+
+    Returns
+    -------
+    int
+        The exit status, 0 for success, failure otherwise.
+    */
     // J2K stream
     opj_stream_t *stream = NULL;
     // struct defining image data and characteristics
     opj_image_t *image = NULL;
     // J2K codec
     opj_codec_t *codec = NULL;
-
-    CodecState *state;
-
+    // Setup decompression parameters
     opj_decompress_parameters parameters;
     set_default_parameters(&parameters);
+
+    int error_code = EXIT_FAILURE;
 
     // Creates an abstract input stream; allocates memory
     stream = opj_stream_create(BUFFER_SIZE, OPJ_TRUE);
 
-    if (!stream) {
-        state->error_code = IMAGING_CODEC_BROKEN;
-        state->state = J2K_STATE_FAILED;
-        goto quick_exit;
+    if (!stream)
+    {
+        // Failed to create the input stream
+        error_code = 1;
+        goto failure;
     }
 
-    opj_stream_set_read_function(stream, j2k_read);
-    opj_stream_set_skip_function(stream, j2k_skip);
+    // Functions for the stream
+    opj_stream_set_read_function(stream, py_read);
+    opj_stream_set_skip_function(stream, py_skip);
+    opj_stream_set_seek_function(stream, py_seek_set);
     opj_stream_set_user_data(stream, fd, NULL);
-    opj_stream_set_user_data_length(stream, 0xffffffff);
-    //opj_set_error_handler(codec, j2k_error, 00);
+    opj_stream_set_user_data_length(stream, py_length(fd));
 
-    // FIXME: should be automatic?
-    codec = opj_create_decompress(OPJ_CODEC_J2K);  // JPEG-2000 codestream
+    codec = opj_create_decompress(codec_format);
 
-    /* Setup the decoder decoding parameters using user parameters */
+    /* Setup the decoder parameters */
     if (!opj_setup_decoder(codec, &(parameters.core)))
     {
-        fprintf(stderr, "ERROR -> opj_decompress: failed to setup the decoder\n");
-        goto quick_exit;
-    }
-
-    if (parameters.num_threads >= 1 && !opj_codec_set_threads(codec, parameters.num_threads))
-    {
-        fprintf(stderr, "ERROR -> opj_decompress: failed to set number of threads\n");
-        goto quick_exit;
+        // failed to setup the decoder
+        error_code = 2;
+        goto failure;
     }
 
     /* Read the main header of the codestream and if necessary the JP2 boxes*/
-    // Working! Excellent progress... :p
-    if (! opj_read_header(stream, codec, &image)) {
-        fprintf(stderr, "ERROR -> opj_decompress: failed to read the header\n");
-        goto quick_exit;
+    if (!opj_read_header(stream, codec, &image))
+    {
+        // failed to read the header
+        error_code = 3;
+        goto failure;
     }
 
-    printf("Number of components: %d\n", image->numcomps);
-    printf("Colour space: %d\n", image->color_space);
-    printf("Size: %d x %d\n", image->x1, image->y1);
-    printf("Number of tiles to decode: %d\n", parameters.nb_tile_to_decode);
+    output->colourspace = image->color_space;
+    output->columns = image->x1;
+    output->rows = image->y1;
+    output->nr_components = image->numcomps;
+    output->precision = (int)image->comps[0].prec;
+    output->is_signed = (int)image->comps[0].sgnd;
+    output->nr_tiles = parameters.nb_tile_to_decode;
 
-    if (parameters.numcomps) {
+    destroy_parameters(&parameters);
+    opj_destroy_codec(codec);
+    opj_image_destroy(image);
+    opj_stream_destroy(stream);
+
+    return EXIT_SUCCESS;
+
+    failure:
+        destroy_parameters(&parameters);
+        if (codec)
+            opj_destroy_codec(codec);
+        if (image)
+            opj_image_destroy(image);
+        if (stream)
+            opj_stream_destroy(stream);
+
+        return error_code;
+}
+
+
+extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
+{
+    /* Decode JPEG 2000 data.
+
+    Parameters
+    ----------
+    fd : PyObject *
+        The Python stream object containing the JPEG 2000 data to be decoded.
+    out : unsigned char *
+        The numpy ndarray of uint8 where the decoded image data will be written
+    codec_format : int
+        The format of the JPEG 2000 data, one of:
+        * ``0`` - OPJ_CODEC_J2K : JPEG-2000 codestream
+        * ``1`` - OPJ_CODEC_JPT : JPT-stream (JPEG 2000, JPIP)
+        * ``2`` - OPJ_CODEC_JP2 : JP2 file format
+
+    Returns
+    -------
+    int
+        The exit status, 0 for success, failure otherwise.
+    */
+    // J2K stream
+    opj_stream_t *stream = NULL;
+    // struct defining image data and characteristics
+    opj_image_t *image = NULL;
+    // J2K codec
+    opj_codec_t *codec = NULL;
+    // Setup decompression parameters
+    opj_decompress_parameters parameters;
+    set_default_parameters(&parameters);
+    // Array of pointers to the first element of each component
+    int **p_component = NULL;
+
+    int error_code = EXIT_FAILURE;
+
+    // Creates an abstract input stream; allocates memory
+    stream = opj_stream_create(BUFFER_SIZE, OPJ_TRUE);
+
+    if (!stream)
+    {
+        // Failed to create the input stream
+        error_code = 1;
+        goto failure;
+    }
+
+    // Functions for the stream
+    opj_stream_set_read_function(stream, py_read);
+    opj_stream_set_skip_function(stream, py_skip);
+    opj_stream_set_seek_function(stream, py_seek_set);
+    opj_stream_set_user_data(stream, fd, NULL);
+    opj_stream_set_user_data_length(stream, py_length(fd));
+
+    //opj_set_error_handler(codec, j2k_error, 00);
+
+    codec = opj_create_decompress(codec_format);
+
+    /* Setup the decoder parameters */
+    if (!opj_setup_decoder(codec, &(parameters.core)))
+    {
+        // failed to setup the decoder
+        error_code = 2;
+        goto failure;
+    }
+
+    /* Read the main header of the codestream and if necessary the JP2 boxes*/
+    if (! opj_read_header(stream, codec, &image))
+    {
+        // failed to read the header
+        error_code = 3;
+        goto failure;
+    }
+
+    // TODO: add check that all components match
+
+    if (parameters.numcomps)
+    {
         if (!opj_set_decoded_components(
-                codec, parameters.numcomps, parameters.comps_indices, OPJ_FALSE
-            ))
+                codec, parameters.numcomps,
+                parameters.comps_indices, OPJ_FALSE)
+            )
         {
-            fprintf(stderr, "ERROR -> opj_decompress: failed to set the component indices!\n");
-            goto quick_exit;
+            // failed to set the component indices
+            error_code = 4;
+            goto failure;
         }
     }
 
@@ -283,90 +525,102 @@ int decode(PyObject* fd, unsigned char *out) {
             (OPJ_INT32)parameters.DA_y1)
         )
     {
-        fprintf(stderr, "ERROR -> opj_decompress: failed to set the decoded area\n");
-        goto quick_exit;
+        // failed to set the decoded area
+        error_code = 5;
+        goto failure;
     }
 
     /* Get the decoded image */
     if (!(opj_decode(codec, stream, image) && opj_end_decompress(codec, stream)))
     {
-        fprintf(stderr, "ERROR -> opj_decompress: failed to decode image!\n");
-        goto quick_exit;
+        // failed to decode image
+        error_code = 6;
+        goto failure;
     }
 
-    for (unsigned int c_index = 0; c_index < image->numcomps; c_index++)
+    // Set our component pointers
+    const unsigned int NR_COMPONENTS = image->numcomps;  // 15444-1 A.5.1
+    p_component = malloc(NR_COMPONENTS);
+    for (unsigned int ii = 0; ii < NR_COMPONENTS; ii++)
     {
-        int width = (int)image->comps[c_index].w;
-        int height = (int)image->comps[c_index].h;
-        int precision = (int)image->comps[c_index].prec;
-        int bpp = (int)image->comps[c_index].bpp;
-        int nr_bytes = ((precision + 7) & -8) / 8;
+        p_component[ii] = image->comps[ii].data;
+    }
 
-        printf(
-            "Component %u characteristics: %d x %d, %s %d bit, %d bpp, %d byte\n",
-            c_index, width, height,
-            image->comps[c_index].sgnd == 1 ? "signed" : "unsigned",
-            precision,
-            bpp,
-            nr_bytes
-        );
+    int width = (int)image->comps[0].w;
+    int height = (int)image->comps[0].h;
+    int precision = (int)image->comps[0].prec;
+    int mask = (1 << precision) - 1;
 
-        // Copy image data to the output uint8 numpy array
-        // The decoded data type is OPJ_INT32, so we need to convert... ugh!
-        int *ptr = image->comps[c_index].data;
-        int mask = (1 << precision) - 1;
-
+    // Our output should have planar configuration of 0, i.e. for RGB data
+    //  we have R1, B1, G1 | R2, G2, B2 | ..., where 1 is the first pixel,
+    //  2 the second, etc
+    // See DICOM Standard, Part 3, Annex C.7.6.3.1.3
+    if (precision <= 8)
+    {
+        // 8-bit signed/unsigned
+        for (int row = 0; row < height; row++)
+        {
+            for (int col = 0; col < width; col++)
+            {
+                for (unsigned int ii = 0; ii < NR_COMPONENTS; ii++)
+                {
+                    *out = (unsigned char)(*p_component[ii] & mask);
+                    out++;
+                    p_component[ii]++;
+                }
+            }
+        }
+    }
+    else if (precision <= 16)
+    {
         union {
             unsigned short val;
             unsigned char vals[2];
         } u16;
 
-        if (precision <= 8)
+        // 16-bit signed/unsigned
+        for (int row = 0; row < height; row++)
         {
-            // 8-bit signed/unsigned
-            for (int row = 0; row < height; row++)
+            for (int col = 0; col < width; col++)
             {
-                for (int col = 0; col < width; col++)
+                for (unsigned int ii = 0; ii < NR_COMPONENTS; ii++)
                 {
-                    *out = (unsigned char)(*ptr & mask);
-                    out++;
-                    ptr++;
-                }
-            }
-        }
-        else if (precision <= 16)
-        {
-            // 16-bit
-            for (int row = 0; row < height; row++)
-            {
-                for (int col = 0; col < width; col++)
-                {
-                    u16.val = (unsigned short)(*ptr & mask);
+                    u16.val = (unsigned short)(*p_component[ii] & mask);
                     *out = u16.vals[0];
                     out++;
                     *out = u16.vals[1];
                     out++;
-                    ptr++;
+                    p_component[ii]++;
                 }
             }
         }
-        else
-        {
-            fprintf(stderr, "ERROR -> More than 16-bits per component not implemented\n");
-            goto quick_exit;
-        }
-
-
+    }
+    else
+    {
+        // Support for more than 16-bits per component is not implemented
+        error_code = 7;
+        goto failure;
     }
 
+    if (p_component)
+    {
+        free(p_component);
+        p_component = NULL;
+    }
+    destroy_parameters(&parameters);
     opj_destroy_codec(codec);
     opj_image_destroy(image);
     opj_stream_destroy(stream);
 
-    return 1;
+    return EXIT_SUCCESS;
 
-    quick_exit:
-        //destroy_parameters(&parameters);
+    failure:
+        if (p_component)
+        {
+            free(p_component);
+            p_component = NULL;
+        }
+        destroy_parameters(&parameters);
         if (codec)
             opj_destroy_codec(codec);
         if (image)
@@ -374,5 +628,5 @@ int decode(PyObject* fd, unsigned char *out) {
         if (stream)
             opj_stream_destroy(stream);
 
-        return -1;
+        return error_code;
 }
