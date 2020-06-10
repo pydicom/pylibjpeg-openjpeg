@@ -1,8 +1,5 @@
-.. class:: center
-.. image:: https://github.com/scaramallion/pylibjpeg-openjpeg/workflows/build/badge.svg
-    :target: https://github.com/scaramallion/pylibjpeg-openjpeg/actions?query=workflow%3Abuild
-.. image:: https://codecov.io/gh/scaramallion/pylibjpeg-openjpeg/branch/master/graph/badge.svg
-  :target: https://codecov.io/gh/scaramallion/pylibjpeg-openjpeg
+[![Build Status](https://github.com/scaramallion/pylibjpeg-openjpeg/workflows/build/badge.svg)](https://github.com/scaramallion/pylibjpeg-openjpeg/actions?query=workflow%3Abuild)
+[![codecov](https://codecov.io/gh/scaramallion/pylibjpeg-openjpeg/branch/master/graph/badge.svg)](https://codecov.io/gh/scaramallion/pylibjpeg-openjpeg)
 
 ## pylibjpeg-openjpeg
 
