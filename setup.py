@@ -83,13 +83,13 @@ def setup_oj():
     os.chdir(cur_dir)
 
     # Turn off JPIP
-    #if os.path.exists(os.path.join(INTERFACE_SRC, "opj_config.h")):
-    #    with open(os.path.join(INTERFACE_SRC, "opj_config.h"), "a") as f:
-    #        f.write("")
-    #        f.write("#define USE_JPIP 0")
+    if os.path.exists(os.path.join(INTERFACE_SRC, "opj_config.h")):
+        with open(os.path.join(INTERFACE_SRC, "opj_config.h"), "a") as f:
+            f.write("\n")
+            f.write("#define USE_JPIP 0")
 
 
-#setup_oj()
+setup_oj()
 
 
 # Compiler and linker arguments
