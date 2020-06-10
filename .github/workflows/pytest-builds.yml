@@ -33,12 +33,14 @@ jobs:
         path: ${{ steps.pip-cache.outputs.dir }}
         key: py${{ matrix.python-version }}-${{ matrix.os }}-pip
     - name: Install dependencies
+      run: |
         pip install pytest coverage pytest-cov
         pip install git+https://github.com/pydicom/pylibjpeg-data
     - name: Test with pytest
       run: |
         pytest --cov openjpeg
     - name: Add pydicom release
+      run: |
         pip install pydicom
     - name: Test with pydicom
       run: |
