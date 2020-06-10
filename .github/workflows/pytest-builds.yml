@@ -26,6 +26,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install package and dependencies
       run: |
+        python -m pip install -U pip
         python -m pip install .
         python -m pip install pytest coverage pytest-cov
         python -m pip install git+https://github.com/pydicom/pylibjpeg-data
@@ -38,7 +39,7 @@ jobs:
         pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
     - name: Switch to pydicom dev and rerun pytest
       run: |
-        pip uninstall pydicom
+        pip uninstall -y pydicom
         pip install git+https://github.com/pydicom/pydicom
         pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
     - name: Send coverage results
