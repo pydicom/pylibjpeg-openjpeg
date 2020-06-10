@@ -8,7 +8,7 @@ on:
 
 jobs:
   solo:
-    # Matrix builds without pydicom -> pydicom release
+    # Matrix builds without pydicom -> pydicom release -> pydicom dev
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
@@ -24,30 +24,21 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install pylibjpeg-openjpeg
-      run: python -m pip install .
-    - name: Get pip cache dir
-      id: pip-cache
-      run: |
-        python -m pip install --upgrade pip
-        echo "::set-output name=dir::$(pip cache dir)"
-    - name: pip cache
-      uses: actions/cache@v2
-      with:
-        path: ${{ steps.pip-cache.outputs.dir }}
-        key: py${{ matrix.python-version }}-ubuntu-pip
-    - name: Install dependencies
-      run: |
-        pip install pytest coverage pytest-cov
-        pip install git+https://github.com/pydicom/pylibjpeg-data
-    - name: Test with pytest
+    - name: Install package and dependencies
+        python -m pip install .
+        python -m pip install pytest coverage pytest-cov
+        python -m pip install git+https://github.com/pydicom/pylibjpeg-data
+    - name: Run pytest
       run: |
         pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
-    - name: Add pydicom release
+    - name: Install pydicom release and rerun pytest
       run: |
         pip install pydicom
-    - name: Test with pydicom
+        pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
+    - name: Switch to pydicom dev and rerun pytest
       run: |
+        pip uninstall pydicom
+        pip install git+https://github.com/pydicom/pydicom
         pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
     - name: Send coverage results
       if: ${{ success() }}
