@@ -1,0 +1,58 @@
+name: build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  solo:
+    # Matrix builds without pydicom -> pydicom release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install pylibjpeg-openjpeg
+      run: python -m pip install .
+    - name: Get pip cache dir
+      id: pip-cache
+      run: |
+        python -m pip install --upgrade pip
+        echo "::set-output name=dir::$(pip cache dir)"
+    - name: pip cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key: py${{ matrix.python-version }}-ubuntu-pip
+    - name: Install dependencies
+      run: |
+        pip install pytest coverage pytest-cov
+        pip install git+https://github.com/pydicom/pylibjpeg-data
+    - name: Test with pytest
+      run: |
+        pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
+    - name: Add pydicom release
+      run: |
+        pip install pydicom
+    - name: Test with pydicom
+      run: |
+        pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
+    - name: Send coverage results
+      if: ${{ success() }}
+      run: |
+        bash <(curl --connect-timeout 10 --retry 10 --retry-max-time \
+        0 https://codecov.io/bash) || (sleep 30 && bash <(curl \
+        --connect-timeout 10 --retry 10 --retry-max-time \
+        0 https://codecov.io/bash))

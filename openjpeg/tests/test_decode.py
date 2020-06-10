@@ -13,7 +13,6 @@ try:
 except ImportError:
     HAS_PYDICOM = False
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 

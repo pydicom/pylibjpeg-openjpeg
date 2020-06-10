@@ -1,3 +1,9 @@
+.. class:: center
+.. image:: https://github.com/scaramallion/pylibjpeg-openjpeg/workflows/build/badge.svg
+    :target: https://github.com/scaramallion/pylibjpeg-openjpeg/actions?query=workflow%3Abuild
+.. image:: https://codecov.io/gh/scaramallion/pylibjpeg-openjpeg/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/scaramallion/pylibjpeg-openjpeg
+
 ## pylibjpeg-openjpeg
 
 A Python 3.6+ wrapper for
@@ -26,10 +32,12 @@ python -m pip install pylibjpeg-openjpeg
 ### Supported JPEG Formats
 #### Decoding
 
-Decoding of JPEG images is not yet available
+| ISO/IEC Standard | ITU Equivalent | JPEG Format |
+| --- | --- | --- |
+| [15444-1](https://www.iso.org/standard/78321.html)   | [T.800](https://www.itu.int/rec/T-REC-T.800/en) | [JPEG 2000](https://jpeg.org/jpeg2000/) |
 
 #### Encoding
-Encoding of JPEG images is not currently supported
+Encoding of JPEG 2000 images is not currently supported
 
 
 ### Transfer Syntaxes
@@ -55,7 +63,7 @@ arr = ds.pixel_array
 
 #### Standalone JPEG decoding
 
-At some point you'll be able to decode JPEG images to a [numpy ndarray][1]:
+You can also decode JPEG 2000 images to a [numpy ndarray][1]:
 
 [1]: https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html
 

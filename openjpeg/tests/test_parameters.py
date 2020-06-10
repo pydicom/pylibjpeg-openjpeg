@@ -99,11 +99,17 @@ class TestGetParametersDCM(object):
         assert info[3] == params['precision']
         assert info[4] == params['is_signed']
 
-    def test_invalid_type_raises(self):
-        """Test that exception is raised if invalid type for data."""
+    @pytest.mark.skipif(not HAS_PYDICOM, reason="No pydicom")
+    def test_decode_bad_type_raises(self):
+        """Test decoding using invalid type raises."""
         index = get_indexed_datasets('1.2.840.10008.1.2.4.90')
         ds = index['MR_small_jp2klossless.dcm']['ds']
+        frame = tuple(next(generate_frames(ds)))
+        assert not hasattr(frame, 'tell') and not isinstance(frame, bytes)
 
-        frame = next(generate_frames(ds))
-        assert isinstance(frame, bytes)
-        #frame =
+        msg = (
+            r"The Python object containing the encoded JPEG 2000 data must "
+            r"either be bytes or have read\(\), tell\(\) and seek\(\) methods."
+        )
+        with pytest.raises(TypeError, match=msg):
+            get_parameters(frame)
