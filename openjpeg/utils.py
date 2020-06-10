@@ -1,6 +1,5 @@
 
-from copy import deepcopy
-from io import BytesIO, IOBase
+from io import BytesIO
 from math import ceil
 
 import _openjpeg
@@ -98,13 +97,14 @@ def decode(stream, j2k_format=None, reshape=True):
     if not all([hasattr(stream, meth) for meth in required_methods]):
         raise TypeError(
             "The Python object containing the encoded JPEG 2000 data must "
-            "have read(), tell() and seek() methods."
+            "either be bytes or have read(), tell() and seek() methods."
         )
 
     if j2k_format is None:
         j2k_format = _get_format(stream)
 
-    assert isinstance(j2k_format, int)
+    if j2k_format not in [0, 1, 2]:
+        raise ValueError(f"Unsupported 'j2k_format' value: {j2k_format}")
 
     arr = _openjpeg.decode(stream, j2k_format)
     if not reshape:
@@ -121,6 +121,31 @@ def decode(stream, j2k_format=None, reshape=True):
         shape.append(meta["nr_components"])
 
     return arr.reshape(*shape)
+
+
+def decode_pixel_data(stream):
+    """Return the decoded JPEG 2000 data as a :class:`numpy.ndarray`.
+
+    Intended for use with *pydicom* ``Dataset`` objects.
+
+    Parameters
+    ----------
+    stream : bytes or file-like
+        A Python object containing the encoded JPEG 2000 data. If not
+        :class:`bytes` then the object must have ``tell()``, ``seek()`` and
+        ``read()`` methods.
+
+    Returns
+    -------
+    numpy.ndarray
+        A 1D array of ``numpy.uint8`` containing the decoded image data.
+
+    Raises
+    ------
+    RuntimeError
+        If the decoding failed.
+    """
+    return decode(stream, reshape=False)
 
 
 def get_parameters(stream, j2k_format=None):
@@ -160,7 +185,7 @@ def get_parameters(stream, j2k_format=None):
     if not all([hasattr(stream, func) for func in required_methods]):
         raise TypeError(
             "The Python object containing the encoded JPEG 2000 data must "
-            "have read(), tell() and seek() methods."
+            "either be bytes or have read(), tell() and seek() methods."
         )
 
     if j2k_format is None:

@@ -22,6 +22,17 @@ cdef extern int Decode(void* fp, unsigned char* out, int codec)
 cdef extern int GetParameters(void* fp, int codec, JPEG2000Parameters *param)
 
 
+ERRORS = {
+    1: "failed to create the input stream",
+    2: "failed to setup the decoder",
+    3: "failed to read the header",
+    4: "failed to set the component indices",
+    5: "failed to set the decoded area",
+    6: "failed to decode image",
+    7: "support for more than 16-bits per component is not implemented",
+}
+
+
 def get_version():
     """Return the openjpeg version as bytes."""
     cdef char *version = OpenJpegVersion()
@@ -30,7 +41,7 @@ def get_version():
 
 
 def decode(fp, codec=0):
-    """Return the decoded JPEG2000 data from Python file-like `fp`.
+    """Return the decoded JPEG 2000 data from Python file-like `fp`.
 
     Parameters
     ----------
@@ -48,6 +59,11 @@ def decode(fp, codec=0):
     -------
     numpy.ndarray
         An ndarray of uint8 containing the decoded image data.
+
+    Raises
+    ------
+    RuntimeError
+        If unable to decode the JPEG 2000 data.
     """
     param = get_parameters(fp, codec)
     bpp = ceil(param['precision'] / 8)
@@ -57,16 +73,20 @@ def decode(fp, codec=0):
     arr = np.zeros(nr_bytes, dtype=np.uint8)
     cdef unsigned char *p_out = <unsigned char *>np.PyArray_DATA(arr)
 
-    cdef int result = Decode(p_in, p_out, codec)
-
+    result = Decode(p_in, p_out, codec)
     if result != 0:
-        raise RuntimeError("Error decoding the J2K data")
+        try:
+            msg = f": {ERRORS[result]}"
+        except KeyError:
+            pass
+
+        raise RuntimeError("Error decoding the J2K data" + msg)
 
     return arr
 
 
 def get_parameters(fp, codec=0):
-    """Return a :class:`dict` containing the JPEG image parameters.
+    """Return a :class:`dict` containing the JPEG 2000 image parameters.
 
     Parameters
     ----------
@@ -87,6 +107,11 @@ def get_parameters(fp, codec=0):
         'nr_components: int, 'precision': int, `is_signed`: bool,
         'nr_tiles: int'}``. Possible colour spaces are "unknown",
         "unspecified", "sRGB", "monochrome", "YUV", "e-YCC" and "CYMK".
+
+    Raises
+    ------
+    RuntimeError
+        If unable to decode the JPEG 2000 data.
     """
     cdef JPEG2000Parameters param
     param.columns = 0
@@ -105,9 +130,13 @@ def get_parameters(fp, codec=0):
 
     # Decode the data - output is written to output_buffer
     result = GetParameters(ptr, codec, p_param)
-
     if result != 0:
-        raise RuntimeError(f"Error reading J2K header: {result}")
+        try:
+            msg = f": {ERRORS[result]}"
+        except KeyError:
+            pass
+
+        raise RuntimeError("Error decoding the J2K data" + msg)
 
     # From openjpeg.h#L309
     colours = {

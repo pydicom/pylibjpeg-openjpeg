@@ -5,7 +5,7 @@ try:
 except ImportError:
     pass
 
-# Add the testing data to libjpeg (if available)
+# Add the testing data to openjpeg (if available)
 try:
     import data as _data
     globals()['data'] = _data
