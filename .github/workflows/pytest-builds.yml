@@ -24,7 +24,8 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - run: python -m pip install .
+    - name: Install pylibjpeg-openjpev
+      run: python -m pip install .
     - name: Get pip cache dir
       id: pip-cache
       run: |
@@ -41,13 +42,13 @@ jobs:
         pip install git+https://github.com/pydicom/pylibjpeg-data
     - name: Test with pytest
       run: |
-        pytest --cov openjpeg
+        pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
     - name: Add pydicom release
       run: |
         pip install pydicom
     - name: Test with pydicom
       run: |
-        pytest --cov openjpeg
+        pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
     - name: Send coverage results
       if: ${{ success() }}
       run: |
