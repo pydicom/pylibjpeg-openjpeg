@@ -33,7 +33,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
-        key: py${{ matrix.python-version }}-${{ matrix.os }}-pip
+        key: py${{ matrix.python-version }}-ubuntu-pip
     - name: Install dependencies
       run: |
         pip install pytest coverage pytest-cov
