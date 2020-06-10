@@ -1,3 +1,9 @@
+.. class:: center
+.. image:: https://github.com/scaramallion/pylibjpeg-openjpeg/workflows/build/badge.svg
+    :target: https://github.com/scaramallion/pylibjpeg-openjpeg/actions?query=workflow%3Abuild
+.. image:: https://codecov.io/gh/scaramallion/pylibjpeg-openjpeg/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/scaramallion/pylibjpeg-openjpeg
+
 ## pylibjpeg-openjpeg
 
 A Python 3.6+ wrapper for
