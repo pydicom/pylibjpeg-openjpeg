@@ -1,5 +1,4 @@
 
-
 import os
 import sys
 from pathlib import Path
@@ -7,6 +6,7 @@ import platform
 import setuptools
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
+import shutil
 import subprocess
 from distutils.command.build import build as build_orig
 import distutils.sysconfig
@@ -54,6 +54,42 @@ def get_source_files():
     print(source_files)
 
     return source_files
+
+
+def setup_oj():
+    """Run custom cmake."""
+    base_dir = os.path.join("openjpeg", "src", "openjpeg")
+
+    # Copy custom CMakeLists.txt file to openjpeg base dir
+    shutil.copy(
+        os.path.join("build_tools", "cmake", "CMakeLists.txt"),
+        base_dir
+    )
+    build_dir = os.path.join(base_dir, "build")
+    if os.path.exists(build_dir):
+        shutil.rmtree(build_dir)
+
+    try:
+        os.remove(os.path.join(INTERFACE_SRC, "opj_config.h"))
+        os.remove(os.path.join(INTERFACE_SRC, "opj_config_private.h"))
+    except:
+        pass
+
+    os.mkdir(build_dir)
+    fpath = os.path.abspath(base_dir)
+    cur_dir = os.getcwd()
+    os.chdir(build_dir)
+    subprocess.call(['cmake', fpath])
+    os.chdir(cur_dir)
+
+    # Turn off JPIP
+    #if os.path.exists(os.path.join(INTERFACE_SRC, "opj_config.h")):
+    #    with open(os.path.join(INTERFACE_SRC, "opj_config.h"), "a") as f:
+    #        f.write("")
+    #        f.write("#define USE_JPIP 0")
+
+
+#setup_oj()
 
 
 # Compiler and linker arguments
