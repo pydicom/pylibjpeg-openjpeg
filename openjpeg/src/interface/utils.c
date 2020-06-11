@@ -540,7 +540,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
 
     // Set our component pointers
     const unsigned int NR_COMPONENTS = image->numcomps;  // 15444-1 A.5.1
-    p_component = malloc(NR_COMPONENTS);
+    p_component = malloc(NR_COMPONENTS * sizeof(int *));
     for (unsigned int ii = 0; ii < NR_COMPONENTS; ii++)
     {
         p_component[ii] = image->comps[ii].data;
