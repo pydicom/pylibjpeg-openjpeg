@@ -36,13 +36,6 @@ jobs:
       run: |
         pip install pydicom
         pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
-    - name: Send coverage results
-      if: ${{ success() }}
-      run: |
-        bash <(curl --connect-timeout 10 --retry 10 --retry-max-time \
-        0 https://codecov.io/bash) || (sleep 30 && bash <(curl \
-        --connect-timeout 10 --retry 10 --retry-max-time \
-        0 https://codecov.io/bash))
 
   osx:
     runs-on: macos-latest
@@ -73,13 +66,6 @@ jobs:
       run: |
         pip install pydicom
         pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
-    - name: Send coverage results
-      if: ${{ success() }}
-      run: |
-        bash <(curl --connect-timeout 10 --retry 10 --retry-max-time \
-        0 https://codecov.io/bash) || (sleep 30 && bash <(curl \
-        --connect-timeout 10 --retry 10 --retry-max-time \
-        0 https://codecov.io/bash))
 
   ubuntu:
     runs-on: ubuntu-latest
