@@ -157,7 +157,7 @@ static OPJ_SIZE_T py_read(void *destination, OPJ_SIZE_T nr_bytes, void *fd)
 
     // Py_ssize_t: signed int samed size as size_t
     // fd.read(nr_bytes), "k" => C unsigned long int to Python int
-    result = PyObject_CallMethod(fd, "read", "k", nr_bytes);
+    result = PyObject_CallMethod(fd, "read", "n", nr_bytes);
     // Returns the null-terminated contents of `result`
     // `length` is Py_ssize_t *
     // `buffer` is char **
@@ -192,7 +192,7 @@ error:
 }
 
 
-static OPJ_BOOL py_seek(OPJ_OFF_T offset, void *stream, int whence)
+static OPJ_BOOL py_seek(Py_ssize_t offset, void *stream, int whence)
 {
     /* Change the `stream` position to the given `offset` from `whence`.
 
@@ -214,7 +214,7 @@ static OPJ_BOOL py_seek(OPJ_OFF_T offset, void *stream, int whence)
     // k: convert C unsigned long int to Python int
     // i: convert C int to a Python integer
     PyObject *result;
-    result = PyObject_CallMethod(stream, "seek", "ki", offset, whence);
+    result = PyObject_CallMethod(stream, "seek", "ni", offset, whence);
     Py_DECREF(result);
 
     //printf("py_seek(): offset %u bytes from %u\n", offset, whence);
@@ -238,13 +238,6 @@ static OPJ_BOOL py_seek_set(OPJ_OFF_T offset, void *stream)
     -------
     OPJ_TRUE : OBJ_BOOL
     */
-    // Python and C; SEEK_SET is 0:
-    // n: convert C Py_ssize_t to a Python integer
-    // i: convert C int to a Python integer
-    //PyObject *result;
-    //result = PyObject_CallMethod(stream, "seek", "ni", offset, SEEK_SET);
-    //Py_DECREF(result);
-
     return py_seek(offset, stream, SEEK_SET);
 }
 
