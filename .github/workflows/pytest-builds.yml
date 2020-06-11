@@ -7,8 +7,67 @@ on:
     branches: [ master ]
 
 jobs:
-  solo:
-    # Matrix builds without pydicom -> pydicom release -> pydicom dev
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install package and dependencies
+      run: |
+        python -m pip install -U pip
+        python -m pip install pytest coverage pytest-cov cython numpy
+        python -m pip install . -v
+        python -m pip install git+https://github.com/pydicom/pylibjpeg-data
+    - name: Run pytest
+      run: |
+        pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
+    - name: Install pydicom release and rerun pytest
+      run: |
+        pip install pydicom
+        pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
+
+  osx:
+    runs-on: macos-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install package and dependencies
+      run: |
+        python -m pip install -U pip
+        python -m pip install . -v
+        python -m pip install pytest coverage pytest-cov
+        python -m pip install git+https://github.com/pydicom/pylibjpeg-data
+    - name: Run pytest
+      run: |
+        pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
+    - name: Install pydicom release and rerun pytest
+      run: |
+        pip install pydicom
+        pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
+
+  ubuntu:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
