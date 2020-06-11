@@ -7,7 +7,7 @@ A Python 3.6+ wrapper for
 [openjpeg](https://github.com/uclouvain/openjpeg), with a focus on use as a
 plugin for [pylibjpeg](http://github.com/pydicom/pylibjpeg).
 
-Linux, OSX and Windows will all be supported.
+Linux, OSX and Windows are all supported.
 
 ### Installation
 #### Dependencies
@@ -53,7 +53,6 @@ from pydicom.data import get_testdata_file
 
 import pylibjpeg
 
-# Doesn't work yet
 ds = dcmread(get_testdata_file('JPEG2000.dcm'))
 arr = ds.pixel_array
 ```
@@ -67,7 +66,7 @@ You can also decode JPEG 2000 images to a [numpy ndarray][1]:
 ```python
 from openjpeg import decode
 
-with open('filename.jpg', 'rb') as f:
+with open('filename.j2k', 'rb') as f:
     # Returns a numpy array
-    arr = decode(f.read())
+    arr = decode(f)
 ```

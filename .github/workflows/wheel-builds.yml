@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.8]
 
     steps:
     - uses: actions/checkout@v2
@@ -20,11 +20,14 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install cibuildwheel
+      env:
+        CIBW_BUILD: "cp36-* cp37-* cp38-*"
       run: |
         python -m pip install cibuildwheel==1.4.2
 
     - name: Build wheel
       run: |
+        python --version
         python -m cibuildwheel --output-dir wheelhouse
 
     - uses: actions/upload-artifact@v1
