@@ -18,7 +18,7 @@ Not yet available
 
 #### Installing the development version
 
-Make sure [Python](https://www.python.org/) and [Git](https://git-scm.com/) are installed. For Windows, you also need to install
+Make sure [Python](https://www.python.org/), [Git](https://git-scm.com/) and [CMake](https://cmake.org/) are installed. For Windows, you also need to install
 [Microsoft's C++ Build Tools](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16).
 ```bash
 git clone --recurse-submodules https://github.com/scaramallion/pylibjpeg-openjpeg
