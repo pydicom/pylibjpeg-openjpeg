@@ -114,6 +114,8 @@ def get_pixeldata(ds):
     generate_offsets = range(0, expected_len, frame_len)
     for frame, offset in zip(generate_frames, generate_offsets):
         # Encoded JPG data to be sent to the decoder
-        arr[offset:offset + frame_len] = decode_pixel_data(frame)
+        arr[offset:offset + frame_len] = decode_pixel_data(
+            frame, ds.group_dataset(0x0028)
+        )
 
     return arr.view(pixel_dtype(ds))

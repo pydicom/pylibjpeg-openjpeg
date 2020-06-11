@@ -1,6 +1,7 @@
 
 from io import BytesIO
 from math import ceil
+import warnings
 
 import _openjpeg
 
@@ -123,7 +124,7 @@ def decode(stream, j2k_format=None, reshape=True):
     return arr.reshape(*shape)
 
 
-def decode_pixel_data(stream):
+def decode_pixel_data(stream, ds=None):
     """Return the decoded JPEG 2000 data as a :class:`numpy.ndarray`.
 
     Intended for use with *pydicom* ``Dataset`` objects.
@@ -134,6 +135,12 @@ def decode_pixel_data(stream):
         A Python object containing the encoded JPEG 2000 data. If not
         :class:`bytes` then the object must have ``tell()``, ``seek()`` and
         ``read()`` methods.
+    ds : pydicom.dataset.Dataset, optional
+        A :class:`~pydicom.dataset.Dataset` containing the group ``0x0028``
+        elements corresponding to the *Pixel data*. If used then the
+        *Samples per Pixel*, *Bits Stored* and *Pixel Representation* values
+        will be checked against the JPEG 2000 data and warnings issued if
+        different.
 
     Returns
     -------
@@ -145,7 +152,61 @@ def decode_pixel_data(stream):
     RuntimeError
         If the decoding failed.
     """
-    return decode(stream, reshape=False)
+    if isinstance(stream, (bytes, bytearray)):
+        stream = BytesIO(stream)
+
+    required_methods = ["read", "tell", "seek"]
+    if not all([hasattr(stream, meth) for meth in required_methods]):
+        raise TypeError(
+            "The Python object containing the encoded JPEG 2000 data must "
+            "either be bytes or have read(), tell() and seek() methods."
+        )
+
+    j2k_format = _get_format(stream)
+    if j2k_format != 0:
+        warnings.warn(
+            "The (7FE0,0010) Pixel Data contains a JPEG 2000 codestream "
+            "with the optional JP2 file format header, which is "
+            "non-conformant to the DICOM Standard (Part 5, Annex A.4.4)"
+        )
+
+    arr = _openjpeg.decode(stream, j2k_format)
+
+    if not ds:
+        return arr
+
+    meta = get_parameters(stream, j2k_format)
+    if ds.SamplesPerPixel != meta["nr_components"]:
+        warnings.warn(
+            f"The (0028,0002) Samples per Pixel value '{ds.SamplesPerPixel}' "
+            f"in the dataset does not match the number of components "
+            f"\'{meta['nr_components']}\' found in the JPEG 2000 data. "
+            f"It's recommended that you change the  Samples per Pixel value "
+            f"to produce the correct output"
+        )
+
+    if ds.BitsStored != meta["precision"]:
+        warnings.warn(
+            f"The (0028,0101) Bits Stored value '{ds.BitsStored}' in the "
+            f"dataset does not match the component precision value "
+            f"\'{meta['precision']}\' found in the JPEG 2000 data. "
+            f"It's recommended that you change the Bits Stored value to "
+            f"produce the correct output"
+        )
+
+    if bool(ds.PixelRepresentation) != meta["is_signed"]:
+        val = "signed" if meta["is_signed"] else "unsigned"
+        ds_val = "signed" if bool(ds.PixelRepresentation) else "unsigned"
+        ds_val = f"'{ds.PixelRepresentation}' ({ds_val})"
+        warnings.warn(
+            f"The (0028,0103) Pixel Representation value {ds_val} in the "
+            f"dataset does not match the format of the values found in the "
+            f"JPEG 2000 data '{val}'. It's recommended that you "
+            f"change the  Pixel Representation value to produce the correct "
+            f"output"
+        )
+
+    return arr
 
 
 def get_parameters(stream, j2k_format=None):
@@ -191,6 +252,7 @@ def get_parameters(stream, j2k_format=None):
     if j2k_format is None:
         j2k_format = _get_format(stream)
 
-    assert isinstance(j2k_format, int)
+    if j2k_format not in [0, 1, 2]:
+        raise ValueError(f"Unsupported 'j2k_format' value: {j2k_format}")
 
     return _openjpeg.get_parameters(stream, j2k_format)

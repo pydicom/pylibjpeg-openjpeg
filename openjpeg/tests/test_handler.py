@@ -143,6 +143,67 @@ class TestLibrary(object):
         with pytest.raises(RuntimeError, match=msg):
             item['ds'].pixel_array
 
+    def test_invalid_pixel_representation(self):
+        """Test that warning issued when Pixel Representation doesn't match."""
+        index = get_indexed_datasets('1.2.840.10008.1.2.4.90')
+        ds = index['TOSHIBA_J2K_SIZ0_PixRep1.dcm']['ds']
+        msg = (
+            r"The \(0028,0103\) Pixel Representation value '1' \(signed\) in "
+            r"the dataset does not match the format of the values found in "
+            r"the JPEG 2000 data 'unsigned'. It's recommended that you change "
+            r"the  Pixel Representation value to produce the correct output"
+        )
+        with pytest.warns(UserWarning, match=msg):
+            ds.pixel_array
+
+    def test_invalid_bits_stored(self):
+        """Test that warning issued when Bits Stored doesn't match."""
+        index = get_indexed_datasets('1.2.840.10008.1.2.4.91')
+        ds = index['OsirixFake16BitsStoredFakeSpacing.dcm']['ds']
+        msg = (
+            r"The \(0028,0101\) Bits Stored value '16' in the dataset does "
+            r"not match the component precision value '11' found in the JPEG "
+            r"2000 data. It's recommended that you change the Bits Stored "
+            r"value to produce the correct output"
+        )
+        with pytest.warns(UserWarning, match=msg):
+            ds.pixel_array
+
+    def test_invalid_samples_per_pixel(self):
+        """Test that warning issued when Samples Per Pixel doesn't match."""
+        index = get_indexed_datasets('1.2.840.10008.1.2.4.90')
+        ds = index['693_J2KR.dcm']['ds']
+        ds.SamplesPerPixel = 3
+        msg = (
+            r"The \(0028,0002\) Samples per Pixel value '3' in the dataset "
+            r"does not match the number of components '1' found in the JPEG "
+            r"2000 data. It's recommended that you change the  Samples per "
+            r"Pixel value to produce the correct output"
+        )
+        with pytest.warns(UserWarning, match=msg):
+            with pytest.raises(ValueError):
+                ds.pixel_array
+
+    def test_invalid_pixel_data(self):
+        """Test that warning issued if Pixel Data is not a J2K codestream."""
+        index = get_indexed_datasets('1.2.840.10008.1.2.4.90')
+        ds = index['GDCMJ2K_TextGBR.dcm']['ds']
+        msg = (
+            r"The \(7FE0,0010\) Pixel Data contains a JPEG 2000 codestream "
+            r"with the optional JP2 file format header, which is "
+            r"non-conformant to the DICOM Standard \(Part 5, Annex A.4.4\)"
+        )
+        with pytest.warns(UserWarning, match=msg):
+            ds.pixel_array
+
+    def test_valid_no_warning(self, recwarn):
+        """Test no warning issued when dataset matches JPEG data."""
+        index = get_indexed_datasets('1.2.840.10008.1.2.4.90')
+        ds = index['966_fixed.dcm']['ds']
+        ds.pixel_array
+
+        assert len(recwarn) == 0
+
 
 # ISO/IEC 10918 JPEG - Expected fail
 @pytest.mark.skipif(not HAS_PYDICOM, reason="No dependencies")
@@ -743,6 +804,7 @@ class TestJPEG2000Lossless(HandlerTestBase):
         assert params['is_signed'] == True
 
         #self.plot(arr)
+
 
 @pytest.mark.skipif(not HAS_PYDICOM, reason="No dependencies")
 class TestJPEG2000(HandlerTestBase):
