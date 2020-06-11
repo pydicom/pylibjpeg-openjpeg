@@ -1,11 +1,17 @@
 name: wheels
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   build_wheels:
-    name: Build wheel for ${{ matrix.python-version }} on ${{ matrix.os }}
+    name: Build wheels for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    env:
+      CIBW_BUILD: "cp36-* cp37-* cp38-*"
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -20,8 +26,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install cibuildwheel
-      env:
-        CIBW_BUILD: "cp36-* cp37-* cp38-*"
+
       run: |
         python -m pip install cibuildwheel==1.4.2
 
