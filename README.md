@@ -1,5 +1,8 @@
-[![Build Status](https://github.com/scaramallion/pylibjpeg-openjpeg/workflows/build/badge.svg)](https://github.com/scaramallion/pylibjpeg-openjpeg/actions?query=workflow%3Abuild)
-[![codecov](https://codecov.io/gh/scaramallion/pylibjpeg-openjpeg/branch/master/graph/badge.svg)](https://codecov.io/gh/scaramallion/pylibjpeg-openjpeg)
+[![Build Status](https://github.com/pydicom/pylibjpeg-openjpeg/workflows/build/badge.svg)](https://github.com/pydicom/pylibjpeg-openjpeg/actions?query=workflow%3Abuild)
+[![Build Status](https://github.com/pydicom/pylibjpeg-openjpeg/workflows/wheels/badge.svg)](https://github.com/pydicom/pylibjpeg-openjpeg/actions?query=workflow%3Awheels)
+[![codecov](https://codecov.io/gh/pydicom/pylibjpeg-openjpeg/branch/master/graph/badge.svg)](https://codecov.io/gh/pydicom/pylibjpeg-openjpeg)
+[![PyPI version](https://badge.fury.io/py/pylibjpeg-openjpeg.svg)](https://badge.fury.io/py/pylibjpeg-openjpeg)
+[![Python versions](https://img.shields.io/pypi/pyversions/pylibjpeg-openjpeg.svg)](https://img.shields.io/pypi/pyversions/pylibjpeg-openjpeg.svg)
 
 ## pylibjpeg-openjpeg
 
@@ -14,7 +17,9 @@ Linux, OSX and Windows are all supported.
 [NumPy](http://numpy.org)
 
 #### Installing the current release
-Not yet available
+```bash
+python -m pip install -U pylibjpeg-openjpeg
+```
 
 #### Installing the development version
 
@@ -31,7 +36,7 @@ python -m pip install pylibjpeg-openjpeg
 
 | ISO/IEC Standard | ITU Equivalent | JPEG Format |
 | --- | --- | --- |
-| [15444-1](https://www.iso.org/standard/78321.html)   | [T.800](https://www.itu.int/rec/T-REC-T.800/en) | [JPEG 2000](https://jpeg.org/jpeg2000/) |
+| [15444-1](https://www.iso.org/standard/78321.html) | [T.800](https://www.itu.int/rec/T-REC-T.800/en) | [JPEG 2000](https://jpeg.org/jpeg2000/) |
 
 #### Encoding
 Encoding of JPEG 2000 images is not currently supported

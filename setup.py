@@ -35,14 +35,11 @@ def get_source_files():
     """Return a list of paths to the source files to be compiled."""
     source_files = [
         "openjpeg/_openjpeg.pyx",
-        os.path.join(INTERFACE_SRC, "utils.c"),
+        os.path.join(INTERFACE_SRC, "decode.c"),
     ]
     for fname in Path(OPENJPEG_SRC).glob("*"):
         if fname.parts[-1].startswith("test"):
             continue
-
-        #if fname.parts[-1].startswith("t1"):
-        #    continue
 
         if fname.parts[-1].startswith("bench"):
             continue
@@ -50,8 +47,6 @@ def get_source_files():
         fname = str(fname)
         if fname.endswith(".c"):
             source_files.append(fname)
-
-    print(source_files)
 
     return source_files
 
@@ -147,11 +142,7 @@ setup(
         "Intended Audience :: Developers",
         "Intended Audience :: Healthcare Industry",
         "Intended Audience :: Science/Research",
-        "Development Status :: 1 - Planning",
-        #"Development Status :: 2 - Pre-Alpha",
-        #"Development Status :: 3 - Alpha",
-        #"Development Status :: 4 - Beta",
-        #"Development Status :: 5 - Production/Stable",
+        "Development Status :: 5 - Production/Stable",
         "Natural Language :: English",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
@@ -171,6 +162,6 @@ setup(
             "1.2.840.10008.1.2.4.90 = openjpeg:decode_pixel_data",
             "1.2.840.10008.1.2.4.91 = openjpeg:decode_pixel_data",
         ],
-        "pylibjpeg.jpeg2k_decoders": "openjpeg = openjpeg:decode",
+        "pylibjpeg.jpeg_2000_decoders": "openjpeg = openjpeg:decode",
     }
 )
