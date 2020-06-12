@@ -1,5 +1,4 @@
 [![Build Status](https://github.com/pydicom/pylibjpeg-openjpeg/workflows/build/badge.svg)](https://github.com/pydicom/pylibjpeg-openjpeg/actions?query=workflow%3Abuild)
-[![Build Status](https://github.com/pydicom/pylibjpeg-openjpeg/workflows/wheels/badge.svg)](https://github.com/pydicom/pylibjpeg-openjpeg/actions?query=workflow%3Awheels)
 [![codecov](https://codecov.io/gh/pydicom/pylibjpeg-openjpeg/branch/master/graph/badge.svg)](https://codecov.io/gh/pydicom/pylibjpeg-openjpeg)
 [![PyPI version](https://badge.fury.io/py/pylibjpeg-openjpeg.svg)](https://badge.fury.io/py/pylibjpeg-openjpeg)
 [![Python versions](https://img.shields.io/pypi/pyversions/pylibjpeg-openjpeg.svg)](https://img.shields.io/pypi/pyversions/pylibjpeg-openjpeg.svg)

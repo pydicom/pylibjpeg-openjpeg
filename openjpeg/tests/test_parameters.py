@@ -113,3 +113,13 @@ class TestGetParametersDCM(object):
         )
         with pytest.raises(TypeError, match=msg):
             get_parameters(frame)
+
+    @pytest.mark.skipif(not HAS_PYDICOM, reason="No pydicom")
+    def test_decode_format_raises(self):
+        """Test decoding using invalid format raises."""
+        index = get_indexed_datasets('1.2.840.10008.1.2.4.90')
+        ds = index['693_J2KR.dcm']['ds']
+        frame = next(generate_frames(ds))
+        msg = r"Unsupported 'j2k_format' value: 3"
+        with pytest.raises(ValueError, match=msg):
+            get_parameters(frame, j2k_format=3)
