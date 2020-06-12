@@ -15,7 +15,7 @@ except ImportError:
     HAS_PYDICOM = False
 
 from . import add_handler, remove_handler
-from openjpeg import decode, get_parameters
+from openjpeg import decode, get_parameters, decode_pixel_data
 from openjpeg.data import get_indexed_datasets
 
 
@@ -61,6 +61,30 @@ class TestHandler(object):
             handler.should_change_PhotometricInterpretation_to_RGB
         )
         assert not func(ds)
+
+    def test_invalid_type_raises(self):
+        """Test decoding using invalid type raises."""
+        index = get_indexed_datasets('1.2.840.10008.1.2.4.90')
+        ds = index['MR_small_jp2klossless.dcm']['ds']
+        frame = tuple(next(generate_frames(ds)))
+        assert not hasattr(frame, 'tell') and not isinstance(frame, bytes)
+
+        msg = (
+            r"The Python object containing the encoded JPEG 2000 data must "
+            r"either be bytes or have read\(\), tell\(\) and seek\(\) methods."
+        )
+        with pytest.raises(TypeError, match=msg):
+            decode_pixel_data(frame)
+
+    def test_no_dataset(self):
+        index = get_indexed_datasets('1.2.840.10008.1.2.4.90')
+        ds = index['MR_small_jp2klossless.dcm']['ds']
+        frame = next(generate_frames(ds))
+        arr = decode_pixel_data(frame)
+        assert arr.flags.writeable
+        assert 'uint8' == arr.dtype
+        length = ds.Rows * ds.Columns * ds.SamplesPerPixel * ds.BitsAllocated / 8
+        assert (length,) == arr.shape
 
 
 @pytest.mark.skipif(not HAS_PYDICOM, reason="pydicom unavailable")
