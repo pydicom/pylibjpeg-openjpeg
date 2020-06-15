@@ -542,7 +542,6 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     int width = (int)image->comps[0].w;
     int height = (int)image->comps[0].h;
     int precision = (int)image->comps[0].prec;
-    int mask = (1 << precision) - 1;
 
     // Our output should have planar configuration of 0, i.e. for RGB data
     //  we have R1, B1, G1 | R2, G2, B2 | ..., where 1 is the first pixel,
@@ -557,7 +556,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
             {
                 for (unsigned int ii = 0; ii < NR_COMPONENTS; ii++)
                 {
-                    *out = (unsigned char)(*p_component[ii] & mask);
+                    *out = (unsigned char)(*p_component[ii]);
                     out++;
                     p_component[ii]++;
                 }
@@ -578,7 +577,8 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
             {
                 for (unsigned int ii = 0; ii < NR_COMPONENTS; ii++)
                 {
-                    u16.val = (unsigned short)(*p_component[ii] & mask);
+                    u16.val = (unsigned short)(*p_component[ii]);
+                    // Little endian output
                     *out = u16.vals[0];
                     out++;
                     *out = u16.vals[1];

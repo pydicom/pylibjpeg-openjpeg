@@ -192,6 +192,20 @@ class TestDecode(object):
         assert arr.flags.writeable
         assert (ds.Rows * ds.Columns * ds.SamplesPerPixel,) == arr.shape
 
+    @pytest.mark.skipif(not HAS_PYDICOM, reason="No pydicom")
+    def test_signed_error(self):
+        """Regression test for #30."""
+        index = get_indexed_datasets('1.2.840.10008.1.2.4.90')
+        ds = index['693_J2KR.dcm']['ds']
+        frame = next(generate_frames(ds))
+
+        arr = decode(frame)
+        #print(arr)
+        #import matplotlib.pyplot as plt
+        #plt.imshow(arr)
+        #plt.show()
+        assert -2000 == arr[0, 0]
+
 
 @pytest.mark.skipif(not HAS_PYDICOM, reason="No pydicom")
 class TestDecodeDCM(object):
