@@ -616,6 +616,7 @@ class TestJPEG2000Lossless(HandlerTestBase):
             [1022, 1051, 1165, 1442, 1835, 2096, 2074, 1868, 1685, 1603] ==
             arr[290, 135:145].tolist()
         )
+        assert -2000 == arr[0, 0]
 
     def test_1s_1f_i_16_16(self):
         """Test 1 component, 1 frame, signed 16/16-bit."""
@@ -971,6 +972,7 @@ class TestJPEG2000(HandlerTestBase):
             [ 812,  894, 1179, 1465, 1751, 2037, 1939, 1841, 1743, 1645] ==
             arr[290, 135:145].tolist()
         )
+        assert -2016 == arr[0, 0]
 
     def test_1s_1f_u_16_12(self):
         """Test 1 component, 1 frame, unsigned 16/12-bit."""
