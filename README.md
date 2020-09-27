@@ -25,7 +25,7 @@ python -m pip install -U pylibjpeg-openjpeg
 Make sure [Python](https://www.python.org/), [Git](https://git-scm.com/) and [CMake](https://cmake.org/) are installed. For Windows, you also need to install
 [Microsoft's C++ Build Tools](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16).
 ```bash
-git clone --recurse-submodules https://github.com/scaramallion/pylibjpeg-openjpeg
+git clone --recurse-submodules https://github.com/pydicom/pylibjpeg-openjpeg
 python -m pip install pylibjpeg-openjpeg
 ```
 
