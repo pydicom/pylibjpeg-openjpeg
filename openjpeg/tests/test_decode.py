@@ -202,6 +202,12 @@ class TestDecode(object):
         arr = decode(frame)
         assert -2000 == arr[0, 0]
 
+    def test_decode_subsampled(self):
+        """Test decoding subsampled data (see #36)."""
+        jpg = DIR_15444 / "2KLS" / "issue36.j2k"
+        arr = decode(jpg)
+        
+
 
 @pytest.mark.skipif(not HAS_PYDICOM, reason="No pydicom")
 class TestDecodeDCM(object):

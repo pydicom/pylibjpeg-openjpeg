@@ -201,9 +201,7 @@ def decode_pixel_data(stream, ds=None):
         warnings.warn(
             f"The (0028,0103) Pixel Representation value {ds_val} in the "
             f"dataset does not match the format of the values found in the "
-            f"JPEG 2000 data '{val}'. It's recommended that you "
-            f"change the  Pixel Representation value to produce the correct "
-            f"output"
+            f"JPEG 2000 data '{val}'"
         )
 
     return arr
