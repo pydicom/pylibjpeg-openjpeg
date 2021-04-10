@@ -1102,7 +1102,6 @@ typedef npy_clongdouble __pyx_t_5numpy_clongdouble_t;
  */
 typedef npy_cdouble __pyx_t_5numpy_complex_t;
 struct __pyx_t_9_openjpeg_JPEG2000Parameters;
-struct __pyx_t_9_openjpeg_ComponentParameters;
 
 /* "_openjpeg.pyx":11
  * cimport numpy as np
@@ -1119,21 +1118,6 @@ struct __pyx_t_9_openjpeg_JPEG2000Parameters {
   uint32_t precision;
   unsigned int is_signed;
   uint32_t nr_tiles;
-};
-
-/* "_openjpeg.pyx":26
- * * dy is YRsize: as XRsize, but vertical separation
- * """
- * cdef extern struct ComponentParameters:             # <<<<<<<<<<<<<<
- *     uint32_t precision
- *     unsigned int is_signed
- */
-struct __pyx_t_9_openjpeg_ComponentParameters {
-  uint32_t precision;
-  unsigned int is_signed;
-  uint32_t nr_tiles;
-  uint32_t dx;
-  uint32_t dy;
 };
 
 /* --- Runtime support code (head) --- */
@@ -1841,7 +1825,7 @@ static PyObject *__pyx_codeobj__7;
 static PyObject *__pyx_codeobj__9;
 /* Late includes */
 
-/* "_openjpeg.pyx":51
+/* "_openjpeg.pyx":37
  * 
  * 
  * def get_version():             # <<<<<<<<<<<<<<
@@ -1874,7 +1858,7 @@ static PyObject *__pyx_pf_9_openjpeg_get_version(CYTHON_UNUSED PyObject *__pyx_s
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("get_version", 0);
 
-  /* "_openjpeg.pyx":53
+  /* "_openjpeg.pyx":39
  * def get_version():
  *     """Return the openjpeg version as bytes."""
  *     cdef char *version = OpenJpegVersion()             # <<<<<<<<<<<<<<
@@ -1883,7 +1867,7 @@ static PyObject *__pyx_pf_9_openjpeg_get_version(CYTHON_UNUSED PyObject *__pyx_s
  */
   __pyx_v_version = OpenJpegVersion();
 
-  /* "_openjpeg.pyx":55
+  /* "_openjpeg.pyx":41
  *     cdef char *version = OpenJpegVersion()
  * 
  *     return version             # <<<<<<<<<<<<<<
@@ -1891,13 +1875,13 @@ static PyObject *__pyx_pf_9_openjpeg_get_version(CYTHON_UNUSED PyObject *__pyx_s
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBytes_FromString(__pyx_v_version); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 55, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBytes_FromString(__pyx_v_version); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "_openjpeg.pyx":51
+  /* "_openjpeg.pyx":37
  * 
  * 
  * def get_version():             # <<<<<<<<<<<<<<
@@ -1916,7 +1900,7 @@ static PyObject *__pyx_pf_9_openjpeg_get_version(CYTHON_UNUSED PyObject *__pyx_s
   return __pyx_r;
 }
 
-/* "_openjpeg.pyx":58
+/* "_openjpeg.pyx":44
  * 
  * 
  * def decode(fp, codec=0):             # <<<<<<<<<<<<<<
@@ -1965,7 +1949,7 @@ static PyObject *__pyx_pw_9_openjpeg_3decode(PyObject *__pyx_self, PyObject *__p
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "decode") < 0)) __PYX_ERR(0, 58, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "decode") < 0)) __PYX_ERR(0, 44, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -1981,7 +1965,7 @@ static PyObject *__pyx_pw_9_openjpeg_3decode(PyObject *__pyx_self, PyObject *__p
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("decode", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 58, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("decode", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 44, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("_openjpeg.decode", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2020,14 +2004,14 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("decode", 0);
 
-  /* "_openjpeg.pyx":83
+  /* "_openjpeg.pyx":69
  *         If unable to decode the JPEG 2000 data.
  *     """
  *     param = get_parameters(fp, codec)             # <<<<<<<<<<<<<<
  *     bpp = ceil(param['precision'] / 8)
  *     nr_bytes = param['rows'] * param['columns'] * param['nr_components'] * bpp
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_get_parameters); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 83, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_get_parameters); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   __pyx_t_4 = 0;
@@ -2044,7 +2028,7 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_v_fp, __pyx_v_codec};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 83, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 69, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else
@@ -2052,13 +2036,13 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_v_fp, __pyx_v_codec};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 83, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 69, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else
   #endif
   {
-    __pyx_t_5 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 83, __pyx_L1_error)
+    __pyx_t_5 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 69, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     if (__pyx_t_3) {
       __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __pyx_t_3 = NULL;
@@ -2069,7 +2053,7 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
     __Pyx_INCREF(__pyx_v_codec);
     __Pyx_GIVEREF(__pyx_v_codec);
     PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_4, __pyx_v_codec);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 83, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 69, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
@@ -2077,18 +2061,18 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
   __pyx_v_param = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "_openjpeg.pyx":84
+  /* "_openjpeg.pyx":70
  *     """
  *     param = get_parameters(fp, codec)
  *     bpp = ceil(param['precision'] / 8)             # <<<<<<<<<<<<<<
  *     nr_bytes = param['rows'] * param['columns'] * param['nr_components'] * bpp
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_ceil); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 84, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_ceil); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = __Pyx_PyObject_Dict_GetItem(__pyx_v_param, __pyx_n_u_precision); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 84, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_Dict_GetItem(__pyx_v_param, __pyx_n_u_precision); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = __Pyx_PyInt_TrueDivideObjC(__pyx_t_5, __pyx_int_8, 8, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 84, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_TrueDivideObjC(__pyx_t_5, __pyx_int_8, 8, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_5 = NULL;
@@ -2104,40 +2088,40 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
   __pyx_t_1 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_5, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3);
   __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 84, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_bpp = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "_openjpeg.pyx":85
+  /* "_openjpeg.pyx":71
  *     param = get_parameters(fp, codec)
  *     bpp = ceil(param['precision'] / 8)
  *     nr_bytes = param['rows'] * param['columns'] * param['nr_components'] * bpp             # <<<<<<<<<<<<<<
  * 
  *     cdef PyObject* p_in = <PyObject*>fp
  */
-  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_param, __pyx_n_u_rows); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 85, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_param, __pyx_n_u_rows); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_param, __pyx_n_u_columns); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 85, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_param, __pyx_n_u_columns); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyNumber_Multiply(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 85, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_Multiply(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_param, __pyx_n_u_nr_components); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 85, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_param, __pyx_n_u_nr_components); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyNumber_Multiply(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 85, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Multiply(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyNumber_Multiply(__pyx_t_1, __pyx_v_bpp); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 85, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Multiply(__pyx_t_1, __pyx_v_bpp); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_nr_bytes = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "_openjpeg.pyx":87
+  /* "_openjpeg.pyx":73
  *     nr_bytes = param['rows'] * param['columns'] * param['nr_components'] * bpp
  * 
  *     cdef PyObject* p_in = <PyObject*>fp             # <<<<<<<<<<<<<<
@@ -2146,33 +2130,33 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
  */
   __pyx_v_p_in = ((PyObject *)__pyx_v_fp);
 
-  /* "_openjpeg.pyx":88
+  /* "_openjpeg.pyx":74
  * 
  *     cdef PyObject* p_in = <PyObject*>fp
  *     arr = np.zeros(nr_bytes, dtype=np.uint8)             # <<<<<<<<<<<<<<
  *     cdef unsigned char *p_out = <unsigned char *>np.PyArray_DATA(arr)
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 74, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 74, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 74, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_v_nr_bytes);
   __Pyx_GIVEREF(__pyx_v_nr_bytes);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_nr_bytes);
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 74, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 74, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_uint8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_uint8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 74, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 88, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 74, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 74, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -2180,27 +2164,27 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
   __pyx_v_arr = __pyx_t_6;
   __pyx_t_6 = 0;
 
-  /* "_openjpeg.pyx":89
+  /* "_openjpeg.pyx":75
  *     cdef PyObject* p_in = <PyObject*>fp
  *     arr = np.zeros(nr_bytes, dtype=np.uint8)
  *     cdef unsigned char *p_out = <unsigned char *>np.PyArray_DATA(arr)             # <<<<<<<<<<<<<<
  * 
  *     result = Decode(p_in, p_out, codec)
  */
-  if (!(likely(((__pyx_v_arr) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_arr, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 89, __pyx_L1_error)
+  if (!(likely(((__pyx_v_arr) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_arr, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 75, __pyx_L1_error)
   __pyx_v_p_out = ((unsigned char *)PyArray_DATA(((PyArrayObject *)__pyx_v_arr)));
 
-  /* "_openjpeg.pyx":91
+  /* "_openjpeg.pyx":77
  *     cdef unsigned char *p_out = <unsigned char *>np.PyArray_DATA(arr)
  * 
  *     result = Decode(p_in, p_out, codec)             # <<<<<<<<<<<<<<
  *     if result != 0:
  *         try:
  */
-  __pyx_t_4 = __Pyx_PyInt_As_int(__pyx_v_codec); if (unlikely((__pyx_t_4 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 91, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_As_int(__pyx_v_codec); if (unlikely((__pyx_t_4 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 77, __pyx_L1_error)
   __pyx_v_result = Decode(__pyx_v_p_in, __pyx_v_p_out, __pyx_t_4);
 
-  /* "_openjpeg.pyx":92
+  /* "_openjpeg.pyx":78
  * 
  *     result = Decode(p_in, p_out, codec)
  *     if result != 0:             # <<<<<<<<<<<<<<
@@ -2210,7 +2194,7 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
   __pyx_t_7 = ((__pyx_v_result != 0) != 0);
   if (__pyx_t_7) {
 
-    /* "_openjpeg.pyx":93
+    /* "_openjpeg.pyx":79
  *     result = Decode(p_in, p_out, codec)
  *     if result != 0:
  *         try:             # <<<<<<<<<<<<<<
@@ -2226,28 +2210,28 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
       __Pyx_XGOTREF(__pyx_t_10);
       /*try:*/ {
 
-        /* "_openjpeg.pyx":94
+        /* "_openjpeg.pyx":80
  *     if result != 0:
  *         try:
  *             msg = f": {ERRORS[result]}"             # <<<<<<<<<<<<<<
  *         except KeyError:
  *             pass
  */
-        __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_ERRORS); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 94, __pyx_L4_error)
+        __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_ERRORS); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 80, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_6);
-        __pyx_t_3 = __Pyx_GetItemInt(__pyx_t_6, __pyx_v_result, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 94, __pyx_L4_error)
+        __pyx_t_3 = __Pyx_GetItemInt(__pyx_t_6, __pyx_v_result, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 80, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        __pyx_t_6 = __Pyx_PyObject_FormatSimple(__pyx_t_3, __pyx_empty_unicode); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 94, __pyx_L4_error)
+        __pyx_t_6 = __Pyx_PyObject_FormatSimple(__pyx_t_3, __pyx_empty_unicode); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 80, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        __pyx_t_3 = __Pyx_PyUnicode_Concat(__pyx_kp_u_, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 94, __pyx_L4_error)
+        __pyx_t_3 = __Pyx_PyUnicode_Concat(__pyx_kp_u_, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 80, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         __pyx_v_msg = ((PyObject*)__pyx_t_3);
         __pyx_t_3 = 0;
 
-        /* "_openjpeg.pyx":93
+        /* "_openjpeg.pyx":79
  *     result = Decode(p_in, p_out, codec)
  *     if result != 0:
  *         try:             # <<<<<<<<<<<<<<
@@ -2266,7 +2250,7 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
       __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-      /* "_openjpeg.pyx":95
+      /* "_openjpeg.pyx":81
  *         try:
  *             msg = f": {ERRORS[result]}"
  *         except KeyError:             # <<<<<<<<<<<<<<
@@ -2281,7 +2265,7 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
       goto __pyx_L6_except_error;
       __pyx_L6_except_error:;
 
-      /* "_openjpeg.pyx":93
+      /* "_openjpeg.pyx":79
  *     result = Decode(p_in, p_out, codec)
  *     if result != 0:
  *         try:             # <<<<<<<<<<<<<<
@@ -2301,24 +2285,24 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
       __pyx_L9_try_end:;
     }
 
-    /* "_openjpeg.pyx":98
+    /* "_openjpeg.pyx":84
  *             pass
  * 
  *         raise RuntimeError("Error decoding the J2K data" + msg)             # <<<<<<<<<<<<<<
  * 
  *     return arr
  */
-    if (unlikely(!__pyx_v_msg)) { __Pyx_RaiseUnboundLocalError("msg"); __PYX_ERR(0, 98, __pyx_L1_error) }
-    __pyx_t_3 = __Pyx_PyUnicode_Concat(__pyx_kp_u_Error_decoding_the_J2K_data, __pyx_v_msg); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 98, __pyx_L1_error)
+    if (unlikely(!__pyx_v_msg)) { __Pyx_RaiseUnboundLocalError("msg"); __PYX_ERR(0, 84, __pyx_L1_error) }
+    __pyx_t_3 = __Pyx_PyUnicode_Concat(__pyx_kp_u_Error_decoding_the_J2K_data, __pyx_v_msg); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 84, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_builtin_RuntimeError, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 98, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_builtin_RuntimeError, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 84, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_Raise(__pyx_t_6, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __PYX_ERR(0, 98, __pyx_L1_error)
+    __PYX_ERR(0, 84, __pyx_L1_error)
 
-    /* "_openjpeg.pyx":92
+    /* "_openjpeg.pyx":78
  * 
  *     result = Decode(p_in, p_out, codec)
  *     if result != 0:             # <<<<<<<<<<<<<<
@@ -2327,7 +2311,7 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
  */
   }
 
-  /* "_openjpeg.pyx":100
+  /* "_openjpeg.pyx":86
  *         raise RuntimeError("Error decoding the J2K data" + msg)
  * 
  *     return arr             # <<<<<<<<<<<<<<
@@ -2339,7 +2323,7 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
   __pyx_r = __pyx_v_arr;
   goto __pyx_L0;
 
-  /* "_openjpeg.pyx":58
+  /* "_openjpeg.pyx":44
  * 
  * 
  * def decode(fp, codec=0):             # <<<<<<<<<<<<<<
@@ -2367,7 +2351,7 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
   return __pyx_r;
 }
 
-/* "_openjpeg.pyx":103
+/* "_openjpeg.pyx":89
  * 
  * 
  * def get_parameters(fp, codec=0):             # <<<<<<<<<<<<<<
@@ -2416,7 +2400,7 @@ static PyObject *__pyx_pw_9_openjpeg_5get_parameters(PyObject *__pyx_self, PyObj
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_parameters") < 0)) __PYX_ERR(0, 103, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_parameters") < 0)) __PYX_ERR(0, 89, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -2432,7 +2416,7 @@ static PyObject *__pyx_pw_9_openjpeg_5get_parameters(PyObject *__pyx_self, PyObj
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_parameters", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 103, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_parameters", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 89, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("_openjpeg.get_parameters", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2469,7 +2453,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("get_parameters", 0);
 
-  /* "_openjpeg.pyx":132
+  /* "_openjpeg.pyx":118
  *     """
  *     cdef JPEG2000Parameters param
  *     param.columns = 0             # <<<<<<<<<<<<<<
@@ -2478,7 +2462,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
  */
   __pyx_v_param.columns = 0;
 
-  /* "_openjpeg.pyx":133
+  /* "_openjpeg.pyx":119
  *     cdef JPEG2000Parameters param
  *     param.columns = 0
  *     param.rows = 0             # <<<<<<<<<<<<<<
@@ -2487,7 +2471,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
  */
   __pyx_v_param.rows = 0;
 
-  /* "_openjpeg.pyx":134
+  /* "_openjpeg.pyx":120
  *     param.columns = 0
  *     param.rows = 0
  *     param.colourspace = 0             # <<<<<<<<<<<<<<
@@ -2496,7 +2480,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
  */
   __pyx_v_param.colourspace = 0;
 
-  /* "_openjpeg.pyx":135
+  /* "_openjpeg.pyx":121
  *     param.rows = 0
  *     param.colourspace = 0
  *     param.nr_components = 0             # <<<<<<<<<<<<<<
@@ -2505,7 +2489,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
  */
   __pyx_v_param.nr_components = 0;
 
-  /* "_openjpeg.pyx":136
+  /* "_openjpeg.pyx":122
  *     param.colourspace = 0
  *     param.nr_components = 0
  *     param.precision = 0             # <<<<<<<<<<<<<<
@@ -2514,7 +2498,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
  */
   __pyx_v_param.precision = 0;
 
-  /* "_openjpeg.pyx":137
+  /* "_openjpeg.pyx":123
  *     param.nr_components = 0
  *     param.precision = 0
  *     param.is_signed = 0             # <<<<<<<<<<<<<<
@@ -2523,7 +2507,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
  */
   __pyx_v_param.is_signed = 0;
 
-  /* "_openjpeg.pyx":138
+  /* "_openjpeg.pyx":124
  *     param.precision = 0
  *     param.is_signed = 0
  *     param.nr_tiles = 0             # <<<<<<<<<<<<<<
@@ -2532,7 +2516,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
  */
   __pyx_v_param.nr_tiles = 0;
 
-  /* "_openjpeg.pyx":141
+  /* "_openjpeg.pyx":127
  * 
  *     # Pointer to the JPEGParameters object
  *     cdef JPEG2000Parameters *p_param = &param             # <<<<<<<<<<<<<<
@@ -2541,7 +2525,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
  */
   __pyx_v_p_param = (&__pyx_v_param);
 
-  /* "_openjpeg.pyx":144
+  /* "_openjpeg.pyx":130
  * 
  *     # Pointer to J2K data
  *     cdef PyObject* ptr = <PyObject*>fp             # <<<<<<<<<<<<<<
@@ -2550,17 +2534,17 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
  */
   __pyx_v_ptr = ((PyObject *)__pyx_v_fp);
 
-  /* "_openjpeg.pyx":147
+  /* "_openjpeg.pyx":133
  * 
  *     # Decode the data - output is written to output_buffer
  *     result = GetParameters(ptr, codec, p_param)             # <<<<<<<<<<<<<<
  *     if result != 0:
  *         try:
  */
-  __pyx_t_1 = __Pyx_PyInt_As_int(__pyx_v_codec); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 147, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_As_int(__pyx_v_codec); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 133, __pyx_L1_error)
   __pyx_v_result = GetParameters(__pyx_v_ptr, __pyx_t_1, __pyx_v_p_param);
 
-  /* "_openjpeg.pyx":148
+  /* "_openjpeg.pyx":134
  *     # Decode the data - output is written to output_buffer
  *     result = GetParameters(ptr, codec, p_param)
  *     if result != 0:             # <<<<<<<<<<<<<<
@@ -2570,7 +2554,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
   __pyx_t_2 = ((__pyx_v_result != 0) != 0);
   if (__pyx_t_2) {
 
-    /* "_openjpeg.pyx":149
+    /* "_openjpeg.pyx":135
  *     result = GetParameters(ptr, codec, p_param)
  *     if result != 0:
  *         try:             # <<<<<<<<<<<<<<
@@ -2586,28 +2570,28 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
       __Pyx_XGOTREF(__pyx_t_5);
       /*try:*/ {
 
-        /* "_openjpeg.pyx":150
+        /* "_openjpeg.pyx":136
  *     if result != 0:
  *         try:
  *             msg = f": {ERRORS[result]}"             # <<<<<<<<<<<<<<
  *         except KeyError:
  *             pass
  */
-        __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_ERRORS); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 150, __pyx_L4_error)
+        __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_ERRORS); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 136, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_6);
-        __pyx_t_7 = __Pyx_GetItemInt(__pyx_t_6, __pyx_v_result, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 150, __pyx_L4_error)
+        __pyx_t_7 = __Pyx_GetItemInt(__pyx_t_6, __pyx_v_result, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 136, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        __pyx_t_6 = __Pyx_PyObject_FormatSimple(__pyx_t_7, __pyx_empty_unicode); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 150, __pyx_L4_error)
+        __pyx_t_6 = __Pyx_PyObject_FormatSimple(__pyx_t_7, __pyx_empty_unicode); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 136, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-        __pyx_t_7 = __Pyx_PyUnicode_Concat(__pyx_kp_u_, __pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 150, __pyx_L4_error)
+        __pyx_t_7 = __Pyx_PyUnicode_Concat(__pyx_kp_u_, __pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 136, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         __pyx_v_msg = ((PyObject*)__pyx_t_7);
         __pyx_t_7 = 0;
 
-        /* "_openjpeg.pyx":149
+        /* "_openjpeg.pyx":135
  *     result = GetParameters(ptr, codec, p_param)
  *     if result != 0:
  *         try:             # <<<<<<<<<<<<<<
@@ -2623,7 +2607,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
       __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-      /* "_openjpeg.pyx":151
+      /* "_openjpeg.pyx":137
  *         try:
  *             msg = f": {ERRORS[result]}"
  *         except KeyError:             # <<<<<<<<<<<<<<
@@ -2638,7 +2622,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
       goto __pyx_L6_except_error;
       __pyx_L6_except_error:;
 
-      /* "_openjpeg.pyx":149
+      /* "_openjpeg.pyx":135
  *     result = GetParameters(ptr, codec, p_param)
  *     if result != 0:
  *         try:             # <<<<<<<<<<<<<<
@@ -2658,24 +2642,24 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
       __pyx_L9_try_end:;
     }
 
-    /* "_openjpeg.pyx":154
+    /* "_openjpeg.pyx":140
  *             pass
  * 
  *         raise RuntimeError("Error decoding the J2K data" + msg)             # <<<<<<<<<<<<<<
  * 
  *     # From openjpeg.h#L309
  */
-    if (unlikely(!__pyx_v_msg)) { __Pyx_RaiseUnboundLocalError("msg"); __PYX_ERR(0, 154, __pyx_L1_error) }
-    __pyx_t_7 = __Pyx_PyUnicode_Concat(__pyx_kp_u_Error_decoding_the_J2K_data, __pyx_v_msg); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 154, __pyx_L1_error)
+    if (unlikely(!__pyx_v_msg)) { __Pyx_RaiseUnboundLocalError("msg"); __PYX_ERR(0, 140, __pyx_L1_error) }
+    __pyx_t_7 = __Pyx_PyUnicode_Concat(__pyx_kp_u_Error_decoding_the_J2K_data, __pyx_v_msg); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 140, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_builtin_RuntimeError, __pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 154, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_builtin_RuntimeError, __pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 140, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_Raise(__pyx_t_6, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __PYX_ERR(0, 154, __pyx_L1_error)
+    __PYX_ERR(0, 140, __pyx_L1_error)
 
-    /* "_openjpeg.pyx":148
+    /* "_openjpeg.pyx":134
  *     # Decode the data - output is written to output_buffer
  *     result = GetParameters(ptr, codec, p_param)
  *     if result != 0:             # <<<<<<<<<<<<<<
@@ -2684,26 +2668,26 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
  */
   }
 
-  /* "_openjpeg.pyx":158
+  /* "_openjpeg.pyx":144
  *     # From openjpeg.h#L309
  *     colours = {
  *         -1: "unknown",             # <<<<<<<<<<<<<<
  *          0: "unspecified",
  *          1: "sRGB",
  */
-  __pyx_t_6 = __Pyx_PyDict_NewPresized(7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 158, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyDict_NewPresized(7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 144, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  if (PyDict_SetItem(__pyx_t_6, __pyx_int_neg_1, __pyx_n_u_unknown) < 0) __PYX_ERR(0, 158, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_6, __pyx_int_0, __pyx_n_u_unspecified) < 0) __PYX_ERR(0, 158, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_6, __pyx_int_1, __pyx_n_u_sRGB) < 0) __PYX_ERR(0, 158, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_6, __pyx_int_2, __pyx_n_u_monochrome) < 0) __PYX_ERR(0, 158, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_6, __pyx_int_3, __pyx_n_u_YUV) < 0) __PYX_ERR(0, 158, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_6, __pyx_int_4, __pyx_kp_u_e_YCC) < 0) __PYX_ERR(0, 158, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_6, __pyx_int_5, __pyx_n_u_CYMK) < 0) __PYX_ERR(0, 158, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_int_neg_1, __pyx_n_u_unknown) < 0) __PYX_ERR(0, 144, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_int_0, __pyx_n_u_unspecified) < 0) __PYX_ERR(0, 144, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_int_1, __pyx_n_u_sRGB) < 0) __PYX_ERR(0, 144, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_int_2, __pyx_n_u_monochrome) < 0) __PYX_ERR(0, 144, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_int_3, __pyx_n_u_YUV) < 0) __PYX_ERR(0, 144, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_int_4, __pyx_kp_u_e_YCC) < 0) __PYX_ERR(0, 144, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_int_5, __pyx_n_u_CYMK) < 0) __PYX_ERR(0, 144, __pyx_L1_error)
   __pyx_v_colours = ((PyObject*)__pyx_t_6);
   __pyx_t_6 = 0;
 
-  /* "_openjpeg.pyx":167
+  /* "_openjpeg.pyx":153
  *     }
  * 
  *     try:             # <<<<<<<<<<<<<<
@@ -2719,22 +2703,22 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
     __Pyx_XGOTREF(__pyx_t_3);
     /*try:*/ {
 
-      /* "_openjpeg.pyx":168
+      /* "_openjpeg.pyx":154
  * 
  *     try:
  *         colourspace = colours[param.colourspace]             # <<<<<<<<<<<<<<
  *     except KeyError:
  *         colourspace = "unknown"
  */
-      __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_param.colourspace); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 168, __pyx_L10_error)
+      __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_param.colourspace); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 154, __pyx_L10_error)
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_7 = __Pyx_PyDict_GetItem(__pyx_v_colours, __pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 168, __pyx_L10_error)
+      __pyx_t_7 = __Pyx_PyDict_GetItem(__pyx_v_colours, __pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 154, __pyx_L10_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       __pyx_v_colourspace = __pyx_t_7;
       __pyx_t_7 = 0;
 
-      /* "_openjpeg.pyx":167
+      /* "_openjpeg.pyx":153
  *     }
  * 
  *     try:             # <<<<<<<<<<<<<<
@@ -2750,7 +2734,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-    /* "_openjpeg.pyx":169
+    /* "_openjpeg.pyx":155
  *     try:
  *         colourspace = colours[param.colourspace]
  *     except KeyError:             # <<<<<<<<<<<<<<
@@ -2760,12 +2744,12 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
     __pyx_t_1 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_KeyError);
     if (__pyx_t_1) {
       __Pyx_AddTraceback("_openjpeg.get_parameters", __pyx_clineno, __pyx_lineno, __pyx_filename);
-      if (__Pyx_GetException(&__pyx_t_7, &__pyx_t_6, &__pyx_t_8) < 0) __PYX_ERR(0, 169, __pyx_L12_except_error)
+      if (__Pyx_GetException(&__pyx_t_7, &__pyx_t_6, &__pyx_t_8) < 0) __PYX_ERR(0, 155, __pyx_L12_except_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_GOTREF(__pyx_t_8);
 
-      /* "_openjpeg.pyx":170
+      /* "_openjpeg.pyx":156
  *         colourspace = colours[param.colourspace]
  *     except KeyError:
  *         colourspace = "unknown"             # <<<<<<<<<<<<<<
@@ -2782,7 +2766,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
     goto __pyx_L12_except_error;
     __pyx_L12_except_error:;
 
-    /* "_openjpeg.pyx":167
+    /* "_openjpeg.pyx":153
  *     }
  * 
  *     try:             # <<<<<<<<<<<<<<
@@ -2802,96 +2786,96 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
     __pyx_L15_try_end:;
   }
 
-  /* "_openjpeg.pyx":173
+  /* "_openjpeg.pyx":159
  * 
  *     parameters = {
  *         'rows' : param.rows,             # <<<<<<<<<<<<<<
  *         'columns' : param.columns,
  *         'colourspace' : colourspace,
  */
-  __pyx_t_8 = __Pyx_PyDict_NewPresized(7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 173, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyDict_NewPresized(7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_6 = __Pyx_PyInt_From_uint32_t(__pyx_v_param.rows); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 173, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_From_uint32_t(__pyx_v_param.rows); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_rows, __pyx_t_6) < 0) __PYX_ERR(0, 173, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_rows, __pyx_t_6) < 0) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "_openjpeg.pyx":174
+  /* "_openjpeg.pyx":160
  *     parameters = {
  *         'rows' : param.rows,
  *         'columns' : param.columns,             # <<<<<<<<<<<<<<
  *         'colourspace' : colourspace,
  *         'nr_components' : param.nr_components,
  */
-  __pyx_t_6 = __Pyx_PyInt_From_uint32_t(__pyx_v_param.columns); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 174, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_From_uint32_t(__pyx_v_param.columns); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 160, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_columns, __pyx_t_6) < 0) __PYX_ERR(0, 173, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_columns, __pyx_t_6) < 0) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "_openjpeg.pyx":175
+  /* "_openjpeg.pyx":161
  *         'rows' : param.rows,
  *         'columns' : param.columns,
  *         'colourspace' : colourspace,             # <<<<<<<<<<<<<<
  *         'nr_components' : param.nr_components,
  *         'precision' : param.precision,
  */
-  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_colourspace, __pyx_v_colourspace) < 0) __PYX_ERR(0, 173, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_colourspace, __pyx_v_colourspace) < 0) __PYX_ERR(0, 159, __pyx_L1_error)
 
-  /* "_openjpeg.pyx":176
+  /* "_openjpeg.pyx":162
  *         'columns' : param.columns,
  *         'colourspace' : colourspace,
  *         'nr_components' : param.nr_components,             # <<<<<<<<<<<<<<
  *         'precision' : param.precision,
  *         'is_signed' : bool(param.is_signed),
  */
-  __pyx_t_6 = __Pyx_PyInt_From_uint32_t(__pyx_v_param.nr_components); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 176, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_From_uint32_t(__pyx_v_param.nr_components); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_nr_components, __pyx_t_6) < 0) __PYX_ERR(0, 173, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_nr_components, __pyx_t_6) < 0) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "_openjpeg.pyx":177
+  /* "_openjpeg.pyx":163
  *         'colourspace' : colourspace,
  *         'nr_components' : param.nr_components,
  *         'precision' : param.precision,             # <<<<<<<<<<<<<<
  *         'is_signed' : bool(param.is_signed),
  *         'nr_tiles' : param.nr_tiles,
  */
-  __pyx_t_6 = __Pyx_PyInt_From_uint32_t(__pyx_v_param.precision); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 177, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_From_uint32_t(__pyx_v_param.precision); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 163, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_precision, __pyx_t_6) < 0) __PYX_ERR(0, 173, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_precision, __pyx_t_6) < 0) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "_openjpeg.pyx":178
+  /* "_openjpeg.pyx":164
  *         'nr_components' : param.nr_components,
  *         'precision' : param.precision,
  *         'is_signed' : bool(param.is_signed),             # <<<<<<<<<<<<<<
  *         'nr_tiles' : param.nr_tiles,
  *     }
  */
-  __pyx_t_6 = __Pyx_PyInt_From_unsigned_int(__pyx_v_param.is_signed); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 178, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_From_unsigned_int(__pyx_v_param.is_signed); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 164, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 178, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 164, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyBool_FromLong((!(!__pyx_t_2))); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 178, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyBool_FromLong((!(!__pyx_t_2))); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 164, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_is_signed, __pyx_t_6) < 0) __PYX_ERR(0, 173, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_is_signed, __pyx_t_6) < 0) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "_openjpeg.pyx":179
+  /* "_openjpeg.pyx":165
  *         'precision' : param.precision,
  *         'is_signed' : bool(param.is_signed),
  *         'nr_tiles' : param.nr_tiles,             # <<<<<<<<<<<<<<
  *     }
  * 
  */
-  __pyx_t_6 = __Pyx_PyInt_From_uint32_t(__pyx_v_param.nr_tiles); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 179, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_From_uint32_t(__pyx_v_param.nr_tiles); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 165, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_nr_tiles, __pyx_t_6) < 0) __PYX_ERR(0, 173, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_nr_tiles, __pyx_t_6) < 0) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __pyx_v_parameters = ((PyObject*)__pyx_t_8);
   __pyx_t_8 = 0;
 
-  /* "_openjpeg.pyx":182
+  /* "_openjpeg.pyx":168
  *     }
  * 
  *     return parameters             # <<<<<<<<<<<<<<
@@ -2901,7 +2885,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
   __pyx_r = __pyx_v_parameters;
   goto __pyx_L0;
 
-  /* "_openjpeg.pyx":103
+  /* "_openjpeg.pyx":89
  * 
  * 
  * def get_parameters(fp, codec=0):             # <<<<<<<<<<<<<<
@@ -4055,8 +4039,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) __PYX_ERR(0, 95, __pyx_L1_error)
-  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(0, 98, __pyx_L1_error)
+  __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) __PYX_ERR(0, 81, __pyx_L1_error)
+  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(0, 84, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(1, 947, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
@@ -4089,41 +4073,41 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
 
-  /* "_openjpeg.pyx":51
+  /* "_openjpeg.pyx":37
  * 
  * 
  * def get_version():             # <<<<<<<<<<<<<<
  *     """Return the openjpeg version as bytes."""
  *     cdef char *version = OpenJpegVersion()
  */
-  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_n_s_version); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 51, __pyx_L1_error)
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_n_s_version); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
-  __pyx_codeobj__5 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__4, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openjpeg__openjpeg_pyx, __pyx_n_s_get_version, 51, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__5)) __PYX_ERR(0, 51, __pyx_L1_error)
+  __pyx_codeobj__5 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__4, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openjpeg__openjpeg_pyx, __pyx_n_s_get_version, 37, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__5)) __PYX_ERR(0, 37, __pyx_L1_error)
 
-  /* "_openjpeg.pyx":58
+  /* "_openjpeg.pyx":44
  * 
  * 
  * def decode(fp, codec=0):             # <<<<<<<<<<<<<<
  *     """Return the decoded JPEG 2000 data from Python file-like `fp`.
  * 
  */
-  __pyx_tuple__6 = PyTuple_Pack(10, __pyx_n_s_fp, __pyx_n_s_codec, __pyx_n_s_param, __pyx_n_s_bpp, __pyx_n_s_nr_bytes, __pyx_n_s_p_in, __pyx_n_s_arr, __pyx_n_s_p_out, __pyx_n_s_result, __pyx_n_s_msg); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_tuple__6 = PyTuple_Pack(10, __pyx_n_s_fp, __pyx_n_s_codec, __pyx_n_s_param, __pyx_n_s_bpp, __pyx_n_s_nr_bytes, __pyx_n_s_p_in, __pyx_n_s_arr, __pyx_n_s_p_out, __pyx_n_s_result, __pyx_n_s_msg); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
-  __pyx_codeobj__7 = (PyObject*)__Pyx_PyCode_New(2, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__6, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openjpeg__openjpeg_pyx, __pyx_n_s_decode, 58, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__7)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_codeobj__7 = (PyObject*)__Pyx_PyCode_New(2, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__6, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openjpeg__openjpeg_pyx, __pyx_n_s_decode, 44, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__7)) __PYX_ERR(0, 44, __pyx_L1_error)
 
-  /* "_openjpeg.pyx":103
+  /* "_openjpeg.pyx":89
  * 
  * 
  * def get_parameters(fp, codec=0):             # <<<<<<<<<<<<<<
  *     """Return a :class:`dict` containing the JPEG 2000 image parameters.
  * 
  */
-  __pyx_tuple__8 = PyTuple_Pack(10, __pyx_n_s_fp, __pyx_n_s_codec, __pyx_n_s_param, __pyx_n_s_p_param, __pyx_n_s_ptr, __pyx_n_s_result, __pyx_n_s_msg, __pyx_n_s_colours, __pyx_n_s_colourspace, __pyx_n_s_parameters); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 103, __pyx_L1_error)
+  __pyx_tuple__8 = PyTuple_Pack(10, __pyx_n_s_fp, __pyx_n_s_codec, __pyx_n_s_param, __pyx_n_s_p_param, __pyx_n_s_ptr, __pyx_n_s_result, __pyx_n_s_msg, __pyx_n_s_colours, __pyx_n_s_colourspace, __pyx_n_s_parameters); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 89, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__8);
   __Pyx_GIVEREF(__pyx_tuple__8);
-  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(2, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openjpeg__openjpeg_pyx, __pyx_n_s_get_parameters, 103, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 103, __pyx_L1_error)
+  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(2, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openjpeg__openjpeg_pyx, __pyx_n_s_get_parameters, 89, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 89, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -4500,60 +4484,60 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_2) < 0) __PYX_ERR(0, 8, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "_openjpeg.pyx":40
+  /* "_openjpeg.pyx":26
  * 
  * ERRORS = {
  *     1: "failed to create the input stream",             # <<<<<<<<<<<<<<
  *     2: "failed to setup the decoder",
  *     3: "failed to read the header",
  */
-  __pyx_t_2 = __Pyx_PyDict_NewPresized(8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 26, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_int_1, __pyx_kp_u_failed_to_create_the_input_strea) < 0) __PYX_ERR(0, 40, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_2, __pyx_int_2, __pyx_kp_u_failed_to_setup_the_decoder) < 0) __PYX_ERR(0, 40, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_2, __pyx_int_3, __pyx_kp_u_failed_to_read_the_header) < 0) __PYX_ERR(0, 40, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_2, __pyx_int_4, __pyx_kp_u_failed_to_set_the_component_indi) < 0) __PYX_ERR(0, 40, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_2, __pyx_int_5, __pyx_kp_u_failed_to_set_the_decoded_area) < 0) __PYX_ERR(0, 40, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_2, __pyx_int_6, __pyx_kp_u_failed_to_decode_image) < 0) __PYX_ERR(0, 40, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_2, __pyx_int_7, __pyx_kp_u_support_for_more_than_16_bits_pe) < 0) __PYX_ERR(0, 40, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_2, __pyx_int_8, __pyx_kp_u_failed_to_upscale_subsampled_com) < 0) __PYX_ERR(0, 40, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_ERRORS, __pyx_t_2) < 0) __PYX_ERR(0, 39, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_int_1, __pyx_kp_u_failed_to_create_the_input_strea) < 0) __PYX_ERR(0, 26, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_int_2, __pyx_kp_u_failed_to_setup_the_decoder) < 0) __PYX_ERR(0, 26, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_int_3, __pyx_kp_u_failed_to_read_the_header) < 0) __PYX_ERR(0, 26, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_int_4, __pyx_kp_u_failed_to_set_the_component_indi) < 0) __PYX_ERR(0, 26, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_int_5, __pyx_kp_u_failed_to_set_the_decoded_area) < 0) __PYX_ERR(0, 26, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_int_6, __pyx_kp_u_failed_to_decode_image) < 0) __PYX_ERR(0, 26, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_int_7, __pyx_kp_u_support_for_more_than_16_bits_pe) < 0) __PYX_ERR(0, 26, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_int_8, __pyx_kp_u_failed_to_upscale_subsampled_com) < 0) __PYX_ERR(0, 26, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_ERRORS, __pyx_t_2) < 0) __PYX_ERR(0, 25, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "_openjpeg.pyx":51
+  /* "_openjpeg.pyx":37
  * 
  * 
  * def get_version():             # <<<<<<<<<<<<<<
  *     """Return the openjpeg version as bytes."""
  *     cdef char *version = OpenJpegVersion()
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_9_openjpeg_1get_version, NULL, __pyx_n_s_openjpeg); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 51, __pyx_L1_error)
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_9_openjpeg_1get_version, NULL, __pyx_n_s_openjpeg); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_version, __pyx_t_2) < 0) __PYX_ERR(0, 51, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_version, __pyx_t_2) < 0) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "_openjpeg.pyx":58
+  /* "_openjpeg.pyx":44
  * 
  * 
  * def decode(fp, codec=0):             # <<<<<<<<<<<<<<
  *     """Return the decoded JPEG 2000 data from Python file-like `fp`.
  * 
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_9_openjpeg_3decode, NULL, __pyx_n_s_openjpeg); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_9_openjpeg_3decode, NULL, __pyx_n_s_openjpeg); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_decode, __pyx_t_2) < 0) __PYX_ERR(0, 58, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_decode, __pyx_t_2) < 0) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "_openjpeg.pyx":103
+  /* "_openjpeg.pyx":89
  * 
  * 
  * def get_parameters(fp, codec=0):             # <<<<<<<<<<<<<<
  *     """Return a :class:`dict` containing the JPEG 2000 image parameters.
  * 
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_9_openjpeg_5get_parameters, NULL, __pyx_n_s_openjpeg); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 103, __pyx_L1_error)
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_9_openjpeg_5get_parameters, NULL, __pyx_n_s_openjpeg); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 89, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_parameters, __pyx_t_2) < 0) __PYX_ERR(0, 103, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_parameters, __pyx_t_2) < 0) __PYX_ERR(0, 89, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "_openjpeg.pyx":1

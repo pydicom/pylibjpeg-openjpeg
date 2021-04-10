@@ -12,9 +12,9 @@ from distutils.command.build import build as build_orig
 import distutils.sysconfig
 
 
-OPENJPEG = Path(__file__).resolve().parent / "openjpeg" / "src" / "openjpeg"
-OPENJPEG_SRC = OPENJPEG / "src" / "lib" / "openjp2"
-INTERFACE_SRC = Path(__file__).resolve().parent / "interface"
+PACKAGE_DIR = Path(__file__).resolve().parent / "openjpeg"
+OPENJPEG_SRC = PACKAGE_DIR / "src" / "openjpeg" / "src" / "lib" / "openjp2"
+INTERFACE_SRC = PACKAGE_DIR / "src" / "interface"
 
 
 # Workaround for needing Cython and numpy
@@ -101,7 +101,7 @@ extra_link_args = []
 # Maybe use cythonize instead
 ext = Extension(
     "_openjpeg",
-    get_source_files(),
+    [os.fspath(p) for p in get_source_files()],
     language="c",
     include_dirs=include_dirs,
     extra_compile_args=extra_compile_args,
