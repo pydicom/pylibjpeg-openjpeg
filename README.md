@@ -55,8 +55,6 @@ Encoding of JPEG 2000 images is not currently supported
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
 
-import pylibjpeg
-
 ds = dcmread(get_testdata_file('JPEG2000.dcm'))
 arr = ds.pixel_array
 ```
@@ -73,4 +71,7 @@ from openjpeg import decode
 with open('filename.j2k', 'rb') as f:
     # Returns a numpy array
     arr = decode(f)
+
+# Or simply...
+arr = decode('filename.j2k')
 ```
