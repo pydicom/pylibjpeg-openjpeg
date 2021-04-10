@@ -60,6 +60,7 @@ jobs:
       with:
         name: wheels
         path: dist/
+    - name: Show contents
       run: |
         ls dist/
 
