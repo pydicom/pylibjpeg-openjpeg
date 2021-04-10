@@ -29,8 +29,8 @@ jobs:
     - name: Install package and dependencies
       run: |
         python -m pip install -U pip
-        python -m pip install pytest coverage pytest-cov cython numpy
-        python -m pip install . -v
+        python -m pip install pytest coverage pytest-cov cython numpy wheel
+        python -m pip install .
         python -m pip install git+https://github.com/pydicom/pylibjpeg-data
 
     - name: Run pytest
@@ -63,7 +63,8 @@ jobs:
     - name: Install package and dependencies
       run: |
         python -m pip install -U pip
-        python -m pip install . -v
+        python -m pip install wheel
+        python -m pip install .
         python -m pip install pytest coverage pytest-cov
         python -m pip install git+https://github.com/pydicom/pylibjpeg-data
 
@@ -97,6 +98,7 @@ jobs:
     - name: Install package and dependencies
       run: |
         python -m pip install -U pip
+        python -m pip install wheel
         python -m pip install .
         python -m pip install pytest coverage pytest-cov
         python -m pip install git+https://github.com/pydicom/pylibjpeg-data

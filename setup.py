@@ -33,7 +33,6 @@ class build(build_orig):
 def get_source_files():
     """Return a list of paths to the source files to be compiled."""
     source_files = [
-        "openjpeg/_openjpeg.pyx",
         INTERFACE_SRC / "decode.c",
         INTERFACE_SRC / "color.c",
     ]
@@ -44,9 +43,11 @@ def get_source_files():
         if fname.parts[-1].startswith("bench"):
             continue
 
-        fname = str(fname)
-        if fname.endswith(".c"):
+        if fname.suffix == ".c":
             source_files.append(fname)
+
+    source_files = [p.relative_to(PACKAGE_DIR.parent) for p in source_files]
+    source_files.insert(0, Path("openjpeg/_openjpeg.pyx"))
 
     return source_files
 
