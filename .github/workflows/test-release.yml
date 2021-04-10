@@ -1,0 +1,77 @@
+name: release wheels
+
+on:
+  pull_request:
+  release:
+    types: [ published ]
+
+jobs:
+  build_wheels:
+    name: Build wheels for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    env:
+      CIBW_BUILD: "cp37-* cp38-* cp39-*"
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: [3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+
+    - uses: actions/setup-python@v2
+      name: Install Python
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install cibuildwheel
+
+      run: |
+        python -m pip install cibuildwheel==1.10.0
+
+    - name: Build sdist
+      run: |
+         python setup.py sdist
+
+    - name: Build wheels
+      run: |
+        python --version
+        python -m cibuildwheel --output-dir dist
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: wheels
+        path: ./dist
+
+  # The pypi upload fails with non-linux containers, so grab the uploaded
+  #     artifacts and upload those
+  # See: https://github.com/pypa/gh-action-pypi-publish/discussions/15
+  deploy:
+    name: Upload wheels to PyPI
+    needs:
+    - build_wheels
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download all the wheels
+      uses: actions/download-artifact@v2
+      with:
+        name: wheels
+        path: dist/
+      run: |
+        ls dist/
+
+    #- name: Publish package to Test PyPi
+    #  uses: pypa/gh-action-pypi-publish@master
+    #  with:
+    #    user: __token__
+    #    password: ${{ secrets.TEST_PYPI_PASSWORD }}
+    #    repository_url: https://test.pypi.org/legacy/
+
+    #- name: Publish package to PyPi
+    #  uses: pypa/gh-action-pypi-publish@master
+    #  with:
+    #    user: __token__
+    #    password: ${{ secrets.PYPI_PASSWORD }}
