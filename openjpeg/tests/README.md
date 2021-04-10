@@ -10,4 +10,5 @@ Required
 
 Optional
 ........
+[pylibjpeg](https://github.com/pydicom/pylibjpeg)
 [pydicom](https://github.com/pydicom/pydicom)

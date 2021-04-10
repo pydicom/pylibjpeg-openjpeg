@@ -12,7 +12,6 @@ try:
 except ImportError:
     HAS_PYDICOM = False
 
-from . import add_handler, remove_handler
 from openjpeg import get_parameters
 from openjpeg.data import get_indexed_datasets, JPEG_DIRECTORY
 

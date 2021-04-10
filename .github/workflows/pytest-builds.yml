@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8, 3.9]
         arch: ['x64', 'x86']
 
     steps:
@@ -39,7 +39,7 @@ jobs:
 
     - name: Install pydicom release and rerun pytest
       run: |
-        pip install pydicom
+        pip install pydicom pylibjpeg
         pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
 
   osx:
@@ -74,7 +74,7 @@ jobs:
 
     - name: Install pydicom release and rerun pytest
       run: |
-        pip install pydicom
+        pip install pydicom pylibjpeg
         pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
 
   ubuntu:
@@ -109,7 +109,7 @@ jobs:
 
     - name: Install pydicom release and rerun pytest
       run: |
-        pip install pydicom
+        pip install pydicom pylibjpeg
         pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
 
     - name: Switch to pydicom dev and rerun pytest

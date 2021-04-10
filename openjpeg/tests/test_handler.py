@@ -9,12 +9,10 @@ try:
     import pydicom
     import pydicom.config
     from pydicom.encaps import generate_pixel_data_frame
-    from . import handler
     HAS_PYDICOM = True
 except ImportError:
     HAS_PYDICOM = False
 
-from . import add_handler, remove_handler
 from openjpeg import decode, get_parameters, decode_pixel_data
 from openjpeg.data import get_indexed_datasets
 
@@ -28,40 +26,6 @@ def generate_frames(ds):
 @pytest.mark.skipif(not HAS_PYDICOM, reason="pydicom unavailable")
 class TestHandler(object):
     """Tests for the pixel data handler."""
-    def test_unsupported_syntax_raises(self):
-        """Test exception gets raised if unsupported transfer syntax."""
-        index = get_indexed_datasets('1.2.840.10008.1.2.1')
-        ds = index['CT_small.dcm']['ds']
-        assert '1.2.840.10008.1.2.1' == ds.file_meta.TransferSyntaxUID
-        msg = (
-            r"Unable to convert the pixel data as the transfer syntax "
-            r"is not supported by the openjpeg pixel data handler."
-        )
-        with pytest.raises(NotImplementedError, match=msg):
-            handler.get_pixeldata(ds)
-
-    def test_missing_element_raises(self):
-        """Test exception gets raised if required element missing."""
-        index = get_indexed_datasets('1.2.840.10008.1.2.4.90')
-        ds = index['US1_J2KR.dcm']['ds']
-        del ds.BitsAllocated
-        assert 'BitsAllocated' not in ds
-        msg = (
-            r"Unable to convert the pixel data as the following required "
-            r"elements are missing from the dataset: BitsAllocated"
-        )
-        with pytest.raises(AttributeError, match=msg):
-            handler.get_pixeldata(ds)
-
-    def test_should_change_pi(self):
-        """Test the pointless function."""
-        index = get_indexed_datasets('1.2.840.10008.1.2.4.90')
-        ds = index['US1_J2KR.dcm']['ds']
-        func = (
-            handler.should_change_PhotometricInterpretation_to_RGB
-        )
-        assert not func(ds)
-
     def test_invalid_type_raises(self):
         """Test decoding using invalid type raises."""
         index = get_indexed_datasets('1.2.840.10008.1.2.4.90')
@@ -87,49 +51,12 @@ class TestHandler(object):
         assert (length,) == arr.shape
 
 
-@pytest.mark.skipif(not HAS_PYDICOM, reason="pydicom unavailable")
-def test_add_handler():
-    """Test adding the handler to pydicom."""
-    assert handler not in pydicom.config.pixel_data_handlers
-    add_handler()
-    assert handler in pydicom.config.pixel_data_handlers
-
-    pydicom.config.pixel_data_handlers.remove(handler)
-
-
-@pytest.mark.skipif(not HAS_PYDICOM, reason="pydicom unavailable")
-def test_remove_handler():
-    """Test removing the handler from pydicom."""
-    add_handler()
-    assert handler in pydicom.config.pixel_data_handlers
-    remove_handler()
-    assert handler not in pydicom.config.pixel_data_handlers
-
-
-@pytest.mark.skipif(HAS_PYDICOM, reason="pydicom available")
-def test_add_handler_raises():
-    """Test adding the handler raises if no pydicom."""
-    with pytest.raises(ImportError):
-        add_handler()
-
-
-@pytest.mark.skipif(HAS_PYDICOM, reason="pydicom available")
-def test_remove_handler_raises():
-    """Test removing the handler raises if no pydicom."""
-    with pytest.raises(ImportError):
-        remove_handler()
-
-
 class HandlerTestBase(object):
     """Baseclass for handler tests."""
     uid = None
 
     def setup(self):
-        add_handler()
         self.ds = get_indexed_datasets(self.uid)
-
-    def teardown(self):
-        remove_handler()
 
     def plot(self, arr, index=None, cmap=None):
         import matplotlib.pyplot as plt
@@ -151,12 +78,6 @@ class HandlerTestBase(object):
 @pytest.mark.skipif(not HAS_PYDICOM, reason="No dependencies")
 class TestLibrary(object):
     """Tests for libjpeg itself."""
-    def setup(self):
-        add_handler()
-
-    def teardown(self):
-        remove_handler()
-
     def test_non_conformant_raises(self):
         """Test that a non-conformant JPEG image raises an exception."""
         ds_list = get_indexed_datasets('1.2.840.10008.1.2.4.90')
@@ -237,23 +158,6 @@ class TestJPEGBaseline(HandlerTestBase):
     """
     uid = '1.2.840.10008.1.2.4.50'
 
-    def setup(self):
-        add_handler()
-        self.ds = get_indexed_datasets(self.uid)
-
-        # Check if is already supported, and if not add it
-        self.has_tsyntax = True
-        if self.uid not in handler.SUPPORTED_TRANSFER_SYNTAXES:
-            self.has_tsyntax = False
-            handler.SUPPORTED_TRANSFER_SYNTAXES.append(self.uid)
-
-    def teardown(self):
-        remove_handler()
-
-        # Restore if it was originally supported
-        if not self.has_tsyntax:
-            handler.SUPPORTED_TRANSFER_SYNTAXES.remove(self.uid)
-
     def test_raises(self):
         """Test greyscale."""
         ds = self.ds['JPEGBaseline_1s_1f_u_08_08.dcm']['ds']
@@ -264,8 +168,11 @@ class TestJPEGBaseline(HandlerTestBase):
         assert 8 == ds.BitsAllocated == ds.BitsStored
         assert 0 == ds.PixelRepresentation
 
-        msg = r"No matching JPEG 2000 format found"
-        with pytest.raises(ValueError, match=msg):
+        msg = (
+            r"Unable to convert the Pixel Data as the 'pylibjpeg-libjpeg' "
+            r"plugin is not installed"
+        )
+        with pytest.raises(RuntimeError, match=msg):
             ds.pixel_array
 
 
@@ -276,23 +183,6 @@ class TestJPEGExtended(HandlerTestBase):
     1.2.840.10008.1.2.4.51 : JPEG Extended (Process 2 and 4)
     """
     uid = '1.2.840.10008.1.2.4.51'
-
-    def setup(self):
-        add_handler()
-        self.ds = get_indexed_datasets(self.uid)
-
-        # Check if is already supported, and if not add it
-        self.has_tsyntax = True
-        if self.uid not in handler.SUPPORTED_TRANSFER_SYNTAXES:
-            self.has_tsyntax = False
-            handler.SUPPORTED_TRANSFER_SYNTAXES.append(self.uid)
-
-    def teardown(self):
-        remove_handler()
-
-        # Restore if it was originally supported
-        if not self.has_tsyntax:
-            handler.SUPPORTED_TRANSFER_SYNTAXES.remove(self.uid)
 
     # Process 4
     def test_raises(self):
@@ -307,8 +197,11 @@ class TestJPEGExtended(HandlerTestBase):
         assert 10 == ds.BitsStored
         assert 0 == ds.PixelRepresentation
 
-        msg = r"No matching JPEG 2000 format found"
-        with pytest.raises(ValueError, match=msg):
+        msg = (
+            r"Unable to convert the Pixel Data as the 'pylibjpeg-libjpeg' "
+            r"plugin is not installed"
+        )
+        with pytest.raises(RuntimeError, match=msg):
             ds.pixel_array
 
 
@@ -319,23 +212,6 @@ class TestJPEGLossless(HandlerTestBase):
     1.2.840.10008.1.2.4.57 : JPEG Lossless, Non-Hierarchical (Process 14)
     """
     uid = '1.2.840.10008.1.2.4.57'
-
-    def setup(self):
-        add_handler()
-        self.ds = get_indexed_datasets(self.uid)
-
-        # Check if is already supported, and if not add it
-        self.has_tsyntax = True
-        if self.uid not in handler.SUPPORTED_TRANSFER_SYNTAXES:
-            self.has_tsyntax = False
-            handler.SUPPORTED_TRANSFER_SYNTAXES.append(self.uid)
-
-    def teardown(self):
-        remove_handler()
-
-        # Restore if it was originally supported
-        if not self.has_tsyntax:
-            handler.SUPPORTED_TRANSFER_SYNTAXES.remove(self.uid)
 
     def test_raises(self):
         """Test process 2 greyscale."""
@@ -348,8 +224,11 @@ class TestJPEGLossless(HandlerTestBase):
         assert 12 == ds.BitsStored
         assert 0 == ds.PixelRepresentation
 
-        msg = r"No matching JPEG 2000 format found"
-        with pytest.raises(ValueError, match=msg):
+        msg = (
+            r"Unable to convert the Pixel Data as the 'pylibjpeg-libjpeg' "
+            r"plugin is not installed"
+        )
+        with pytest.raises(RuntimeError, match=msg):
             ds.pixel_array
 
 
@@ -362,23 +241,6 @@ class TestJPEGLosslessSV1(HandlerTestBase):
     """
     uid = '1.2.840.10008.1.2.4.70'
 
-    def setup(self):
-        add_handler()
-        self.ds = get_indexed_datasets(self.uid)
-
-        # Check if is already supported, and if not add it
-        self.has_tsyntax = True
-        if self.uid not in handler.SUPPORTED_TRANSFER_SYNTAXES:
-            self.has_tsyntax = False
-            handler.SUPPORTED_TRANSFER_SYNTAXES.append(self.uid)
-
-    def teardown(self):
-        remove_handler()
-
-        # Restore if it was originally supported
-        if not self.has_tsyntax:
-            handler.SUPPORTED_TRANSFER_SYNTAXES.remove(self.uid)
-
     def test_raises(self):
         """Test process 2 greyscale."""
         ds = self.ds['JPEGLosslessP14SV1_1s_1f_u_08_08.dcm']['ds']
@@ -390,8 +252,11 @@ class TestJPEGLosslessSV1(HandlerTestBase):
         assert 8 == ds.BitsStored
         assert 0 == ds.PixelRepresentation
 
-        msg = r"No matching JPEG 2000 format found"
-        with pytest.raises(ValueError, match=msg):
+        msg = (
+            r"Unable to convert the Pixel Data as the 'pylibjpeg-libjpeg' "
+            r"plugin is not installed"
+        )
+        with pytest.raises(RuntimeError, match=msg):
             ds.pixel_array
 
 
@@ -404,23 +269,6 @@ class TestJPEGLSLossless(HandlerTestBase):
     """
     uid = '1.2.840.10008.1.2.4.80'
 
-    def setup(self):
-        add_handler()
-        self.ds = get_indexed_datasets(self.uid)
-
-        # Check if is already supported, and if not add it
-        self.has_tsyntax = True
-        if self.uid not in handler.SUPPORTED_TRANSFER_SYNTAXES:
-            self.has_tsyntax = False
-            handler.SUPPORTED_TRANSFER_SYNTAXES.append(self.uid)
-
-    def teardown(self):
-        remove_handler()
-
-        # Restore if it was originally supported
-        if not self.has_tsyntax:
-            handler.SUPPORTED_TRANSFER_SYNTAXES.remove(self.uid)
-
     def test_raises(self):
         """Test process 2 greyscale."""
         ds = self.ds['MR_small_jpeg_ls_lossless.dcm']['ds']
@@ -432,8 +280,11 @@ class TestJPEGLSLossless(HandlerTestBase):
         assert 16 == ds.BitsStored
         assert 1 == ds.PixelRepresentation
 
-        msg = r"No matching JPEG 2000 format found"
-        with pytest.raises(ValueError, match=msg):
+        msg = (
+            r"Unable to convert the Pixel Data as the 'pylibjpeg-libjpeg' "
+            r"plugin is not installed"
+        )
+        with pytest.raises(RuntimeError, match=msg):
             ds.pixel_array
 
 
@@ -444,23 +295,6 @@ class TestJPEGLS(HandlerTestBase):
     1.2.840.10008.1.2.4.81 : JPEG-LS Lossy (Near-Lossless) Image Compression
     """
     uid = '1.2.840.10008.1.2.4.81'
-
-    def setup(self):
-        add_handler()
-        self.ds = get_indexed_datasets(self.uid)
-
-        # Check if is already supported, and if not add it
-        self.has_tsyntax = True
-        if self.uid not in handler.SUPPORTED_TRANSFER_SYNTAXES:
-            self.has_tsyntax = False
-            handler.SUPPORTED_TRANSFER_SYNTAXES.append(self.uid)
-
-    def teardown(self):
-        remove_handler()
-
-        # Restore if it was originally supported
-        if not self.has_tsyntax:
-            handler.SUPPORTED_TRANSFER_SYNTAXES.remove(self.uid)
 
     def test_raises(self):
         """Test process 2 greyscale."""
@@ -473,8 +307,11 @@ class TestJPEGLS(HandlerTestBase):
         assert 16 == ds.BitsStored
         assert 1 == ds.PixelRepresentation
 
-        msg = r"No matching JPEG 2000 format found"
-        with pytest.raises(ValueError, match=msg):
+        msg = (
+            r"Unable to convert the Pixel Data as the 'pylibjpeg-libjpeg' "
+            r"plugin is not installed"
+        )
+        with pytest.raises(RuntimeError, match=msg):
             ds.pixel_array
 
 

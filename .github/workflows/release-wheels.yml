@@ -9,7 +9,8 @@ jobs:
     name: Build wheels for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     env:
-      CIBW_BUILD: "cp37-* cp38-* cp39-*"
+      CIBW_BUILD: "cp3*-*"
+      CIBW_SKIP: "cp35-*"
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -36,12 +37,12 @@ jobs:
     - name: Build wheels
       run: |
         python --version
-        python -m cibuildwheel --output-dir wheelhouse
+        python -m cibuildwheel --output-dir dist
 
     - uses: actions/upload-artifact@v2
       with:
         name: wheels
-        path: ./wheelhouse
+        path: ./dist
 
   # The pypi upload fails with non-linux containers, so grab the uploaded
   #     artifacts and run using those

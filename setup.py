@@ -128,7 +128,7 @@ setup(
     long_description_content_type = "text/markdown",
     author = "scaramallion",
     author_email = "scaramallion@users.noreply.github.com",
-    url = "https://github.com/scaramallion/pylibjpeg-openjpeg",
+    url = "https://github.com/pydicom/pylibjpeg-openjpeg",
     license = "MIT",
     keywords = (
         "dicom python medicalimaging radiotherapy oncology pydicom imaging "
@@ -143,6 +143,7 @@ setup(
         "Intended Audience :: Science/Research",
         "Development Status :: 5 - Production/Stable",
         "Natural Language :: English",
+        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
@@ -150,7 +151,7 @@ setup(
         "Topic :: Scientific/Engineering :: Medical Science Apps.",
         "Topic :: Software Development :: Libraries",
     ],
-    python_requires = ">=3.7",
+    python_requires = ">=3.6",
     setup_requires = ["setuptools>=18.0", "cython", "numpy"],
     install_requires = ["numpy"],
     cmdclass = {"build": build},
