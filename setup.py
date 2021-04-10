@@ -12,7 +12,7 @@ from distutils.command.build import build as build_orig
 import distutils.sysconfig
 
 
-PACKAGE_DIR = Path(__file__).resolve().parent / "openjpeg"
+PACKAGE_DIR = Path(__file__).parent / "openjpeg"
 OPENJPEG_SRC = PACKAGE_DIR / "src" / "openjpeg" / "src" / "lib" / "openjp2"
 INTERFACE_SRC = PACKAGE_DIR / "src" / "interface"
 
@@ -105,7 +105,7 @@ ext = Extension(
 )
 
 # Version
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).parent
 VERSION_FILE = BASE_DIR / "openjpeg" / "_version.py"
 with open(VERSION_FILE) as fp:
     exec(fp.read())
