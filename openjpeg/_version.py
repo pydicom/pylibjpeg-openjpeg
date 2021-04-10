@@ -3,7 +3,7 @@
 import re
 
 
-__version__ = '1.2.0dev0'
+__version__ = '1.2.0.dev0'
 
 
 VERSION_PATTERN = r"""
