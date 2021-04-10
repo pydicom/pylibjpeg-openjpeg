@@ -403,8 +403,6 @@ extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *outpu
     output->nr_components = image->numcomps;
     output->precision = (int)image->comps[0].prec;
     output->is_signed = (int)image->comps[0].sgnd;
-    //output->dx = (int)image->comps[2].dx;
-    //output->dy = (int)image->comps[2].dy;
     output->nr_tiles = parameters.nb_tile_to_decode;
 
     destroy_parameters(&parameters);
@@ -736,6 +734,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
         goto failure;
     }
 
+    // Convert colour space (if required)
     if (
         image->color_space != OPJ_CLRSPC_SYCC
         && image->numcomps == 3
@@ -743,6 +742,10 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
         && image->comps[1].dx != 1
     ) {
         image->color_space = OPJ_CLRSPC_SYCC;
+    }
+
+    if (image->color_space == OPJ_CLRSPC_SYCC)
+    {
         color_sycc_to_rgb(image);
     }
 

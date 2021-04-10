@@ -206,7 +206,7 @@ class TestDecode(object):
         """Test decoding subsampled data (see #36)."""
         # Component 1 is (1, 1)
         # Component 2 is (2, 1)
-        # Component 3 is (?, ?)
+        # Component 3 is (2, 1)
         jpg = DIR_15444 / "2KLS" / "oj36.j2k"
         with open(jpg, 'rb') as f:
             arr = decode(f.read())
@@ -214,16 +214,6 @@ class TestDecode(object):
         assert arr.flags.writeable
         assert 'uint8' == arr.dtype
         assert (256, 256, 3) == arr.shape
-
-        import matplotlib.pyplot as plt
-        fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
-        ax1.imshow(arr[:, :, 0])
-        ax2.imshow(arr[:, :, 1])
-        ax3.imshow(arr[:, :, 2])
-        plt.show()
-
-        plt.imshow(arr)
-        plt.show()
         assert [235, 244, 245] == arr[0, 0, :].tolist()
 
 
