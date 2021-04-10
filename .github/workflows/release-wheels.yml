@@ -1,7 +1,6 @@
-name: release wheels
+name: Build wheels and deploy to PyPI
 
 on:
-  pull_request:
   release:
     types: [ published ]
 
@@ -14,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: [3.8]
+        python-version: [3.9]
 
     steps:
     - uses: actions/checkout@v2
@@ -27,7 +26,6 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install cibuildwheel
-
       run: |
         python -m pip install cibuildwheel==1.10.0
 
@@ -38,15 +36,15 @@ jobs:
     - name: Build wheels
       run: |
         python --version
-        python -m cibuildwheel --output-dir dist
+        python -m cibuildwheel --output-dir wheelhouse
 
     - uses: actions/upload-artifact@v2
       with:
         name: wheels
-        path: ./dist
+        path: ./wheelhouse
 
   # The pypi upload fails with non-linux containers, so grab the uploaded
-  #     artifacts and upload those
+  #     artifacts and run using those
   # See: https://github.com/pypa/gh-action-pypi-publish/discussions/15
   deploy:
     name: Upload wheels to PyPI
@@ -55,14 +53,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Download all the wheels
+    - name: Download the wheels
       uses: actions/download-artifact@v2
       with:
         name: wheels
         path: dist/
-    - name: Show contents
-      run: |
-        ls dist/
 
     #- name: Publish package to Test PyPi
     #  uses: pypa/gh-action-pypi-publish@master
@@ -71,8 +66,8 @@ jobs:
     #    password: ${{ secrets.TEST_PYPI_PASSWORD }}
     #    repository_url: https://test.pypi.org/legacy/
 
-    #- name: Publish package to PyPi
-    #  uses: pypa/gh-action-pypi-publish@master
-    #  with:
-    #    user: __token__
-    #    password: ${{ secrets.PYPI_PASSWORD }}
+    - name: Publish package to PyPi
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_PASSWORD }}
