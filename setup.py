@@ -83,16 +83,7 @@ def setup_oj():
             f.write("\n")
             f.write("#define USE_JPIP 0")
 
-
 setup_oj()
-
-
-include_dirs = [
-    OPENJPEG_SRC,
-    INTERFACE_SRC,
-    distutils.sysconfig.get_python_inc(),
-    # Numpy includes get added by the `build` subclass
-]
 
 # Compiler and linker arguments
 extra_compile_args = []
@@ -103,7 +94,12 @@ ext = Extension(
     "_openjpeg",
     [os.fspath(p) for p in get_source_files()],
     language="c",
-    include_dirs=include_dirs,
+    include_dirs=[
+        OPENJPEG_SRC,
+        INTERFACE_SRC,
+        distutils.sysconfig.get_python_inc(),
+        # Numpy includes get added by the `build` subclass
+    ],
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
 )
@@ -146,7 +142,6 @@ setup(
         "Intended Audience :: Science/Research",
         "Development Status :: 5 - Production/Stable",
         "Natural Language :: English",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
@@ -154,7 +149,7 @@ setup(
         "Topic :: Scientific/Engineering :: Medical Science Apps.",
         "Topic :: Software Development :: Libraries",
     ],
-    python_requires = ">=3.6",
+    python_requires = ">=3.7",
     setup_requires = ["setuptools>=18.0", "cython", "numpy"],
     install_requires = ["numpy"],
     cmdclass = {"build": build},

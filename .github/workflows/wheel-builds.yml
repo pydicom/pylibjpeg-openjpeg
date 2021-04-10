@@ -9,7 +9,7 @@ jobs:
     name: Build wheels for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     env:
-      CIBW_BUILD: "cp36-* cp37-* cp38-* cp39-*"
+      CIBW_BUILD: "cp37-* cp38-* cp39-*"
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
