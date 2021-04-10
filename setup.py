@@ -12,13 +12,12 @@ from distutils.command.build import build as build_orig
 import distutils.sysconfig
 
 
-OPENJPEG_SRC = os.path.join(
-    "openjpeg", "src", "openjpeg", "src", "lib", "openjp2"
-)
-INTERFACE_SRC = os.path.join("openjpeg", "src", "interface")
+PACKAGE_DIR = Path(__file__).parent / "openjpeg"
+OPENJPEG_SRC = PACKAGE_DIR / "src" / "openjpeg" / "src" / "lib" / "openjp2"
+INTERFACE_SRC = PACKAGE_DIR / "src" / "interface"
 
 
-# Workaround for needing cython and numpy
+# Workaround for needing Cython and numpy
 # Solution from: https://stackoverflow.com/a/54128391/12606901
 class build(build_orig):
     def finalize_options(self):
@@ -34,19 +33,21 @@ class build(build_orig):
 def get_source_files():
     """Return a list of paths to the source files to be compiled."""
     source_files = [
-        "openjpeg/_openjpeg.pyx",
-        os.path.join(INTERFACE_SRC, "decode.c"),
+        INTERFACE_SRC / "decode.c",
+        INTERFACE_SRC / "color.c",
     ]
-    for fname in Path(OPENJPEG_SRC).glob("*"):
+    for fname in OPENJPEG_SRC.glob("*"):
         if fname.parts[-1].startswith("test"):
             continue
 
         if fname.parts[-1].startswith("bench"):
             continue
 
-        fname = str(fname)
-        if fname.endswith(".c"):
+        if fname.suffix == ".c":
             source_files.append(fname)
+
+    source_files = [p.relative_to(PACKAGE_DIR.parent) for p in source_files]
+    source_files.insert(0, Path("openjpeg/_openjpeg.pyx"))
 
     return source_files
 
@@ -65,8 +66,8 @@ def setup_oj():
         shutil.rmtree(build_dir)
 
     try:
-        os.remove(os.path.join(INTERFACE_SRC, "opj_config.h"))
-        os.remove(os.path.join(INTERFACE_SRC, "opj_config_private.h"))
+        os.remove(INTERFACE_SRC / "opj_config.h")
+        os.remove(INTERFACE_SRC / "opj_config_private.h")
     except:
         pass
 
@@ -78,14 +79,12 @@ def setup_oj():
     os.chdir(cur_dir)
 
     # Turn off JPIP
-    if os.path.exists(os.path.join(INTERFACE_SRC, "opj_config.h")):
-        with open(os.path.join(INTERFACE_SRC, "opj_config.h"), "a") as f:
+    if os.path.exists(INTERFACE_SRC / "opj_config.h"):
+        with open(INTERFACE_SRC / "opj_config.h", "a") as f:
             f.write("\n")
             f.write("#define USE_JPIP 0")
 
-
 setup_oj()
-
 
 # Compiler and linker arguments
 extra_compile_args = []
@@ -94,7 +93,7 @@ extra_link_args = []
 # Maybe use cythonize instead
 ext = Extension(
     "_openjpeg",
-    get_source_files(),
+    [os.fspath(p) for p in get_source_files()],
     language="c",
     include_dirs=[
         OPENJPEG_SRC,
@@ -107,8 +106,8 @@ ext = Extension(
 )
 
 # Version
-BASE_DIR = os.path.dirname(os.path.realpath(__file__))
-VERSION_FILE = os.path.join(BASE_DIR, "openjpeg", "_version.py")
+BASE_DIR = Path(__file__).parent
+VERSION_FILE = BASE_DIR / "openjpeg" / "_version.py"
 with open(VERSION_FILE) as fp:
     exec(fp.read())
 
@@ -144,14 +143,14 @@ setup(
         "Intended Audience :: Science/Research",
         "Development Status :: 5 - Production/Stable",
         "Natural Language :: English",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Operating System :: OS Independent",
         "Topic :: Scientific/Engineering :: Medical Science Apps.",
         "Topic :: Software Development :: Libraries",
     ],
-    python_requires = ">=3.6",
+    python_requires = ">=3.7",
     setup_requires = ["setuptools>=18.0", "cython", "numpy"],
     install_requires = ["numpy"],
     cmdclass = {"build": build},

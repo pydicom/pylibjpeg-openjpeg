@@ -20,7 +20,7 @@ from openjpeg.data import get_indexed_datasets, JPEG_DIRECTORY
 from openjpeg.utils import get_openjpeg_version, decode, get_parameters
 
 
-DIR_15444 = os.path.join(JPEG_DIRECTORY, '15444')
+DIR_15444 = JPEG_DIRECTORY / '15444'
 
 
 REF_DCM = {
@@ -201,6 +201,20 @@ class TestDecode(object):
 
         arr = decode(frame)
         assert -2000 == arr[0, 0]
+
+    def test_decode_subsampled(self):
+        """Test decoding subsampled data (see #36)."""
+        # Component 1 is (1, 1)
+        # Component 2 is (2, 1)
+        # Component 3 is (2, 1)
+        jpg = DIR_15444 / "2KLS" / "oj36.j2k"
+        with open(jpg, 'rb') as f:
+            arr = decode(f.read())
+
+        assert arr.flags.writeable
+        assert 'uint8' == arr.dtype
+        assert (256, 256, 3) == arr.shape
+        assert [235, 244, 245] == arr[0, 0, :].tolist()
 
 
 @pytest.mark.skipif(not HAS_PYDICOM, reason="No pydicom")

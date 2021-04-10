@@ -30,6 +30,7 @@ ERRORS = {
     5: "failed to set the decoded area",
     6: "failed to decode image",
     7: "support for more than 16-bits per component is not implemented",
+    8: "failed to upscale subsampled components",
 }
 
 

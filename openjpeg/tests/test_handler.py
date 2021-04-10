@@ -174,8 +174,7 @@ class TestLibrary(object):
         msg = (
             r"The \(0028,0103\) Pixel Representation value '1' \(signed\) in "
             r"the dataset does not match the format of the values found in "
-            r"the JPEG 2000 data 'unsigned'. It's recommended that you change "
-            r"the  Pixel Representation value to produce the correct output"
+            r"the JPEG 2000 data 'unsigned'"
         )
         with pytest.warns(UserWarning, match=msg):
             ds.pixel_array
@@ -606,7 +605,12 @@ class TestJPEG2000Lossless(HandlerTestBase):
         # assert 14 == ds.BitsStored   # wrong bits stored value - should warn?
         assert 1 == ds.PixelRepresentation
 
-        arr = ds.pixel_array
+        msg = (
+            r"Bits Stored value '16' in the dataset does not match the "
+            r"component precision value '14' found in the "
+        )
+        with pytest.warns(UserWarning, match=msg):
+            arr = ds.pixel_array
         assert arr.flags.writeable
         assert 'int16' == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
@@ -651,7 +655,12 @@ class TestJPEG2000Lossless(HandlerTestBase):
         assert 12 == ds.BitsStored
         assert 0 == ds.PixelRepresentation
 
-        arr = ds.pixel_array
+        msg = (
+            r"Bits Stored value '12' in the dataset does not match the "
+            r"component precision value '16' found in the "
+        )
+        with pytest.warns(UserWarning, match=msg):
+            arr = ds.pixel_array
         assert arr.flags.writeable
         assert 'uint16' == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
@@ -714,10 +723,15 @@ class TestJPEG2000Lossless(HandlerTestBase):
         assert 10 == getattr(ds, 'NumberOfFrames', 1)
         assert 'MONOCHROME' in ds.PhotometricInterpretation
         assert 16 == ds.BitsAllocated
-        # assert 16 == ds.BitsStored  # wrong bits stored value - should warn?
+        assert 12 == ds.BitsStored  # wrong bits stored value
         assert 0 == ds.PixelRepresentation
 
-        arr = ds.pixel_array
+        msg = (
+            r"Bits Stored value '12' in the dataset does not match the "
+            r"component precision value '16' found in the "
+        )
+        with pytest.warns(UserWarning, match=msg):
+            arr = ds.pixel_array
         assert arr.flags.writeable
         assert 'uint16' == arr.dtype
         assert (ds.NumberOfFrames, ds.Rows, ds.Columns) == arr.shape
@@ -779,7 +793,12 @@ class TestJPEG2000Lossless(HandlerTestBase):
         assert 8 == ds.BitsStored
         assert 0 == ds.PixelRepresentation
 
-        arr = ds.pixel_array
+        msg = (
+            r"Pixel Data contains a JPEG 2000 codestream with the optional "
+            r"JP2 file format header, which is non-conformant"
+        )
+        with pytest.warns(UserWarning, match=msg):
+            arr = ds.pixel_array
         assert arr.flags.writeable
         assert 'uint8' == arr.dtype
         assert (ds.Rows, ds.Columns, ds.SamplesPerPixel) == arr.shape
@@ -800,9 +819,16 @@ class TestJPEG2000Lossless(HandlerTestBase):
         assert 16 == ds.BitsAllocated
         assert 16 == ds.BitsStored
         assert 1 == ds.PixelRepresentation
-        #ds.PixelRepresentation = 0
 
-        arr = ds.pixel_array
+        # Note: if PR is 1 but the JPEG data is unsigned then it should
+        #   probably be converted to signed using 2s complement
+        msg = (
+            r"Pixel Representation value '1' \(signed\) in the dataset does "
+            r"not match the format of the values found in the JPEG 2000 data "
+            r"'unsigned'"
+        )
+        with pytest.warns(UserWarning, match=msg):
+            arr = ds.pixel_array
 
         frame = next(generate_frames(ds))
         params = get_parameters(frame)
@@ -820,9 +846,15 @@ class TestJPEG2000Lossless(HandlerTestBase):
         assert 16 == ds.BitsAllocated
         assert 16 == ds.BitsStored
         assert 0 == ds.PixelRepresentation
-        #ds.PixelRepresentation = 1
 
-        arr = ds.pixel_array
+        # Note: if PR is 0 but the JPEG data is signed then... ?
+        msg = (
+            r"Pixel Representation value '0' \(unsigned\) in the dataset does "
+            r"not match the format of the values found in the JPEG 2000 data "
+            r"'signed'"
+        )
+        with pytest.warns(UserWarning, match=msg):
+            arr = ds.pixel_array
 
         frame = next(generate_frames(ds))
         params = get_parameters(frame)
@@ -959,10 +991,15 @@ class TestJPEG2000(HandlerTestBase):
         assert 1 == getattr(ds, 'NumberOfFrames', 1)
         assert 'MONOCHROME' in ds.PhotometricInterpretation
         assert 16 == ds.BitsAllocated
-        # assert 16 == ds.BitsStored  # wrong bits stored
+        assert 14 == ds.BitsStored  # wrong bits stored
         assert 1 == ds.PixelRepresentation
 
-        arr = ds.pixel_array
+        msg = (
+            r"Bits Stored value '14' in the dataset does not match the "
+            r"component precision value '16' found in the "
+        )
+        with pytest.warns(UserWarning, match=msg):
+            arr = ds.pixel_array
         assert arr.flags.writeable
         assert 'int16' == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
@@ -1029,7 +1066,12 @@ class TestJPEG2000(HandlerTestBase):
         assert 16 == ds.BitsStored
         assert 0 == ds.PixelRepresentation
 
-        arr = ds.pixel_array
+        msg = (
+            r"Bits Stored value '16' in the dataset does not match the "
+            r"component precision value '11' found in the "
+        )
+        with pytest.warns(UserWarning, match=msg):
+            arr = ds.pixel_array
         assert arr.flags.writeable
         assert 'uint16' == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
@@ -1104,7 +1146,12 @@ class TestJPEG2000(HandlerTestBase):
         assert 12 == ds.BitsStored
         assert 0 == ds.PixelRepresentation
 
-        arr = ds.pixel_array
+        msg = (
+            r"Pixel Data contains a JPEG 2000 codestream with the optional "
+            r"JP2 file format header, which is non-conformant"
+        )
+        with pytest.warns(UserWarning, match=msg):
+            arr = ds.pixel_array
         assert arr.flags.writeable
         assert 'uint16' == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
