@@ -66,6 +66,10 @@ def decode(stream, j2k_format=None, reshape=True):
     """Return the decoded JPEG2000 data from `stream` as a
     :class:`numpy.ndarray`.
 
+    .. versionchanged:: 1.1
+
+        `stream` can now also be :class:`str` or :class:`pathlib.Path`
+
     Parameters
     ----------
     stream : str, pathlib.Path, bytes or file-like
@@ -215,12 +219,16 @@ def decode_pixel_data(stream, ds=None):
 def get_parameters(stream, j2k_format=None):
     """Return a :class:`dict` containing the JPEG2000 image parameters.
 
+    .. versionchanged:: 1.1
+
+        `stream` can now also be :class:`str` or :class:`pathlib.Path`
+
     Parameters
     ----------
-    stream : bytes or file-like
-        A Python object containing the encoded JPEG 2000 data. If not
-        :class:`bytes` then the object must have ``tell()``, ``seek()`` and
-        ``read()`` methods.
+    stream : str, pathlib.Path, bytes or file-like
+        The path to the JPEG 2000 file or a Python object containing the
+        encoded JPEG 2000 data. If using a file-like then the object must have
+        ``tell()``, ``seek()`` and ``read()`` methods.
     j2k_format : int, optional
         The JPEG 2000 format to use for decoding, one of:
 
