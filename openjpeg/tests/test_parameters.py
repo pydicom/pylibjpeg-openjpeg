@@ -17,7 +17,7 @@ from openjpeg import get_parameters
 from openjpeg.data import get_indexed_datasets, JPEG_DIRECTORY
 
 
-DIR_15444 = os.path.join(JPEG_DIRECTORY, '15444')
+DIR_15444 = JPEG_DIRECTORY / '15444'
 
 
 REF_DCM = {
@@ -66,6 +66,15 @@ def test_bad_decode():
     msg = r"Error decoding the J2K data: failed to read the header"
     with pytest.raises(RuntimeError, match=msg):
         get_parameters(stream)
+
+def test_subsampling():
+    """Test parameters with subsampled data (see #36)."""
+    jpg = DIR_15444 / "2KLS" / "oj36.j2k"
+    params = get_parameters(jpg)
+    print(params)
+    # 0: (1, 1)
+    # 1: (2, 1)
+    # 2: (2, 1)
 
 
 @pytest.mark.skipif(not HAS_PYDICOM, reason="No pydicom")

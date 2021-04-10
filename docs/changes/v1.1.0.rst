@@ -1,0 +1,18 @@
+.. _v1.1.0:
+
+1.1.0
+=====
+
+Enhancements
+............
+
+* Add support for Python 3.9
+* Add support for passing the path to the JPEG 2000 file to
+  :func:`~openjpeg.utils.decode` and :func:`~openjpeg.utils.get_parameters`
+  as either :class:`str` or :class:`pathlib.Path`
+
+
+Fixes
+.....
+
+* Fixed handling subsampled images (:issues:`36`)

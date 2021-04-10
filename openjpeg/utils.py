@@ -1,6 +1,7 @@
 
 from io import BytesIO
 from math import ceil
+from pathlib import Path
 import warnings
 
 import _openjpeg
@@ -67,10 +68,10 @@ def decode(stream, j2k_format=None, reshape=True):
 
     Parameters
     ----------
-    stream : bytes or file-like
-        A Python object containing the encoded JPEG 2000 data. If not
-        :class:`bytes` then the object must have ``tell()``, ``seek()`` and
-        ``read()`` methods.
+    stream : str, pathlib.Path, bytes or file-like
+        The path to the JPEG 2000 file or a Python object containing the
+        encoded JPEG 2000 data. If using a file-like then the object must have
+        ``tell()``, ``seek()`` and ``read()`` methods.
     j2k_format : int, optional
         The JPEG 2000 format to use for decoding, one of:
 
@@ -91,6 +92,10 @@ def decode(stream, j2k_format=None, reshape=True):
     RuntimeError
         If the decoding failed.
     """
+    if isinstance(stream, (str, Path)):
+        with open(stream, 'rb') as f:
+            stream = f.read()
+
     if isinstance(stream, (bytes, bytearray)):
         stream = BytesIO(stream)
 
@@ -237,6 +242,10 @@ def get_parameters(stream, j2k_format=None):
     RuntimeError
         If reading the image parameters failed.
     """
+    if isinstance(stream, (str, Path)):
+        with open(stream, 'rb') as f:
+            stream = f.read()
+
     if isinstance(stream, (bytes, bytearray)):
         stream = BytesIO(stream)
 

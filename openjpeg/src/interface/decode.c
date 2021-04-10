@@ -37,15 +37,16 @@ PERFORMANCE OF THIS SOFTWARE.
 
 ------------------------------------------------------------------------------
 
-Bits and pieces of the rest are adapted from
-openjpeg/src/bin/jp2/opj_decompress.c which is licensed under the 2-clause BSD
-license (see the main LICENSE file).
+`upsample_image_components` and bits and pieces of the rest are taken/adapted
+from openjpeg/src/bin/jp2/opj_decompress.c which is licensed under the 2-clause
+BSD license (see the main LICENSE file).
 */
 
 #include "Python.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <../openjpeg/src/lib/openjp2/openjpeg.h>
+#include "color.h"
 
 
 // Size of the buffer for the input stream
@@ -292,6 +293,7 @@ static OPJ_UINT64 py_length(PyObject * stream)
 }
 
 
+// Decoding stuff
 static void set_default_parameters(opj_decompress_parameters* parameters)
 {
     if (parameters)
@@ -401,6 +403,8 @@ extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *outpu
     output->nr_components = image->numcomps;
     output->precision = (int)image->comps[0].prec;
     output->is_signed = (int)image->comps[0].sgnd;
+    //output->dx = (int)image->comps[2].dx;
+    //output->dy = (int)image->comps[2].dy;
     output->nr_tiles = parameters.nb_tile_to_decode;
 
     destroy_parameters(&parameters);
@@ -420,6 +424,207 @@ extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *outpu
             opj_stream_destroy(stream);
 
         return error_code;
+}
+
+
+static opj_image_t* upsample_image_components(opj_image_t* original)
+{
+    // Basically a straight copy from opj_decompress.c
+    opj_image_t* l_new_image = NULL;
+    opj_image_cmptparm_t* l_new_components = NULL;
+    OPJ_BOOL upsample = OPJ_FALSE;
+    OPJ_UINT32 ii;
+
+    for (ii = 0U; ii < original->numcomps; ++ii)
+    {
+        if ((original->comps[ii].dx > 1U) || (original->comps[ii].dy > 1U))
+        {
+            upsample = OPJ_TRUE;
+            break;
+        }
+    }
+
+    // No upsampling required
+    if (!upsample)
+    {
+        return original;
+    }
+
+    l_new_components = (opj_image_cmptparm_t*)malloc(
+        original->numcomps * sizeof(opj_image_cmptparm_t)
+    );
+    if (l_new_components == NULL) {
+        // Failed to allocate memory for component parameters
+        opj_image_destroy(original);
+        return NULL;
+    }
+
+    for (ii = 0U; ii < original->numcomps; ++ii)
+    {
+        opj_image_cmptparm_t* l_new_cmp = &(l_new_components[ii]);
+        opj_image_comp_t* l_org_cmp = &(original->comps[ii]);
+
+        l_new_cmp->bpp = l_org_cmp->bpp;
+        l_new_cmp->prec = l_org_cmp->prec;
+        l_new_cmp->sgnd = l_org_cmp->sgnd;
+        l_new_cmp->x0 = original->x0;
+        l_new_cmp->y0 = original->y0;
+        l_new_cmp->dx = 1;
+        l_new_cmp->dy = 1;
+        // should be original->x1 - original->x0 for dx==1
+        l_new_cmp->w = l_org_cmp->w;
+        // should be original->y1 - original->y0 for dy==0
+        l_new_cmp->h = l_org_cmp->h;
+
+        if (l_org_cmp->dx > 1U)
+        {
+            l_new_cmp->w = original->x1 - original->x0;
+        }
+
+        if (l_org_cmp->dy > 1U) {
+            l_new_cmp->h = original->y1 - original->y0;
+        }
+    }
+
+    l_new_image = opj_image_create(
+        original->numcomps, l_new_components, original->color_space
+    );
+    free(l_new_components);
+
+    if (l_new_image == NULL) {
+        // Failed to allocate memory for image
+        opj_image_destroy(original);
+        return NULL;
+    }
+
+    l_new_image->x0 = original->x0;
+    l_new_image->x1 = original->x1;
+    l_new_image->y0 = original->y0;
+    l_new_image->y1 = original->y1;
+
+    for (ii = 0U; ii < original->numcomps; ++ii)
+    {
+        opj_image_comp_t* l_new_cmp = &(l_new_image->comps[ii]);
+        opj_image_comp_t* l_org_cmp = &(original->comps[ii]);
+
+        l_new_cmp->alpha = l_org_cmp->alpha;
+        l_new_cmp->resno_decoded = l_org_cmp->resno_decoded;
+
+        if ((l_org_cmp->dx > 1U) || (l_org_cmp->dy > 1U))
+        {
+            const OPJ_INT32* l_src = l_org_cmp->data;
+            OPJ_INT32* l_dst = l_new_cmp->data;
+            OPJ_UINT32 y;
+            OPJ_UINT32 xoff, yoff;
+
+            // need to take into account dx & dy
+            xoff = l_org_cmp->dx * l_org_cmp->x0 - original->x0;
+            yoff = l_org_cmp->dy * l_org_cmp->y0 - original->y0;
+
+            // Invalid components found
+            if ((xoff >= l_org_cmp->dx) || (yoff >= l_org_cmp->dy))
+            {
+                opj_image_destroy(original);
+                opj_image_destroy(l_new_image);
+                return NULL;
+            }
+
+            for (y = 0U; y < yoff; ++y) {
+                memset(l_dst, 0U, l_new_cmp->w * sizeof(OPJ_INT32));
+                l_dst += l_new_cmp->w;
+            }
+
+            if (l_new_cmp->h > (l_org_cmp->dy - 1U))
+            { /* check subtraction overflow for really small images */
+                for (; y < l_new_cmp->h - (l_org_cmp->dy - 1U); y += l_org_cmp->dy)
+                {
+                    OPJ_UINT32 x, dy;
+                    OPJ_UINT32 xorg;
+
+                    xorg = 0U;
+                    for (x = 0U; x < xoff; ++x)
+                    {
+                        l_dst[x] = 0;
+                    }
+                    if (l_new_cmp->w > (l_org_cmp->dx - 1U))
+                    { /* check subtraction overflow for really small images */
+                        for (; x < l_new_cmp->w - (l_org_cmp->dx - 1U); x += l_org_cmp->dx, ++xorg)
+                        {
+                            OPJ_UINT32 dx;
+                            for (dx = 0U; dx < l_org_cmp->dx; ++dx)
+                            {
+                                l_dst[x + dx] = l_src[xorg];
+                            }
+                        }
+                    }
+                    for (; x < l_new_cmp->w; ++x)
+                    {
+                        l_dst[x] = l_src[xorg];
+                    }
+                    l_dst += l_new_cmp->w;
+
+                    for (dy = 1U; dy < l_org_cmp->dy; ++dy)
+                    {
+                        memcpy(
+                            l_dst,
+                            l_dst - l_new_cmp->w,
+                            l_new_cmp->w * sizeof(OPJ_INT32)
+                        );
+                        l_dst += l_new_cmp->w;
+                    }
+                    l_src += l_org_cmp->w;
+                }
+            }
+
+            if (y < l_new_cmp->h)
+            {
+                OPJ_UINT32 x;
+                OPJ_UINT32 xorg;
+
+                xorg = 0U;
+                for (x = 0U; x < xoff; ++x) {
+                    l_dst[x] = 0;
+                }
+
+                if (l_new_cmp->w > (l_org_cmp->dx - 1U))
+                { /* check subtraction overflow for really small images */
+                    for (; x < l_new_cmp->w - (l_org_cmp->dx - 1U); x += l_org_cmp->dx, ++xorg)
+                    {
+                        OPJ_UINT32 dx;
+                        for (dx = 0U; dx < l_org_cmp->dx; ++dx)
+                        {
+                            l_dst[x + dx] = l_src[xorg];
+                        }
+                    }
+                }
+
+                for (; x < l_new_cmp->w; ++x)
+                {
+                    l_dst[x] = l_src[xorg];
+                }
+                l_dst += l_new_cmp->w;
+                ++y;
+
+                for (; y < l_new_cmp->h; ++y) {
+                    memcpy(
+                        l_dst,
+                        l_dst - l_new_cmp->w,
+                        l_new_cmp->w * sizeof(OPJ_INT32)
+                    );
+                    l_dst += l_new_cmp->w;
+                }
+            }
+        } else { // dx == dy == 1
+            memcpy(
+                l_new_cmp->data,
+                l_org_cmp->data,
+                sizeof(OPJ_INT32) * l_org_cmp->w * l_org_cmp->h
+            );
+        }
+    }
+
+    opj_image_destroy(original);
+    return l_new_image;
 }
 
 
@@ -531,12 +736,31 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
         goto failure;
     }
 
+    if (
+        image->color_space != OPJ_CLRSPC_SYCC
+        && image->numcomps == 3
+        && image->comps[0].dx == image->comps[0].dy
+        && image->comps[1].dx != 1
+    ) {
+        image->color_space = OPJ_CLRSPC_SYCC;
+        color_sycc_to_rgb(image);
+    }
+
+    /* Upsample components (if required) */
+    image = upsample_image_components(image);
+    if (image == NULL) {
+        // failed to upsample image
+        error_code = 8;
+        goto failure;
+    }
+
     // Set our component pointers
     const unsigned int NR_COMPONENTS = image->numcomps;  // 15444-1 A.5.1
     p_component = malloc(NR_COMPONENTS * sizeof(int *));
     for (unsigned int ii = 0; ii < NR_COMPONENTS; ii++)
     {
         p_component[ii] = image->comps[ii].data;
+        //printf("%u, %u, %u\n", ii, image->comps[ii].dx, image->comps[ii].dy);
     }
 
     int width = (int)image->comps[0].w;
@@ -547,14 +771,15 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     //  we have R1, B1, G1 | R2, G2, B2 | ..., where 1 is the first pixel,
     //  2 the second, etc
     // See DICOM Standard, Part 3, Annex C.7.6.3.1.3
+    unsigned int row, col, ii;
     if (precision <= 8)
     {
         // 8-bit signed/unsigned
-        for (int row = 0; row < height; row++)
+        for (row = 0; row < height; row++)
         {
-            for (int col = 0; col < width; col++)
+            for (col = 0; col < width; col++)
             {
-                for (unsigned int ii = 0; ii < NR_COMPONENTS; ii++)
+                for (ii = 0; ii < NR_COMPONENTS; ii++)
                 {
                     *out = (unsigned char)(*p_component[ii]);
                     out++;
@@ -571,11 +796,11 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
         } u16;
 
         // 16-bit signed/unsigned
-        for (int row = 0; row < height; row++)
+        for (row = 0; row < height; row++)
         {
-            for (int col = 0; col < width; col++)
+            for (col = 0; col < width; col++)
             {
-                for (unsigned int ii = 0; ii < NR_COMPONENTS; ii++)
+                for (ii = 0; ii < NR_COMPONENTS; ii++)
                 {
                     u16.val = (unsigned short)(*p_component[ii]);
                     // Little endian output

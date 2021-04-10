@@ -17,6 +17,20 @@ cdef extern struct JPEG2000Parameters:
     unsigned int is_signed
     uint32_t nr_tiles
 
+
+"""
+* dx is XRsiz: horizontal separation of a sample of ith component wrt reference
+  grid
+* dy is YRsize: as XRsize, but vertical separation
+"""
+cdef extern struct ComponentParameters:
+    uint32_t precision
+    unsigned int is_signed
+    uint32_t nr_tiles
+    uint32_t dx
+    uint32_t dy
+
+
 cdef extern char* OpenJpegVersion()
 cdef extern int Decode(void* fp, unsigned char* out, int codec)
 cdef extern int GetParameters(void* fp, int codec, JPEG2000Parameters *param)
@@ -30,6 +44,7 @@ ERRORS = {
     5: "failed to set the decoded area",
     6: "failed to decode image",
     7: "support for more than 16-bits per component is not implemented",
+    8: "failed to upscale subsampled components",
 }
 
 

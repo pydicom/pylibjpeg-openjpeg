@@ -12,13 +12,12 @@ from distutils.command.build import build as build_orig
 import distutils.sysconfig
 
 
-OPENJPEG_SRC = os.path.join(
-    "openjpeg", "src", "openjpeg", "src", "lib", "openjp2"
-)
-INTERFACE_SRC = os.path.join("openjpeg", "src", "interface")
+OPENJPEG = Path(__file__).resolve().parent / "openjpeg" / "src" / "openjpeg"
+OPENJPEG_SRC = OPENJPEG / "src" / "lib" / "openjp2"
+INTERFACE_SRC = Path(__file__).resolve().parent / "interface"
 
 
-# Workaround for needing cython and numpy
+# Workaround for needing Cython and numpy
 # Solution from: https://stackoverflow.com/a/54128391/12606901
 class build(build_orig):
     def finalize_options(self):
@@ -35,9 +34,10 @@ def get_source_files():
     """Return a list of paths to the source files to be compiled."""
     source_files = [
         "openjpeg/_openjpeg.pyx",
-        os.path.join(INTERFACE_SRC, "decode.c"),
+        INTERFACE_SRC / "decode.c",
+        INTERFACE_SRC / "color.c",
     ]
-    for fname in Path(OPENJPEG_SRC).glob("*"):
+    for fname in OPENJPEG_SRC.glob("*"):
         if fname.parts[-1].startswith("test"):
             continue
 
@@ -65,8 +65,8 @@ def setup_oj():
         shutil.rmtree(build_dir)
 
     try:
-        os.remove(os.path.join(INTERFACE_SRC, "opj_config.h"))
-        os.remove(os.path.join(INTERFACE_SRC, "opj_config_private.h"))
+        os.remove(INTERFACE_SRC / "opj_config.h")
+        os.remove(INTERFACE_SRC / "opj_config_private.h")
     except:
         pass
 
@@ -78,14 +78,21 @@ def setup_oj():
     os.chdir(cur_dir)
 
     # Turn off JPIP
-    if os.path.exists(os.path.join(INTERFACE_SRC, "opj_config.h")):
-        with open(os.path.join(INTERFACE_SRC, "opj_config.h"), "a") as f:
+    if os.path.exists(INTERFACE_SRC / "opj_config.h"):
+        with open(INTERFACE_SRC / "opj_config.h", "a") as f:
             f.write("\n")
             f.write("#define USE_JPIP 0")
 
 
 setup_oj()
 
+
+include_dirs = [
+    OPENJPEG_SRC,
+    INTERFACE_SRC,
+    distutils.sysconfig.get_python_inc(),
+    # Numpy includes get added by the `build` subclass
+]
 
 # Compiler and linker arguments
 extra_compile_args = []
@@ -96,19 +103,14 @@ ext = Extension(
     "_openjpeg",
     get_source_files(),
     language="c",
-    include_dirs=[
-        OPENJPEG_SRC,
-        INTERFACE_SRC,
-        distutils.sysconfig.get_python_inc(),
-        # Numpy includes get added by the `build` subclass
-    ],
+    include_dirs=include_dirs,
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
 )
 
 # Version
-BASE_DIR = os.path.dirname(os.path.realpath(__file__))
-VERSION_FILE = os.path.join(BASE_DIR, "openjpeg", "_version.py")
+BASE_DIR = Path(__file__).resolve().parent
+VERSION_FILE = BASE_DIR / "openjpeg" / "_version.py"
 with open(VERSION_FILE) as fp:
     exec(fp.read())
 
