@@ -10,11 +10,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       CIBW_BUILD: "cp3*-*"
-      CIBW_SKIP: "cp35-*"
+      CIBW_SKIP: "cp36-* *-mus1*"
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: [3.9]
+        python-version: ['3.10']
 
     steps:
     - uses: actions/checkout@v2
