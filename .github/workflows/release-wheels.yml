@@ -1,6 +1,7 @@
 name: Build wheels and deploy to PyPI
 
 on:
+  pull_request:
   release:
     types: [ published ]
 
@@ -72,3 +73,42 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.PYPI_PASSWORD }}
+
+  test-pypi:
+    name: Test uploaded PyPI package
+    needs:
+    - deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10']
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install -U pip
+        python -m pip install wheel
+        python -m pip install pytest coverage pytest-cov
+        python -m pip install git+https://github.com/pydicom/pylibjpeg-data
+
+    - name: Install package wheels and test
+      run: |
+        pip install pylibjpeg-openjpeg --no-binary :all:
+        pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
+
+    - name: Install package tarballs and test
+      run: |
+        pip uninstall pylibjpeg-openjpeg -y
+        pip install pylibjpeg-openjpeg --no-binary :all:
+        pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
