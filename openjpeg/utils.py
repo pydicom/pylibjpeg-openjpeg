@@ -188,7 +188,7 @@ def decode_pixel_data(stream, ds=None, **kwargs):
         samples_per_pixel, bits_stored, pixel_representation
     )
 
-    if not ds or no_kwargs:
+    if not ds and no_kwargs:
         return arr
 
     samples_per_pixel = ds.get("SamplesPerPixel", samples_per_pixel)
