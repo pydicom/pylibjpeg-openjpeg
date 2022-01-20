@@ -150,7 +150,7 @@ jobs:
 
     - name: Install package wheels and test
       run: |
-        pip install pylibjpeg-openjpeg --no-binary :all:
+        pip install pylibjpeg-openjpeg
         pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
 
     - name: Install package tarballs and test
