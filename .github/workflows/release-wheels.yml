@@ -10,11 +10,14 @@ jobs:
     name: Build wheels for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     env:
-      CIBW_BUILD: "cp3*-*"
-      CIBW_SKIP: "cp36-* *-musl*"
+      CIBW_BUILD: "cp39-*"
+      CIBW_SKIP: "cp3*-* *-musl*"
+      #CIBW_SKIP: "cp36-* *-musl*"
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        #os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [macos-latest]
         python-version: ['3.10']
 
     steps:
@@ -29,6 +32,7 @@ jobs:
 
     - name: Install cibuildwheel
       run: |
+        python -m pip install -U pip
         python -m pip install cibuildwheel==1.10.0
 
     - name: Build sdist
@@ -100,6 +104,7 @@ jobs:
         python -m pip install -U pip
         python -m pip install wheel
         python -m pip install pytest coverage pytest-cov
+        python -m pip install pydicom pylibjpeg
         python -m pip install git+https://github.com/pydicom/pylibjpeg-data
 
     - name: Install package wheels and test
