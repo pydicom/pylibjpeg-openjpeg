@@ -1,4 +1,4 @@
-name: Build wheels and deploy to PyPI
+name: release-deploy
 
 on:
   pull_request:
@@ -111,4 +111,4 @@ jobs:
       run: |
         pip uninstall pylibjpeg-openjpeg -y
         pip install pylibjpeg-openjpeg --no-binary :all:
-        pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
+        pytest --ignore=openjpeg/src/openjpeg

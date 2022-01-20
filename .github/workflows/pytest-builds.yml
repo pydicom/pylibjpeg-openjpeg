@@ -1,4 +1,4 @@
-name: build
+name: unit-tests
 
 on:
   push:
@@ -124,8 +124,6 @@ jobs:
 
   test-pypi:
     name: Test uploaded PyPI package
-    needs:
-    - deploy
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
@@ -159,4 +157,4 @@ jobs:
       run: |
         pip uninstall pylibjpeg-openjpeg -y
         pip install pylibjpeg-openjpeg --no-binary :all:
-        pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
+        pytest --ignore=openjpeg/src/openjpeg
