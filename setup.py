@@ -19,21 +19,21 @@ INTERFACE_SRC = PACKAGE_DIR / "src" / "interface"
 
 # Workaround for needing Cython and numpy
 # Solution from: https://stackoverflow.com/a/54128391/12606901
-class build(build_orig):
-    def finalize_options(self):
-        super().finalize_options()
-        __builtins__.__NUMPY_SETUP__ = False
-        import numpy
-        extension = next(
-            m for m in self.distribution.ext_modules if m == ext
-        )
-        extension.include_dirs.append(numpy.get_include())
-
-        # Fix for MacOS wheel building issues with setuptools (?)
-        eggs = PACKAGE_DIR.parent / ".eggs"
-        for p in eggs.glob("*/*"):
-            print(p)
-        #    shutil.rmtree(os.fspath(p))
+# class build(build_orig):
+#     def finalize_options(self):
+#         super().finalize_options()
+#         __builtins__.__NUMPY_SETUP__ = False
+#         import numpy
+#         extension = next(
+#             m for m in self.distribution.ext_modules if m == ext
+#         )
+#         extension.include_dirs.append(numpy.get_include())
+#
+#         # Fix for MacOS wheel building issues with setuptools (?)
+#         eggs = PACKAGE_DIR.parent / ".eggs"
+#         for p in eggs.glob("*/*"):
+#             print(p)
+#         #    shutil.rmtree(os.fspath(p))
 
 
 def get_source_files():
@@ -158,9 +158,9 @@ setup(
         "Topic :: Software Development :: Libraries",
     ],
     python_requires = ">=3.7",
-    setup_requires = ["setuptools>=18.0", "cython", "numpy"],
+    #setup_requires = ["setuptools>=18.0", "Cython==0.29.26", "numpy==1.20"],
     install_requires = ["numpy>=1.20"],
-    cmdclass = {"build": build},
+    # cmdclass = {"build": build},
     ext_modules = [ext],
     # Plugin registrations
     entry_points = {

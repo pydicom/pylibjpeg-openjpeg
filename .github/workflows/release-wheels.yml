@@ -120,7 +120,6 @@ jobs:
         CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux_image }}
         CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.manylinux_image }}
         CIBW_BUILD_VERBOSITY: 1
-        #CIBW_BEFORE_BUILD_MACOS: ls -a && rm -rf .eggs/numpy*.egg 
       run: |
         python --version
         python -m cibuildwheel --output-dir dist
