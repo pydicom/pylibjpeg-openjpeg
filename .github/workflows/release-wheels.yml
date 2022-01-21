@@ -1,6 +1,7 @@
 name: release-deploy
 
 on:
+  pull_request:
   release:
     types: [ published ]
 
@@ -72,6 +73,10 @@ jobs:
             manylinux_image: manylinux2010
           - os: ubuntu-latest
             python: 38
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2010
+          - os: ubuntu-latest
+            python: 39
             platform_id: manylinux_x86_64
             manylinux_image: manylinux2010
 
