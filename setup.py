@@ -2,32 +2,21 @@
 import os
 import sys
 from pathlib import Path
-import platform
 import setuptools
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
 import shutil
 import subprocess
-from distutils.command.build import build as build_orig
 import distutils.sysconfig
 
+try:
+    import numpy
+except ImportError:
+    pass
 
 PACKAGE_DIR = Path(__file__).parent / "openjpeg"
 OPENJPEG_SRC = PACKAGE_DIR / "src" / "openjpeg" / "src" / "lib" / "openjp2"
 INTERFACE_SRC = PACKAGE_DIR / "src" / "interface"
-
-
-# Workaround for needing Cython and numpy
-# Solution from: https://stackoverflow.com/a/54128391/12606901
-class build(build_orig):
-    def finalize_options(self):
-        super().finalize_options()
-        __builtins__.__NUMPY_SETUP__ = False
-        import numpy
-        extension = next(
-            m for m in self.distribution.ext_modules if m == ext
-        )
-        extension.include_dirs.append(numpy.get_include())
 
 
 def get_source_files():
@@ -98,6 +87,7 @@ ext = Extension(
     include_dirs=[
         OPENJPEG_SRC,
         INTERFACE_SRC,
+        numpy.get_include(),
         distutils.sysconfig.get_python_inc(),
         # Numpy includes get added by the `build` subclass
     ],
@@ -143,18 +133,16 @@ setup(
         "Intended Audience :: Science/Research",
         "Development Status :: 5 - Production/Stable",
         "Natural Language :: English",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Operating System :: OS Independent",
         "Topic :: Scientific/Engineering :: Medical Science Apps.",
         "Topic :: Software Development :: Libraries",
     ],
-    python_requires = ">=3.6",
-    setup_requires = ["setuptools>=18.0", "cython", "numpy"],
-    install_requires = ["numpy"],
-    cmdclass = {"build": build},
+    python_requires = ">=3.7",
+    install_requires = ["numpy>=1.20"],
     ext_modules = [ext],
     # Plugin registrations
     entry_points = {

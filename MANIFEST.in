@@ -1,1 +1,11 @@
-recursive-include openjpeg/src *
+recursive-include openjpeg/src/interface *
+
+# openjpeg source file includes
+recursive-include openjpeg/src/openjpeg/src/lib/openjp2 *
+include openjpeg/src/openjpeg/src/lib/CMakeLists.txt
+include openjpeg/src/openjpeg/src/CMakeLists.txt
+recursive-include openjpeg/src/openjpeg/cmake *
+include openjpeg/src/openjpeg/*.md
+include openjpeg/src/openjpeg/LICENSE
+
+recursive-include build_tools *

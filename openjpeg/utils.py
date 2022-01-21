@@ -133,7 +133,7 @@ def decode(stream, j2k_format=None, reshape=True):
     return arr.reshape(*shape)
 
 
-def decode_pixel_data(stream, ds=None):
+def decode_pixel_data(stream, ds=None, **kwargs):
     """Return the decoded JPEG 2000 data as a :class:`numpy.ndarray`.
 
     Intended for use with *pydicom* ``Dataset`` objects.
@@ -181,32 +181,43 @@ def decode_pixel_data(stream, ds=None):
 
     arr = _openjpeg.decode(stream, j2k_format)
 
-    if not ds:
+    samples_per_pixel = kwargs.get("samples_per_pixel")
+    bits_stored = kwargs.get("bits_stored")
+    pixel_representation = kwargs.get("pixel_representation")
+    no_kwargs = None in (
+        samples_per_pixel, bits_stored, pixel_representation
+    )
+
+    if not ds and no_kwargs:
         return arr
 
+    samples_per_pixel = ds.get("SamplesPerPixel", samples_per_pixel)
+    bits_stored = ds.get("BitsStored", bits_stored)
+    pixel_representation = ds.get("PixelRepresentation", pixel_representation)
+
     meta = get_parameters(stream, j2k_format)
-    if ds.SamplesPerPixel != meta["nr_components"]:
+    if samples_per_pixel != meta["nr_components"]:
         warnings.warn(
-            f"The (0028,0002) Samples per Pixel value '{ds.SamplesPerPixel}' "
+            f"The (0028,0002) Samples per Pixel value '{samples_per_pixel}' "
             f"in the dataset does not match the number of components "
             f"\'{meta['nr_components']}\' found in the JPEG 2000 data. "
             f"It's recommended that you change the  Samples per Pixel value "
             f"to produce the correct output"
         )
 
-    if ds.BitsStored != meta["precision"]:
+    if bits_stored != meta["precision"]:
         warnings.warn(
-            f"The (0028,0101) Bits Stored value '{ds.BitsStored}' in the "
+            f"The (0028,0101) Bits Stored value '{bits_stored}' in the "
             f"dataset does not match the component precision value "
             f"\'{meta['precision']}\' found in the JPEG 2000 data. "
             f"It's recommended that you change the Bits Stored value to "
             f"produce the correct output"
         )
 
-    if bool(ds.PixelRepresentation) != meta["is_signed"]:
+    if bool(pixel_representation) != meta["is_signed"]:
         val = "signed" if meta["is_signed"] else "unsigned"
-        ds_val = "signed" if bool(ds.PixelRepresentation) else "unsigned"
-        ds_val = f"'{ds.PixelRepresentation}' ({ds_val})"
+        ds_val = "signed" if bool(pixel_representation) else "unsigned"
+        ds_val = f"'{pixel_representation}' ({ds_val})"
         warnings.warn(
             f"The (0028,0103) Pixel Representation value {ds_val} in the "
             f"dataset does not match the format of the values found in the "
