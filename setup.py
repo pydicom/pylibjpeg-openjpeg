@@ -31,8 +31,9 @@ class build(build_orig):
 
         # Fix for MacOS wheel building issues with setuptools (?)
         eggs = PACKAGE_DIR.parent / ".eggs"
-        for p in eggs.glob("numpy*macos*.egg"):
-            shutil.rmtree(os.fspath(p))
+        for p in eggs.glob("*/*"):
+            print(p)
+        #    shutil.rmtree(os.fspath(p))
 
 
 def get_source_files():
