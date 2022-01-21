@@ -16,90 +16,83 @@ jobs:
           # Windows 32 bit
           - os: windows-latest
             python: 37
-            platform_id: win32
+            platform_id: cp37-win32
           - os: windows-latest
             python: 38
-            platform_id: win32
+            platform_id: cp38-win32
           - os: windows-latest
             python: 39
-            platform_id: win32
+            platform_id: cp39-win32
           - os: windows-latest
             python: 310
-            platform_id: win32
+            platform_id: cp310-win32
 
           # Windows 64 bit
           - os: windows-latest
             python: 37
-            platform_id: win_amd64
+            platform_id: cp37-win_amd64
           - os: windows-latest
             python: 38
-            platform_id: win_amd64
+            platform_id: cp38-win_amd64
           - os: windows-latest
             python: 39
-            platform_id: win_amd64
+            platform_id: cp39-win_amd64
           - os: windows-latest
             python: 310
-            platform_id: win_amd64
+            platform_id: cp310-win_amd64
 
           # Linux 64 bit manylinux2010
           - os: ubuntu-latest
             python: 37
-            platform_id: manylinux_x86_64
+            platform_id: cp37-manylinux_x86_64
             manylinux_image: manylinux2010
           - os: ubuntu-latest
             python: 38
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2010
-          - os: ubuntu-latest
-            python: 39
-            platform_id: manylinux_x86_64
+            platform_id: cp38-manylinux_x86_64
             manylinux_image: manylinux2010
 
           # Linux 64 bit manylinux2014
           - os: ubuntu-latest
             python: 37
-            platform_id: manylinux_x86_64
+            platform_id: cp37-manylinux_x86_64
             manylinux_image: manylinux2014
           - os: ubuntu-latest
             python: 38
-            platform_id: manylinux_x86_64
+            platform_id: cp38-manylinux_x86_64
             manylinux_image: manylinux2014
           - os: ubuntu-latest
             python: 39
-            platform_id: manylinux_x86_64
+            platform_id: cp39-manylinux_x86_64
             manylinux_image: manylinux2014
           - os: ubuntu-latest
             python: 310
-            platform_id: manylinux_x86_64
+            platform_id: cp310-manylinux_x86_64
             manylinux_image: manylinux2014
 
           # MacOS x86_64
           - os: macos-latest
             python: 37
-            platform_id: macosx_x86_64
+            platform_id: cp37-macosx_x86_64
           - os: macos-latest
             python: 38
-            platform_id: macosx_x86_64
+            platform_id: cp38-macosx_x86_64
           - os: macos-latest
             python: 39
-            platform_id: macosx_x86_64
+            platform_id: cp39-macosx_x86_64
           - os: macos-latest
             python: 310
-            platform_id: macosx_x86_64
+            platform_id: cp310-macosx_x86_64
 
           # MacOS arm64
           - os: macos-latest
-            python: 37
-            platform_id: macosx_arm64
-          - os: macos-latest
             python: 38
-            platform_id: macosx_arm64
+            platform_id: cp38-macosx_arm64
           - os: macos-latest
             python: 39
-            platform_id: macosx_arm64
+            platform_id: cp39-macosx_arm64
           - os: macos-latest
             python: 310
-            platform_id: macosx_arm64
+            platform_id: cp310-macosx_arm64
 
     steps:
     - uses: actions/checkout@v2
@@ -122,7 +115,7 @@ jobs:
 
     - name: Build wheels
       env:
-        CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.platform_id }}
+        CIBW_BUILD: ${{ matrix.platform_id }}
         CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux_image }}
         CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.manylinux_image }}
         CIBW_BUILD_VERBOSITY: 1
