@@ -116,6 +116,7 @@ jobs:
     - name: Build wheels
       env:
         CIBW_BUILD: ${{ matrix.platform_id }}
+        CIBW_ARCHS: all
         CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux_image }}
         CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.manylinux_image }}
         CIBW_BUILD_VERBOSITY: 1
