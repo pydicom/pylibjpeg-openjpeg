@@ -28,6 +28,12 @@ class build(build_orig):
             m for m in self.distribution.ext_modules if m == ext
         )
         extension.include_dirs.append(numpy.get_include())
+        print(numpy.get_include())
+
+        eggs = PACKAGE_DIR.parent / ".egg"
+        for p in eggs.glob("*/numpy*.egg"):
+            print(p)
+            shutil.rmtree(os.fspath(p))
 
 
 def get_source_files():
@@ -152,8 +158,7 @@ setup(
         "Topic :: Software Development :: Libraries",
     ],
     python_requires = ">=3.7",
-    #setup_requires = ["setuptools>=18.0", "cython", "numpy"],
-    setup_requires = ["setuptools>=18.0", "cython"],
+    setup_requires = ["setuptools>=18.0", "cython", "numpy"],
     install_requires = ["numpy>=1.20"],
     cmdclass = {"build": build},
     ext_modules = [ext],
