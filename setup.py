@@ -11,6 +11,7 @@ import subprocess
 from distutils.command.build import build as build_orig
 import distutils.sysconfig
 
+import numpy
 
 PACKAGE_DIR = Path(__file__).parent / "openjpeg"
 OPENJPEG_SRC = PACKAGE_DIR / "src" / "openjpeg" / "src" / "lib" / "openjp2"
@@ -104,6 +105,7 @@ ext = Extension(
     include_dirs=[
         OPENJPEG_SRC,
         INTERFACE_SRC,
+        numpy.get_include(),
         distutils.sysconfig.get_python_inc(),
         # Numpy includes get added by the `build` subclass
     ],
