@@ -28,11 +28,10 @@ class build(build_orig):
             m for m in self.distribution.ext_modules if m == ext
         )
         extension.include_dirs.append(numpy.get_include())
-        print(numpy.get_include())
 
-        eggs = PACKAGE_DIR.parent / ".egg"
-        for p in eggs.glob("*/numpy*.egg"):
-            print(p)
+        # Fix for MacOS wheel building issues with setuptools (?)
+        eggs = PACKAGE_DIR.parent / ".eggs"
+        for p in eggs.glob("numpy*macos*.egg"):
             shutil.rmtree(os.fspath(p))
 
 
