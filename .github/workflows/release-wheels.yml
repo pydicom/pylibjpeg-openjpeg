@@ -1,7 +1,6 @@
 name: release-deploy
 
 on:
-  pull_request:
   release:
     types: [ published ]
 
