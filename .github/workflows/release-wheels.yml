@@ -182,8 +182,9 @@ jobs:
         python -m venv env/test
         source env/test/bin/activate
         python -m pip install pytest pydicom pylibjpeg
+        python -m pip uninstall -y pylibjpeg-openjpeg
         python -m pip install git+https://github.com/pydicom/pylibjpeg-data
-        python -m pip install --find-links dist/ pylibjpeg-openjpeg
+        python -m pip install -U --find-links dist/ pylibjpeg-openjpeg
         python -c "import pytest; pytest.main(['--pyargs', 'openjpeg.tests'])"
         deactivate
 
@@ -192,8 +193,9 @@ jobs:
         python -m venv env/testsrc
         source env/testsrc/bin/activate
         python -m pip install pytest pydicom pylibjpeg
+        python -m pip uninstall -y pylibjpeg-openjpeg
         python -m pip install git+https://github.com/pydicom/pylibjpeg-data
-        python -m pip install dist/pylibjpeg-openjpeg-*.tar.gz
+        python -m pip install -U dist/pylibjpeg-openjpeg-*.tar.gz
         python -c "import pytest; pytest.main(['--pyargs', 'openjpeg.tests'])"
         deactivate
 
