@@ -1,7 +1,6 @@
 name: release-deploy
 
 on:
-  pull_request:
   release:
     types: [ published ]
 
@@ -181,6 +180,7 @@ jobs:
       run: |
         python -m venv env/test
         source env/test/bin/activate
+        python -m pip install -U pip
         python -m pip install pytest pydicom pylibjpeg
         python -m pip uninstall -y pylibjpeg-openjpeg
         python -m pip install git+https://github.com/pydicom/pylibjpeg-data
@@ -192,6 +192,7 @@ jobs:
       run: |
         python -m venv env/testsrc
         source env/testsrc/bin/activate
+        python -m pip install -U pip
         python -m pip install pytest pydicom pylibjpeg
         python -m pip uninstall -y pylibjpeg-openjpeg
         python -m pip install git+https://github.com/pydicom/pylibjpeg-data
