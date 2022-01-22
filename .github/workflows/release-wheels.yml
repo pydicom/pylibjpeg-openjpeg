@@ -165,10 +165,6 @@ jobs:
         python-version: ['3.7', '3.8', '3.9', '3.10']
 
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: true
-
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
@@ -182,8 +178,8 @@ jobs:
 
     - name: Install from package wheels and test
       run: |
-        python -m venv env/test
-        source env/test/bin/activate
+        python -m venv testwhl
+        source testwhl/bin/activate
         python -m pip install -U pip
         python -m pip install pytest pydicom pylibjpeg
         python -m pip uninstall -y pylibjpeg-openjpeg
@@ -194,8 +190,8 @@ jobs:
 
     - name: Install from package tarball and test
       run: |
-        python -m venv env/testsrc
-        source env/testsrc/bin/activate
+        python -m venv testsrc
+        source testsrc/bin/activate
         python -m pip install -U pip
         python -m pip install pytest pydicom pylibjpeg
         python -m pip uninstall -y pylibjpeg-openjpeg
