@@ -1,0 +1,15 @@
+.. _v1.2.0:
+
+1.2.0
+=====
+
+Fixes
+.....
+
+* Fixed being unable to build from source using the PyPI package
+
+Changes
+.......
+
+* Dropped support for Python 3.6
+* Added support for Python 3.10
