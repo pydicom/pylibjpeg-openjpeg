@@ -142,7 +142,10 @@ setup(
         "Topic :: Software Development :: Libraries",
     ],
     python_requires = ">=3.7",
-    install_requires = ["numpy>=1.20"],
+    install_requires = [
+        "numpy >= 1.20; python_version == '3.7'",
+        "numpy >= 1.22; python_version >= '3.8'",
+    ],
     ext_modules = [ext],
     # Plugin registrations
     entry_points = {
