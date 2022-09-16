@@ -76,7 +76,7 @@ def setup_oj():
 setup_oj()
 
 # Compiler and linker arguments
-extra_compile_args = []
+extra_compile_args = ["-DOPJ_STATIC"]
 extra_link_args = []
 
 # Maybe use cythonize instead
