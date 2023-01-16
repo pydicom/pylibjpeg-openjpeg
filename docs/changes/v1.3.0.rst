@@ -1,0 +1,9 @@
+.. _v1.3.0:
+
+1.3.0
+=====
+
+Changes
+.......
+
+* Updated OpenJPEG version to 2.5.0
