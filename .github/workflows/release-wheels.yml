@@ -17,7 +17,7 @@ jobs:
     - uses: actions/setup-python@v4
       name: Install Python
       with:
-        python-version: '3.10'
+        python-version: '3.11'
 
     - name: Build sdist
       run: |
@@ -50,6 +50,9 @@ jobs:
           - os: windows-latest
             python: 310
             platform_id: win32
+          - os: windows-latest
+            python: 311
+            platform_id: win32
 
           # Windows 64 bit
           - os: windows-latest
@@ -63,6 +66,9 @@ jobs:
             platform_id: win_amd64
           - os: windows-latest
             python: 310
+            platform_id: win_amd64
+          - os: windows-latest
+            python: 311
             platform_id: win_amd64
 
           # Linux 64 bit manylinux2010
@@ -96,6 +102,10 @@ jobs:
             python: 310
             platform_id: manylinux_x86_64
             manylinux_image: manylinux2014
+          - os: ubuntu-latest
+            python: 311
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2014
 
           # Linux aarch64
           - os: ubuntu-latest
@@ -109,6 +119,9 @@ jobs:
             platform_id: manylinux_aarch64
           - os: ubuntu-latest
             python: 310
+            platform_id: manylinux_aarch64
+          - os: ubuntu-latest
+            python: 311
             platform_id: manylinux_aarch64
 
           # MacOS x86_64
@@ -124,6 +137,9 @@ jobs:
           - os: macos-latest
             python: 310
             platform_id: macosx_x86_64
+          - os: macos-latest
+            python: 311
+            platform_id: macosx_x86_64
 
           # MacOS arm64
           - os: macos-latest
@@ -134,6 +150,9 @@ jobs:
             platform_id: macosx_arm64
           - os: macos-latest
             python: 310
+            platform_id: macosx_arm64
+          - os: macos-latest
+            python: 311
             platform_id: macosx_arm64
 
     steps:
@@ -183,7 +202,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
 
     steps:
     - name: Set up Python ${{ matrix.python-version }}
