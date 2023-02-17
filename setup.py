@@ -145,7 +145,8 @@ setup(
     python_requires = ">=3.7",
     install_requires = [
         "numpy >= 1.20; python_version == '3.7'",
-        "numpy >= 1.22; python_version >= '3.8'",
+        "numpy >= 1.22; python_version >= '3.8' and python_version < '3.11'",
+        "numpy >= 1.23.2; python_version >= '3.11'",
     ],
     ext_modules = [ext],
     # Plugin registrations
