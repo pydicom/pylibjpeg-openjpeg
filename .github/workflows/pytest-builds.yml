@@ -111,7 +111,7 @@ jobs:
         pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
 
     - name: Switch to pydicom dev and rerun pytest (3.10+)
-      if: contains('3.10 3.11 3.12', ${{ matrix.python-version }})
+      if: ${{ contains('3.10 3.11 3.12', matrix.python-version) }}
       run: |
         pip uninstall -y pydicom
         pip install git+https://github.com/pydicom/pydicom
