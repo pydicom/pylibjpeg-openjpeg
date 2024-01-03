@@ -12,7 +12,7 @@ OPENJPEG_SRC = PACKAGE_DIR / "src" / "openjpeg" / "src" / "lib" / "openjp2"
 INTERFACE_SRC = PACKAGE_DIR / "src" / "interface"
 
 
-def build(setup_kwargs: Any) -> None:
+def build(setup_kwargs: Any) -> Any:
     from setuptools import Extension
     from setuptools.dist import Distribution
     import Cython.Compiler.Options
@@ -29,7 +29,6 @@ def build(setup_kwargs: Any) -> None:
             os.fspath(OPENJPEG_SRC),
             os.fspath(INTERFACE_SRC),
             numpy.get_include(),
-            # distutils.sysconfig.get_python_inc(),
         ],
         extra_compile_args=[],
         extra_link_args=[],
