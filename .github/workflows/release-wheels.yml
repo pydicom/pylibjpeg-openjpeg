@@ -3,9 +3,9 @@ name: release-deploy
 on:
   release:
     types: [ published ]
-  push:
-    branches: [ main ]
-  pull_request:
+  # push:
+  #   branches: [ main ]
+  # pull_request:
 
 jobs:
   build-sdist:
@@ -41,39 +41,39 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # # Windows 32 bit
-          # - os: windows-latest
-          #   python: 38
-          #   platform_id: win32
-          # - os: windows-latest
-          #   python: 39
-          #   platform_id: win32
-          # - os: windows-latest
-          #   python: 310
-          #   platform_id: win32
-          # - os: windows-latest
-          #   python: 311
-          #   platform_id: win32
-          # - os: windows-latest
-          #   python: 312
-          #   platform_id: win32
-          #
-          # # Windows 64 bit
-          # - os: windows-latest
-          #   python: 38
-          #   platform_id: win_amd64
-          # - os: windows-latest
-          #   python: 39
-          #   platform_id: win_amd64
-          # - os: windows-latest
-          #   python: 310
-          #   platform_id: win_amd64
-          # - os: windows-latest
-          #   python: 311
-          #   platform_id: win_amd64
-          # - os: windows-latest
-          #   python: 312
-          #   platform_id: win_amd64
+          # Windows 32 bit
+          - os: windows-latest
+            python: 38
+            platform_id: win32
+          - os: windows-latest
+            python: 39
+            platform_id: win32
+          - os: windows-latest
+            python: 310
+            platform_id: win32
+          - os: windows-latest
+            python: 311
+            platform_id: win32
+          - os: windows-latest
+            python: 312
+            platform_id: win32
+
+          # Windows 64 bit
+          - os: windows-latest
+            python: 38
+            platform_id: win_amd64
+          - os: windows-latest
+            python: 39
+            platform_id: win_amd64
+          - os: windows-latest
+            python: 310
+            platform_id: win_amd64
+          - os: windows-latest
+            python: 311
+            platform_id: win_amd64
+          - os: windows-latest
+            python: 312
+            platform_id: win_amd64
 
           # Linux 64 bit manylinux2014
           - os: ubuntu-latest
@@ -97,56 +97,56 @@ jobs:
             platform_id: manylinux_x86_64
             manylinux_image: manylinux2014
 
-          # # Linux aarch64
-          # - os: ubuntu-latest
-          #   python: 38
-          #   platform_id: manylinux_aarch64
-          # - os: ubuntu-latest
-          #   python: 39
-          #   platform_id: manylinux_aarch64
-          # - os: ubuntu-latest
-          #   python: 310
-          #   platform_id: manylinux_aarch64
-          # - os: ubuntu-latest
-          #   python: 311
-          #   platform_id: manylinux_aarch64
-          # - os: ubuntu-latest
-          #   python: 312
-          #   platform_id: manylinux_aarch64
+          # Linux aarch64
+          - os: ubuntu-latest
+            python: 38
+            platform_id: manylinux_aarch64
+          - os: ubuntu-latest
+            python: 39
+            platform_id: manylinux_aarch64
+          - os: ubuntu-latest
+            python: 310
+            platform_id: manylinux_aarch64
+          - os: ubuntu-latest
+            python: 311
+            platform_id: manylinux_aarch64
+          - os: ubuntu-latest
+            python: 312
+            platform_id: manylinux_aarch64
 
-          # # MacOS x86_64
-          # - os: macos-latest
-          #   python: 38
-          #   platform_id: macosx_x86_64
-          # - os: macos-latest
-          #   python: 39
-          #   platform_id: macosx_x86_64
-          # - os: macos-latest
-          #   python: 310
-          #   platform_id: macosx_x86_64
-          # - os: macos-latest
-          #   python: 311
-          #   platform_id: macosx_x86_64
-          # - os: macos-latest
-          #   python: 312
-          #   platform_id: macosx_x86_64
-          #
-          # # MacOS arm64
-          # - os: macos-latest
-          #   python: 38
-          #   platform_id: macosx_arm64
-          # - os: macos-latest
-          #   python: 39
-          #   platform_id: macosx_arm64
-          # - os: macos-latest
-          #   python: 310
-          #   platform_id: macosx_arm64
-          # - os: macos-latest
-          #   python: 311
-          #   platform_id: macosx_arm64
-          # - os: macos-latest
-          #   python: 312
-          #   platform_id: macosx_arm64
+          # MacOS x86_64
+          - os: macos-latest
+            python: 38
+            platform_id: macosx_x86_64
+          - os: macos-latest
+            python: 39
+            platform_id: macosx_x86_64
+          - os: macos-latest
+            python: 310
+            platform_id: macosx_x86_64
+          - os: macos-latest
+            python: 311
+            platform_id: macosx_x86_64
+          - os: macos-latest
+            python: 312
+            platform_id: macosx_x86_64
+
+          # MacOS arm64
+          - os: macos-latest
+            python: 38
+            platform_id: macosx_arm64
+          - os: macos-latest
+            python: 39
+            platform_id: macosx_arm64
+          - os: macos-latest
+            python: 310
+            platform_id: macosx_arm64
+          - os: macos-latest
+            python: 311
+            platform_id: macosx_arm64
+          - os: macos-latest
+            python: 312
+            platform_id: macosx_arm64
 
     steps:
     - uses: actions/checkout@v4
@@ -237,28 +237,28 @@ jobs:
   # The pypi upload fails with non-linux containers, so grab the uploaded
   #     artifacts and run using those
   # See: https://github.com/pypa/gh-action-pypi-publish/discussions/15
-  # deploy:
-  #   name: Upload wheels to PyPI
-  #   needs: [ test-package ]
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 10
-  #
-  #   steps:
-  #   - name: Download the wheels
-  #     uses: actions/download-artifact@v3
-  #     with:
-  #       name: wheels
-  #       path: dist/
-  #
-  #   #- name: Publish package to Test PyPi
-  #   #  uses: pypa/gh-action-pypi-publish@master
-  #   #  with:
-  #   #    user: __token__
-  #   #    password: ${{ secrets.TEST_PYPI_PASSWORD }}
-  #   #    repository_url: https://test.pypi.org/legacy/
-  #
-  #   - name: Publish package to PyPi
-  #     uses: pypa/gh-action-pypi-publish@master
-  #     with:
-  #       user: __token__
-  #       password: ${{ secrets.PYPI_PASSWORD }}
+  deploy:
+    name: Upload wheels to PyPI
+    needs: [ test-package ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - name: Download the wheels
+      uses: actions/download-artifact@v3
+      with:
+        name: wheels
+        path: dist/
+
+    #- name: Publish package to Test PyPi
+    #  uses: pypa/gh-action-pypi-publish@master
+    #  with:
+    #    user: __token__
+    #    password: ${{ secrets.TEST_PYPI_PASSWORD }}
+    #    repository_url: https://test.pypi.org/legacy/
+
+    - name: Publish package to PyPi
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_PASSWORD }}
