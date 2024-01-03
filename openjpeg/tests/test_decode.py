@@ -64,7 +64,7 @@ def test_version():
     assert isinstance(version[0], int)
     assert 3 == len(version)
     assert 2 == version[0]
-    assert 4 == version[1]
+    assert 3 == version[1]
 
 
 def generate_frames(ds):
