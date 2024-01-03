@@ -29,7 +29,7 @@ jobs:
         poetry build -f sdist
 
     - name: Store artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: wheels
         path: ./dist
@@ -182,7 +182,7 @@ jobs:
         python -m cibuildwheel --output-dir dist
 
     - name: Store artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: wheels
         path: ./dist
