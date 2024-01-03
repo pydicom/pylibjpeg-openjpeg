@@ -111,18 +111,18 @@ def decode(
     if isinstance(stream, (str, Path)):
         with open(stream, 'rb') as f:
             buffer: BinaryIO = BytesIO(f.read())
-
-    if isinstance(stream, (bytes, bytearray)):
+            buffer.seek(0)
+    elif isinstance(stream, (bytes, bytearray)):
         buffer = BytesIO(stream)
     else:
+        # BinaryIO
         required_methods = ["read", "tell", "seek"]
         if not all([hasattr(stream, meth) for meth in required_methods]):
             raise TypeError(
                 "The Python object containing the encoded JPEG 2000 data must "
                 "either be bytes or have read(), tell() and seek() methods."
             )
-
-        buffer = cast(BinaryIO, stream)
+        buffer = stream
 
     if j2k_format is None:
         j2k_format = _get_format(buffer)
@@ -290,16 +290,18 @@ def get_parameters(
     if isinstance(stream, (str, Path)):
         with open(stream, 'rb') as f:
             buffer: BinaryIO = BytesIO(f.read())
-
-    if isinstance(stream, (bytes, bytearray)):
+            buffer.seek(0)
+    elif isinstance(stream, (bytes, bytearray)):
         buffer = BytesIO(stream)
     else:
+        # BinaryIO
         required_methods = ["read", "tell", "seek"]
         if not all([hasattr(stream, meth) for meth in required_methods]):
             raise TypeError(
                 "The Python object containing the encoded JPEG 2000 data must "
                 "either be bytes or have read(), tell() and seek() methods."
             )
+        buffer = stream
 
     if j2k_format is None:
         j2k_format = _get_format(buffer)
