@@ -10,14 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: true
 
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4
       name: Install Python
       with:
-        python-version: '3.10'
+        python-version: '3.11'
 
     - name: Build sdist
       run: |
@@ -25,7 +25,7 @@ jobs:
         python setup.py sdist
 
     - name: Store artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: wheels
         path: ./dist
@@ -102,6 +102,27 @@ jobs:
             python: 312
             platform_id: manylinux_x86_64
             manylinux_image: manylinux2014
+          - os: ubuntu-latest
+            python: 311
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2014
+
+          # Linux aarch64
+          - os: ubuntu-latest
+            python: 37
+            platform_id: manylinux_aarch64
+          - os: ubuntu-latest
+            python: 38
+            platform_id: manylinux_aarch64
+          - os: ubuntu-latest
+            python: 39
+            platform_id: manylinux_aarch64
+          - os: ubuntu-latest
+            python: 310
+            platform_id: manylinux_aarch64
+          - os: ubuntu-latest
+            python: 311
+            platform_id: manylinux_aarch64
 
           # MacOS x86_64
           - os: macos-latest
@@ -120,6 +141,9 @@ jobs:
             platform_id: macosx_x86_64
           - os: macos-latest
             python: 312
+            platform_id: macosx_x86_64
+          - os: macos-latest
+            python: 311
             platform_id: macosx_x86_64
 
           # MacOS arm64
@@ -140,11 +164,17 @@ jobs:
             platform_id: macosx_arm64
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: true
 
-    - uses: actions/setup-python@v2
+    - name: Set up QEMU
+      if: ${{ matrix.platform_id == 'manylinux_aarch64' }}
+      uses: docker/setup-qemu-action@v2
+      with:
+        platforms: arm64
+
+    - uses: actions/setup-python@v4
       name: Install Python
       with:
         python-version: '3.9'
@@ -160,13 +190,14 @@ jobs:
         CIBW_ARCHS: all
         CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux_image }}
         CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.manylinux_image }}
+        CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.manylinux_image }}
         CIBW_BUILD_VERBOSITY: 1
       run: |
         python --version
         python -m cibuildwheel --output-dir dist
 
     - name: Store artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: wheels
         path: ./dist
@@ -183,7 +214,7 @@ jobs:
 
     steps:
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -229,7 +260,7 @@ jobs:
 
     steps:
     - name: Download the wheels
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: wheels
         path: dist/

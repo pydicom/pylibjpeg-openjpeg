@@ -73,6 +73,7 @@ END: Cython Metadata */
 #elif PY_VERSION_HEX < 0x02070000 || (0x03000000 <= PY_VERSION_HEX && PY_VERSION_HEX < 0x03030000)
     #error Cython requires Python 2.7+ or Python 3.3+.
 #else
+<<<<<<< HEAD
 #if defined(CYTHON_LIMITED_API) && CYTHON_LIMITED_API
 #define __PYX_EXTRA_ABI_MODULE_NAME "limited"
 #else
@@ -82,6 +83,10 @@ END: Cython Metadata */
 #define __PYX_ABI_MODULE_NAME "_cython_" CYTHON_ABI
 #define __PYX_TYPE_MODULE_PREFIX __PYX_ABI_MODULE_NAME "."
 #define CYTHON_HEX_VERSION 0x030007F0
+=======
+#define CYTHON_ABI "0_29_33"
+#define CYTHON_HEX_VERSION 0x001D21F0
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
 #define CYTHON_FUTURE_DIVISION 1
 #include <stddef.h>
 #ifndef offsetof
@@ -120,8 +125,11 @@ END: Cython Metadata */
      The existence of this section does not imply that anything works or is even tested */
   #define CYTHON_COMPILING_IN_PYPY 0
   #define CYTHON_COMPILING_IN_CPYTHON 0
+<<<<<<< HEAD
   #define CYTHON_COMPILING_IN_LIMITED_API 0
   #define CYTHON_COMPILING_IN_GRAAL 1
+=======
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   #define CYTHON_COMPILING_IN_NOGIL 0
   #undef CYTHON_USE_TYPE_SLOTS
   #define CYTHON_USE_TYPE_SLOTS 0
@@ -173,6 +181,7 @@ END: Cython Metadata */
   #ifndef CYTHON_UPDATE_DESCRIPTOR_DOC
     #define CYTHON_UPDATE_DESCRIPTOR_DOC 0
   #endif
+<<<<<<< HEAD
 #elif defined(PYPY_VERSION)
   #define CYTHON_COMPILING_IN_PYPY 1
   #define CYTHON_COMPILING_IN_CPYTHON 0
@@ -296,10 +305,65 @@ END: Cython Metadata */
     #define CYTHON_UPDATE_DESCRIPTOR_DOC 0
   #endif
 #elif defined(Py_GIL_DISABLED) || defined(Py_NOGIL)
+=======
+#elif defined(PYSTON_VERSION)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   #define CYTHON_COMPILING_IN_PYPY 0
   #define CYTHON_COMPILING_IN_CPYTHON 0
+<<<<<<< HEAD
   #define CYTHON_COMPILING_IN_LIMITED_API 0
   #define CYTHON_COMPILING_IN_GRAAL 0
+  #define CYTHON_COMPILING_IN_NOGIL 1
+=======
+  #define CYTHON_COMPILING_IN_NOGIL 0
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+  #ifndef CYTHON_USE_TYPE_SLOTS
+    #define CYTHON_USE_TYPE_SLOTS 1
+  #endif
+  #undef CYTHON_USE_PYTYPE_LOOKUP
+  #define CYTHON_USE_PYTYPE_LOOKUP 0
+  #ifndef CYTHON_USE_ASYNC_SLOTS
+    #define CYTHON_USE_ASYNC_SLOTS 1
+  #endif
+  #undef CYTHON_USE_PYLIST_INTERNALS
+  #define CYTHON_USE_PYLIST_INTERNALS 0
+  #ifndef CYTHON_USE_UNICODE_INTERNALS
+    #define CYTHON_USE_UNICODE_INTERNALS 1
+  #endif
+  #undef CYTHON_USE_UNICODE_WRITER
+  #define CYTHON_USE_UNICODE_WRITER 0
+  #undef CYTHON_USE_PYLONG_INTERNALS
+  #define CYTHON_USE_PYLONG_INTERNALS 0
+  #ifndef CYTHON_AVOID_BORROWED_REFS
+    #define CYTHON_AVOID_BORROWED_REFS 0
+  #endif
+  #ifndef CYTHON_ASSUME_SAFE_MACROS
+    #define CYTHON_ASSUME_SAFE_MACROS 1
+  #endif
+  #ifndef CYTHON_UNPACK_METHODS
+    #define CYTHON_UNPACK_METHODS 1
+  #endif
+  #undef CYTHON_FAST_THREAD_STATE
+  #define CYTHON_FAST_THREAD_STATE 0
+  #undef CYTHON_FAST_PYCALL
+  #define CYTHON_FAST_PYCALL 0
+  #ifndef CYTHON_PEP489_MULTI_PHASE_INIT
+    #define CYTHON_PEP489_MULTI_PHASE_INIT 1
+  #endif
+  #ifndef CYTHON_USE_TP_FINALIZE
+    #define CYTHON_USE_TP_FINALIZE 1
+  #endif
+  #undef CYTHON_USE_DICT_VERSIONS
+  #define CYTHON_USE_DICT_VERSIONS 0
+  #undef CYTHON_USE_EXC_INFO_STACK
+  #define CYTHON_USE_EXC_INFO_STACK 0
+  #ifndef CYTHON_UPDATE_DESCRIPTOR_DOC
+    #define CYTHON_UPDATE_DESCRIPTOR_DOC 0
+  #endif
+#elif defined(PY_NOGIL)
+  #define CYTHON_COMPILING_IN_PYPY 0
+  #define CYTHON_COMPILING_IN_PYSTON 0
+  #define CYTHON_COMPILING_IN_CPYTHON 0
   #define CYTHON_COMPILING_IN_NOGIL 1
   #ifndef CYTHON_USE_TYPE_SLOTS
     #define CYTHON_USE_TYPE_SLOTS 1
@@ -344,8 +408,11 @@ END: Cython Metadata */
 #else
   #define CYTHON_COMPILING_IN_PYPY 0
   #define CYTHON_COMPILING_IN_CPYTHON 1
+<<<<<<< HEAD
   #define CYTHON_COMPILING_IN_LIMITED_API 0
   #define CYTHON_COMPILING_IN_GRAAL 0
+=======
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   #define CYTHON_COMPILING_IN_NOGIL 0
   #ifndef CYTHON_USE_TYPE_SLOTS
     #define CYTHON_USE_TYPE_SLOTS 1
@@ -386,7 +453,10 @@ END: Cython Metadata */
   #ifndef CYTHON_UNPACK_METHODS
     #define CYTHON_UNPACK_METHODS 1
   #endif
-  #ifndef CYTHON_FAST_THREAD_STATE
+  #if PY_VERSION_HEX >= 0x030B00A4
+    #undef CYTHON_FAST_THREAD_STATE
+    #define CYTHON_FAST_THREAD_STATE 0
+  #elif !defined(CYTHON_FAST_THREAD_STATE)
     #define CYTHON_FAST_THREAD_STATE 1
   #endif
   #ifndef CYTHON_FAST_GIL
@@ -396,7 +466,7 @@ END: Cython Metadata */
     #define CYTHON_METH_FASTCALL (PY_VERSION_HEX >= 0x030700A1)
   #endif
   #ifndef CYTHON_FAST_PYCALL
-    #define CYTHON_FAST_PYCALL 1
+    #define CYTHON_FAST_PYCALL (PY_VERSION_HEX < 0x030A0000)
   #endif
   #ifndef CYTHON_PEP487_INIT_SUBCLASS
     #define CYTHON_PEP487_INIT_SUBCLASS 1
@@ -416,6 +486,7 @@ END: Cython Metadata */
   #elif !defined(CYTHON_USE_TP_FINALIZE)
     #define CYTHON_USE_TP_FINALIZE 1
   #endif
+<<<<<<< HEAD
   #if PY_VERSION_HEX < 0x030600B1
     #undef CYTHON_USE_DICT_VERSIONS
     #define CYTHON_USE_DICT_VERSIONS 0
@@ -427,6 +498,16 @@ END: Cython Metadata */
     #define CYTHON_USE_EXC_INFO_STACK 0
   #elif !defined(CYTHON_USE_EXC_INFO_STACK)
     #define CYTHON_USE_EXC_INFO_STACK 1
+  #endif
+  #ifndef CYTHON_UPDATE_DESCRIPTOR_DOC
+    #define CYTHON_UPDATE_DESCRIPTOR_DOC 1
+=======
+  #if PY_VERSION_HEX >= 0x030B00A4
+    #undef CYTHON_USE_EXC_INFO_STACK
+    #define CYTHON_USE_EXC_INFO_STACK 0
+  #elif !defined(CYTHON_USE_EXC_INFO_STACK)
+    #define CYTHON_USE_EXC_INFO_STACK (PY_VERSION_HEX >= 0x030700A3)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   #endif
   #ifndef CYTHON_UPDATE_DESCRIPTOR_DOC
     #define CYTHON_UPDATE_DESCRIPTOR_DOC 1
@@ -615,6 +696,7 @@ END: Cython Metadata */
 #else
   #define __Pyx_BUILTIN_MODULE_NAME "builtins"
   #define __Pyx_DefaultClassType PyType_Type
+<<<<<<< HEAD
 #if CYTHON_COMPILING_IN_LIMITED_API
     static CYTHON_INLINE PyObject* __Pyx_PyCode_New(int a, int p, int k, int l, int s, int f,
                                                     PyObject *code, PyObject *c, PyObject* n, PyObject *v,
@@ -703,6 +785,69 @@ END: Cython Metadata */
 #elif PY_VERSION_HEX >= 0x030800B2 && !CYTHON_COMPILING_IN_PYPY
   #define __Pyx_PyCode_New(a, p, k, l, s, f, code, c, n, v, fv, cell, fn, name, fline, lnos)\
           PyCode_NewWithPosOnlyArgs(a, p, k, l, s, f, code, c, n, v, fv, cell, fn, name, fline, lnos)
+=======
+#if PY_VERSION_HEX >= 0x030B00A1
+    static CYTHON_INLINE PyCodeObject* __Pyx_PyCode_New(int a, int k, int l, int s, int f,
+                                                    PyObject *code, PyObject *c, PyObject* n, PyObject *v,
+                                                    PyObject *fv, PyObject *cell, PyObject* fn,
+                                                    PyObject *name, int fline, PyObject *lnos) {
+        PyObject *kwds=NULL, *argcount=NULL, *posonlyargcount=NULL, *kwonlyargcount=NULL;
+        PyObject *nlocals=NULL, *stacksize=NULL, *flags=NULL, *replace=NULL, *call_result=NULL, *empty=NULL;
+        const char *fn_cstr=NULL;
+        const char *name_cstr=NULL;
+        PyCodeObject* co=NULL;
+        PyObject *type, *value, *traceback;
+        PyErr_Fetch(&type, &value, &traceback);
+        if (!(kwds=PyDict_New())) goto end;
+        if (!(argcount=PyLong_FromLong(a))) goto end;
+        if (PyDict_SetItemString(kwds, "co_argcount", argcount) != 0) goto end;
+        if (!(posonlyargcount=PyLong_FromLong(0))) goto end;
+        if (PyDict_SetItemString(kwds, "co_posonlyargcount", posonlyargcount) != 0) goto end;
+        if (!(kwonlyargcount=PyLong_FromLong(k))) goto end;
+        if (PyDict_SetItemString(kwds, "co_kwonlyargcount", kwonlyargcount) != 0) goto end;
+        if (!(nlocals=PyLong_FromLong(l))) goto end;
+        if (PyDict_SetItemString(kwds, "co_nlocals", nlocals) != 0) goto end;
+        if (!(stacksize=PyLong_FromLong(s))) goto end;
+        if (PyDict_SetItemString(kwds, "co_stacksize", stacksize) != 0) goto end;
+        if (!(flags=PyLong_FromLong(f))) goto end;
+        if (PyDict_SetItemString(kwds, "co_flags", flags) != 0) goto end;
+        if (PyDict_SetItemString(kwds, "co_code", code) != 0) goto end;
+        if (PyDict_SetItemString(kwds, "co_consts", c) != 0) goto end;
+        if (PyDict_SetItemString(kwds, "co_names", n) != 0) goto end;
+        if (PyDict_SetItemString(kwds, "co_varnames", v) != 0) goto end;
+        if (PyDict_SetItemString(kwds, "co_freevars", fv) != 0) goto end;
+        if (PyDict_SetItemString(kwds, "co_cellvars", cell) != 0) goto end;
+        if (PyDict_SetItemString(kwds, "co_linetable", lnos) != 0) goto end;
+        if (!(fn_cstr=PyUnicode_AsUTF8AndSize(fn, NULL))) goto end;
+        if (!(name_cstr=PyUnicode_AsUTF8AndSize(name, NULL))) goto end;
+        if (!(co = PyCode_NewEmpty(fn_cstr, name_cstr, fline))) goto end;
+        if (!(replace = PyObject_GetAttrString((PyObject*)co, "replace"))) goto cleanup_code_too;
+        if (!(empty = PyTuple_New(0))) goto cleanup_code_too; // unfortunately __pyx_empty_tuple isn't available here
+        if (!(call_result = PyObject_Call(replace, empty, kwds))) goto cleanup_code_too;
+        Py_XDECREF((PyObject*)co);
+        co = (PyCodeObject*)call_result;
+        call_result = NULL;
+        if (0) {
+            cleanup_code_too:
+            Py_XDECREF((PyObject*)co);
+            co = NULL;
+        }
+        end:
+        Py_XDECREF(kwds);
+        Py_XDECREF(argcount);
+        Py_XDECREF(posonlyargcount);
+        Py_XDECREF(kwonlyargcount);
+        Py_XDECREF(nlocals);
+        Py_XDECREF(stacksize);
+        Py_XDECREF(replace);
+        Py_XDECREF(call_result);
+        Py_XDECREF(empty);
+        if (type) {
+            PyErr_Restore(type, value, traceback);
+        }
+        return co;
+    }
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
 #else
   #define __Pyx_PyCode_New(a, p, k, l, s, f, code, c, n, v, fv, cell, fn, name, fline, lnos)\
           PyCode_New(a, k, l, s, f, code, c, n, v, fv, cell, fn, name, fline, lnos)
@@ -993,6 +1138,7 @@ static CYTHON_INLINE PyObject * __Pyx_PyDict_GetItemStrWithError(PyObject *dict,
 #endif
 #if CYTHON_COMPILING_IN_LIMITED_API
   #define CYTHON_PEP393_ENABLED 1
+<<<<<<< HEAD
   #define __Pyx_PyUnicode_READY(op)       (0)
   #define __Pyx_PyUnicode_GET_LENGTH(u)   PyUnicode_GetLength(u)
   #define __Pyx_PyUnicode_READ_CHAR(u, i) PyUnicode_ReadChar(u, i)
@@ -1003,6 +1149,8 @@ static CYTHON_INLINE PyObject * __Pyx_PyDict_GetItemStrWithError(PyObject *dict,
   #define __Pyx_PyUnicode_IS_TRUE(u)      (0 != PyUnicode_GetLength(u))
 #elif PY_VERSION_HEX > 0x03030000 && defined(PyUnicode_KIND)
   #define CYTHON_PEP393_ENABLED 1
+=======
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   #if PY_VERSION_HEX >= 0x030C0000
     #define __Pyx_PyUnicode_READY(op)       (0)
   #else
@@ -1015,7 +1163,11 @@ static CYTHON_INLINE PyObject * __Pyx_PyDict_GetItemStrWithError(PyObject *dict,
   #define __Pyx_PyUnicode_KIND(u)         ((int)PyUnicode_KIND(u))
   #define __Pyx_PyUnicode_DATA(u)         PyUnicode_DATA(u)
   #define __Pyx_PyUnicode_READ(k, d, i)   PyUnicode_READ(k, d, i)
+<<<<<<< HEAD
   #define __Pyx_PyUnicode_WRITE(k, d, i, ch)  PyUnicode_WRITE(k, d, i, (Py_UCS4) ch)
+=======
+  #define __Pyx_PyUnicode_WRITE(k, d, i, ch)  PyUnicode_WRITE(k, d, i, ch)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   #if PY_VERSION_HEX >= 0x030C0000
     #define __Pyx_PyUnicode_IS_TRUE(u)      (0 != PyUnicode_GET_LENGTH(u))
   #else
@@ -1173,6 +1325,14 @@ static CYTHON_INLINE PyObject * __Pyx_PyDict_GetItemStrWithError(PyObject *dict,
 #else
   #define __Pyx_PyInt_FromHash_t PyInt_FromSsize_t
   #define __Pyx_PyInt_AsHash_t   __Pyx_PyIndex_AsSsize_t
+<<<<<<< HEAD
+=======
+#endif
+#if PY_MAJOR_VERSION >= 3
+  #define __Pyx_PyMethod_New(func, self, klass) ((self) ? ((void)(klass), PyMethod_New(func, self)) : __Pyx_NewRef(func))
+#else
+  #define __Pyx_PyMethod_New(func, self, klass) PyMethod_New(func, self, klass)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
 #endif
 #if CYTHON_USE_ASYNC_SLOTS
   #if PY_VERSION_HEX >= 0x030500B1
@@ -1235,15 +1395,15 @@ static CYTHON_INLINE float __PYX_NAN() {
   #endif
 #endif
 
-#define __PYX_HAVE___openjpeg
-#define __PYX_HAVE_API___openjpeg
+#define __PYX_HAVE__openjpeg___openjpeg
+#define __PYX_HAVE_API__openjpeg___openjpeg
 /* Early includes */
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 
     /* Using NumPy API declarations from "numpy/__init__.cython-30.pxd" */
-    
+
 #include "numpy/arrayobject.h"
 #include "numpy/ndarrayobject.h"
 #include "numpy/ndarraytypes.h"
@@ -1536,8 +1696,13 @@ static const char *__pyx_filename;
 /* #### Code section: filename_table ### */
 
 static const char *__pyx_f[] = {
+<<<<<<< HEAD
   "openjpeg/_openjpeg.pyx",
   "__init__.cython-30.pxd",
+=======
+  "_openjpeg.pyx",
+  "__init__.pxd",
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   "type.pxd",
 };
 /* #### Code section: utility_code_proto_before_types ### */
@@ -1546,19 +1711,27 @@ static const char *__pyx_f[] = {
   #define __PYX_FORCE_INIT_THREADS 0
 #endif
 
+<<<<<<< HEAD
 /* #### Code section: numeric_typedefs ### */
 
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":731
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":689
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * # in Cython to enable them only on the right systems.
- * 
+ *
  * ctypedef npy_int8       int8_t             # <<<<<<<<<<<<<<
  * ctypedef npy_int16      int16_t
  * ctypedef npy_int32      int32_t
  */
 typedef npy_int8 __pyx_t_5numpy_int8_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":732
- * 
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":690
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * ctypedef npy_int8       int8_t
  * ctypedef npy_int16      int16_t             # <<<<<<<<<<<<<<
  * ctypedef npy_int32      int32_t
@@ -1566,7 +1739,11 @@ typedef npy_int8 __pyx_t_5numpy_int8_t;
  */
 typedef npy_int16 __pyx_t_5numpy_int16_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":733
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":691
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * ctypedef npy_int8       int8_t
  * ctypedef npy_int16      int16_t
  * ctypedef npy_int32      int32_t             # <<<<<<<<<<<<<<
@@ -1575,7 +1752,11 @@ typedef npy_int16 __pyx_t_5numpy_int16_t;
  */
 typedef npy_int32 __pyx_t_5numpy_int32_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":734
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":692
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * ctypedef npy_int16      int16_t
  * ctypedef npy_int32      int32_t
  * ctypedef npy_int64      int64_t             # <<<<<<<<<<<<<<
@@ -1584,17 +1765,25 @@ typedef npy_int32 __pyx_t_5numpy_int32_t;
  */
 typedef npy_int64 __pyx_t_5numpy_int64_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":738
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":696
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * #ctypedef npy_int128     int128_t
- * 
+ *
  * ctypedef npy_uint8      uint8_t             # <<<<<<<<<<<<<<
  * ctypedef npy_uint16     uint16_t
  * ctypedef npy_uint32     uint32_t
  */
 typedef npy_uint8 __pyx_t_5numpy_uint8_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":739
- * 
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":697
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * ctypedef npy_uint8      uint8_t
  * ctypedef npy_uint16     uint16_t             # <<<<<<<<<<<<<<
  * ctypedef npy_uint32     uint32_t
@@ -1602,7 +1791,11 @@ typedef npy_uint8 __pyx_t_5numpy_uint8_t;
  */
 typedef npy_uint16 __pyx_t_5numpy_uint16_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":740
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":698
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * ctypedef npy_uint8      uint8_t
  * ctypedef npy_uint16     uint16_t
  * ctypedef npy_uint32     uint32_t             # <<<<<<<<<<<<<<
@@ -1611,7 +1804,11 @@ typedef npy_uint16 __pyx_t_5numpy_uint16_t;
  */
 typedef npy_uint32 __pyx_t_5numpy_uint32_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":741
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":699
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * ctypedef npy_uint16     uint16_t
  * ctypedef npy_uint32     uint32_t
  * ctypedef npy_uint64     uint64_t             # <<<<<<<<<<<<<<
@@ -1620,17 +1817,25 @@ typedef npy_uint32 __pyx_t_5numpy_uint32_t;
  */
 typedef npy_uint64 __pyx_t_5numpy_uint64_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":745
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":703
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * #ctypedef npy_uint128    uint128_t
- * 
+ *
  * ctypedef npy_float32    float32_t             # <<<<<<<<<<<<<<
  * ctypedef npy_float64    float64_t
  * #ctypedef npy_float80    float80_t
  */
 typedef npy_float32 __pyx_t_5numpy_float32_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":746
- * 
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":704
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * ctypedef npy_float32    float32_t
  * ctypedef npy_float64    float64_t             # <<<<<<<<<<<<<<
  * #ctypedef npy_float80    float80_t
@@ -1638,7 +1843,11 @@ typedef npy_float32 __pyx_t_5numpy_float32_t;
  */
 typedef npy_float64 __pyx_t_5numpy_float64_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":755
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":713
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * # The int types are mapped a bit surprising --
  * # numpy.int corresponds to 'l' and numpy.long to 'q'
  * ctypedef npy_long       int_t             # <<<<<<<<<<<<<<
@@ -1647,92 +1856,132 @@ typedef npy_float64 __pyx_t_5numpy_float64_t;
  */
 typedef npy_long __pyx_t_5numpy_int_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":756
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":714
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * # numpy.int corresponds to 'l' and numpy.long to 'q'
  * ctypedef npy_long       int_t
  * ctypedef npy_longlong   long_t             # <<<<<<<<<<<<<<
  * ctypedef npy_longlong   longlong_t
- * 
+ *
  */
 typedef npy_longlong __pyx_t_5numpy_long_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":757
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":715
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * ctypedef npy_long       int_t
  * ctypedef npy_longlong   long_t
  * ctypedef npy_longlong   longlong_t             # <<<<<<<<<<<<<<
- * 
+ *
  * ctypedef npy_ulong      uint_t
  */
 typedef npy_longlong __pyx_t_5numpy_longlong_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":759
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":717
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * ctypedef npy_longlong   longlong_t
- * 
+ *
  * ctypedef npy_ulong      uint_t             # <<<<<<<<<<<<<<
  * ctypedef npy_ulonglong  ulong_t
  * ctypedef npy_ulonglong  ulonglong_t
  */
 typedef npy_ulong __pyx_t_5numpy_uint_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":760
- * 
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":718
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * ctypedef npy_ulong      uint_t
  * ctypedef npy_ulonglong  ulong_t             # <<<<<<<<<<<<<<
  * ctypedef npy_ulonglong  ulonglong_t
- * 
+ *
  */
 typedef npy_ulonglong __pyx_t_5numpy_ulong_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":761
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":719
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * ctypedef npy_ulong      uint_t
  * ctypedef npy_ulonglong  ulong_t
  * ctypedef npy_ulonglong  ulonglong_t             # <<<<<<<<<<<<<<
- * 
+ *
  * ctypedef npy_intp       intp_t
  */
 typedef npy_ulonglong __pyx_t_5numpy_ulonglong_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":763
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":721
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * ctypedef npy_ulonglong  ulonglong_t
- * 
+ *
  * ctypedef npy_intp       intp_t             # <<<<<<<<<<<<<<
  * ctypedef npy_uintp      uintp_t
- * 
+ *
  */
 typedef npy_intp __pyx_t_5numpy_intp_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":764
- * 
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":722
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * ctypedef npy_intp       intp_t
  * ctypedef npy_uintp      uintp_t             # <<<<<<<<<<<<<<
- * 
+ *
  * ctypedef npy_double     float_t
  */
 typedef npy_uintp __pyx_t_5numpy_uintp_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":766
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":724
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * ctypedef npy_uintp      uintp_t
- * 
+ *
  * ctypedef npy_double     float_t             # <<<<<<<<<<<<<<
  * ctypedef npy_double     double_t
  * ctypedef npy_longdouble longdouble_t
  */
 typedef npy_double __pyx_t_5numpy_float_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":767
- * 
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":725
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * ctypedef npy_double     float_t
  * ctypedef npy_double     double_t             # <<<<<<<<<<<<<<
  * ctypedef npy_longdouble longdouble_t
- * 
+ *
  */
 typedef npy_double __pyx_t_5numpy_double_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":768
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":726
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * ctypedef npy_double     float_t
  * ctypedef npy_double     double_t
  * ctypedef npy_longdouble longdouble_t             # <<<<<<<<<<<<<<
- * 
+ *
  * ctypedef npy_cfloat      cfloat_t
  */
 typedef npy_longdouble __pyx_t_5numpy_longdouble_t;
@@ -1765,51 +2014,67 @@ static CYTHON_INLINE __pyx_t_double_complex __pyx_t_double_complex_from_parts(do
 
 /*--- Type declarations ---*/
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":770
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":728
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * ctypedef npy_longdouble longdouble_t
- * 
+ *
  * ctypedef npy_cfloat      cfloat_t             # <<<<<<<<<<<<<<
  * ctypedef npy_cdouble     cdouble_t
  * ctypedef npy_clongdouble clongdouble_t
  */
 typedef npy_cfloat __pyx_t_5numpy_cfloat_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":771
- * 
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":729
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * ctypedef npy_cfloat      cfloat_t
  * ctypedef npy_cdouble     cdouble_t             # <<<<<<<<<<<<<<
  * ctypedef npy_clongdouble clongdouble_t
- * 
+ *
  */
 typedef npy_cdouble __pyx_t_5numpy_cdouble_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":772
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":730
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * ctypedef npy_cfloat      cfloat_t
  * ctypedef npy_cdouble     cdouble_t
  * ctypedef npy_clongdouble clongdouble_t             # <<<<<<<<<<<<<<
- * 
+ *
  * ctypedef npy_cdouble     complex_t
  */
 typedef npy_clongdouble __pyx_t_5numpy_clongdouble_t;
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":774
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":732
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  * ctypedef npy_clongdouble clongdouble_t
- * 
+ *
  * ctypedef npy_cdouble     complex_t             # <<<<<<<<<<<<<<
- * 
+ *
  * cdef inline object PyArray_MultiIterNew1(a):
  */
 typedef npy_cdouble __pyx_t_5numpy_complex_t;
-struct __pyx_t_9_openjpeg_JPEG2000Parameters;
+struct __pyx_t_8openjpeg_9_openjpeg_JPEG2000Parameters;
 
-/* "_openjpeg.pyx":11
+/* "openjpeg/_openjpeg.pyx":11
  * cimport numpy as np
- * 
+ *
  * cdef extern struct JPEG2000Parameters:             # <<<<<<<<<<<<<<
  *     uint32_t columns
  *     uint32_t rows
  */
-struct __pyx_t_9_openjpeg_JPEG2000Parameters {
+struct __pyx_t_8openjpeg_9_openjpeg_JPEG2000Parameters {
   uint32_t columns;
   uint32_t rows;
   int colourspace;
@@ -2133,6 +2398,7 @@ static PyObject *__Pyx_PyFunction_FastCallDict(PyObject *func, PyObject **args, 
 #ifndef Py_MEMBER_SIZE
 #define Py_MEMBER_SIZE(type, member) sizeof(((type *)0)->member)
 #endif
+<<<<<<< HEAD
 #if !CYTHON_VECTORCALL
 #if PY_VERSION_HEX >= 0x03080000
   #include "frameobject.h"
@@ -2145,13 +2411,23 @@ static PyObject *__Pyx_PyFunction_FastCallDict(PyObject *func, PyObject **args, 
   #define __Pxy_PyFrame_Initialize_Offsets()
   #define __Pyx_PyFrame_GetLocalsplus(frame)  ((frame)->f_localsplus)
 #else
+=======
+#if CYTHON_FAST_PYCALL
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   static size_t __pyx_pyframe_localsplus_offset = 0;
   #include "frameobject.h"
+#if PY_VERSION_HEX >= 0x030b00a6
+  #ifndef Py_BUILD_CORE
+    #define Py_BUILD_CORE 1
+  #endif
+  #include "internal/pycore_frame.h"
+#endif
   #define __Pxy_PyFrame_Initialize_Offsets()\
     ((void)__Pyx_BUILD_ASSERT_EXPR(sizeof(PyFrameObject) == offsetof(PyFrameObject, f_localsplus) + Py_MEMBER_SIZE(PyFrameObject, f_localsplus)),\
      (void)(__pyx_pyframe_localsplus_offset = ((size_t)PyFrame_Type.tp_basicsize) - Py_MEMBER_SIZE(PyFrameObject, f_localsplus)))
   #define __Pyx_PyFrame_GetLocalsplus(frame)\
     (assert(__pyx_pyframe_localsplus_offset), (PyObject **)(((char *)(frame)) + __pyx_pyframe_localsplus_offset))
+#endif // CYTHON_FAST_PYCALL
 #endif
 #endif
 #endif
@@ -2631,6 +2907,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy_7ndarray_4data_data(PyArrayObject *__p
 
 /* Module declarations from "numpy" */
 
+<<<<<<< HEAD
 /* Module declarations from "_openjpeg" */
 __PYX_EXTERN_C DL_IMPORT(char) *OpenJpegVersion(void); /*proto*/
 __PYX_EXTERN_C DL_IMPORT(int) Decode(void *, unsigned char *, int); /*proto*/
@@ -2643,6 +2920,34 @@ int __pyx_module_is_main__openjpeg = 0;
 
 /* Implementation of "_openjpeg" */
 /* #### Code section: global_var ### */
+=======
+/* Module declarations from 'numpy' */
+static PyTypeObject *__pyx_ptype_5numpy_dtype = 0;
+static PyTypeObject *__pyx_ptype_5numpy_flatiter = 0;
+static PyTypeObject *__pyx_ptype_5numpy_broadcast = 0;
+static PyTypeObject *__pyx_ptype_5numpy_ndarray = 0;
+static PyTypeObject *__pyx_ptype_5numpy_generic = 0;
+static PyTypeObject *__pyx_ptype_5numpy_number = 0;
+static PyTypeObject *__pyx_ptype_5numpy_integer = 0;
+static PyTypeObject *__pyx_ptype_5numpy_signedinteger = 0;
+static PyTypeObject *__pyx_ptype_5numpy_unsignedinteger = 0;
+static PyTypeObject *__pyx_ptype_5numpy_inexact = 0;
+static PyTypeObject *__pyx_ptype_5numpy_floating = 0;
+static PyTypeObject *__pyx_ptype_5numpy_complexfloating = 0;
+static PyTypeObject *__pyx_ptype_5numpy_flexible = 0;
+static PyTypeObject *__pyx_ptype_5numpy_character = 0;
+static PyTypeObject *__pyx_ptype_5numpy_ufunc = 0;
+
+/* Module declarations from 'openjpeg._openjpeg' */
+__PYX_EXTERN_C DL_IMPORT(char) *OpenJpegVersion(void); /*proto*/
+__PYX_EXTERN_C DL_IMPORT(int) Decode(void *, unsigned char *, int); /*proto*/
+__PYX_EXTERN_C DL_IMPORT(int) GetParameters(void *, int, struct __pyx_t_8openjpeg_9_openjpeg_JPEG2000Parameters *); /*proto*/
+#define __Pyx_MODULE_NAME "openjpeg._openjpeg"
+extern int __pyx_module_is_main_openjpeg___openjpeg;
+int __pyx_module_is_main_openjpeg___openjpeg = 0;
+
+/* Implementation of 'openjpeg._openjpeg' */
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
 static PyObject *__pyx_builtin_KeyError;
 static PyObject *__pyx_builtin_RuntimeError;
 static PyObject *__pyx_builtin_ImportError;
@@ -2688,7 +2993,6 @@ static const char __pyx_k_version[] = "version";
 static const char __pyx_k_KeyError[] = "KeyError";
 static const char __pyx_k_nr_bytes[] = "nr_bytes";
 static const char __pyx_k_nr_tiles[] = "nr_tiles";
-static const char __pyx_k_openjpeg[] = "_openjpeg";
 static const char __pyx_k_is_signed[] = "is_signed";
 static const char __pyx_k_precision[] = "precision";
 static const char __pyx_k_monochrome[] = "monochrome";
@@ -2698,14 +3002,18 @@ static const char __pyx_k_colourspace[] = "colourspace";
 static const char __pyx_k_get_version[] = "get_version";
 static const char __pyx_k_unspecified[] = "unspecified";
 static const char __pyx_k_RuntimeError[] = "RuntimeError";
+<<<<<<< HEAD
 static const char __pyx_k_initializing[] = "_initializing";
 static const char __pyx_k_is_coroutine[] = "_is_coroutine";
+=======
+static const char __pyx_k_openjpeg_pyx[] = "_openjpeg.pyx";
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
 static const char __pyx_k_nr_components[] = "nr_components";
 static const char __pyx_k_get_parameters[] = "get_parameters";
 static const char __pyx_k_asyncio_coroutines[] = "asyncio.coroutines";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
+static const char __pyx_k_openjpeg__openjpeg[] = "openjpeg._openjpeg";
 static const char __pyx_k_failed_to_decode_image[] = "failed to decode image";
-static const char __pyx_k_openjpeg__openjpeg_pyx[] = "openjpeg/_openjpeg.pyx";
 static const char __pyx_k_failed_to_read_the_header[] = "failed to read the header";
 static const char __pyx_k_Error_decoding_the_J2K_data[] = "Error decoding the J2K data";
 static const char __pyx_k_failed_to_setup_the_decoder[] = "failed to setup the decoder";
@@ -2716,6 +3024,7 @@ static const char __pyx_k_failed_to_set_the_component_indi[] = "failed to set th
 static const char __pyx_k_failed_to_upscale_subsampled_com[] = "failed to upscale subsampled components";
 static const char __pyx_k_numpy_core_umath_failed_to_impor[] = "numpy.core.umath failed to import";
 static const char __pyx_k_support_for_more_than_16_bits_pe[] = "support for more than 16-bits per component is not implemented";
+<<<<<<< HEAD
 /* #### Code section: decls ### */
 static PyObject *__pyx_pf_9_openjpeg_get_version(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
 static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_fp, PyObject *__pyx_v_codec); /* proto */
@@ -3304,7 +3613,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 /* #### Code section: module_code ### */
 
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":245
- * 
+ *
  *         @property
  *         cdef inline PyObject* base(self) nogil:             # <<<<<<<<<<<<<<
  *             """Returns a borrowed reference to the object owning the data/memory.
@@ -3318,14 +3627,14 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_7ndarray_4base_base(PyArrayObject 
  *             """Returns a borrowed reference to the object owning the data/memory.
  *             """
  *             return PyArray_BASE(self)             # <<<<<<<<<<<<<<
- * 
+ *
  *         @property
  */
   __pyx_r = PyArray_BASE(__pyx_v_self);
   goto __pyx_L0;
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":245
- * 
+ *
  *         @property
  *         cdef inline PyObject* base(self) nogil:             # <<<<<<<<<<<<<<
  *             """Returns a borrowed reference to the object owning the data/memory.
@@ -3338,7 +3647,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_7ndarray_4base_base(PyArrayObject 
 }
 
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":251
- * 
+ *
  *         @property
  *         cdef inline dtype descr(self):             # <<<<<<<<<<<<<<
  *             """Returns an owned reference to the dtype of the array.
@@ -3355,7 +3664,7 @@ static CYTHON_INLINE PyArray_Descr *__pyx_f_5numpy_7ndarray_5descr_descr(PyArray
  *             """Returns an owned reference to the dtype of the array.
  *             """
  *             return <dtype>PyArray_DESCR(self)             # <<<<<<<<<<<<<<
- * 
+ *
  *         @property
  */
   __Pyx_XDECREF((PyObject *)__pyx_r);
@@ -3365,12 +3674,117 @@ static CYTHON_INLINE PyArray_Descr *__pyx_f_5numpy_7ndarray_5descr_descr(PyArray
   goto __pyx_L0;
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":251
- * 
+ *
  *         @property
  *         cdef inline dtype descr(self):             # <<<<<<<<<<<<<<
  *             """Returns an owned reference to the dtype of the array.
  *             """
  */
+=======
+static PyObject *__pyx_kp_u_;
+static PyObject *__pyx_n_u_CYMK;
+static PyObject *__pyx_n_s_ERRORS;
+static PyObject *__pyx_kp_u_Error_decoding_the_J2K_data;
+static PyObject *__pyx_n_s_ImportError;
+static PyObject *__pyx_n_s_KeyError;
+static PyObject *__pyx_n_s_RuntimeError;
+static PyObject *__pyx_n_u_YUV;
+static PyObject *__pyx_n_s_arr;
+static PyObject *__pyx_n_s_bpp;
+static PyObject *__pyx_n_s_ceil;
+static PyObject *__pyx_n_s_cline_in_traceback;
+static PyObject *__pyx_n_s_codec;
+static PyObject *__pyx_n_s_colours;
+static PyObject *__pyx_n_s_colourspace;
+static PyObject *__pyx_n_u_colourspace;
+static PyObject *__pyx_n_u_columns;
+static PyObject *__pyx_n_s_decode;
+static PyObject *__pyx_n_s_dtype;
+static PyObject *__pyx_kp_u_e_YCC;
+static PyObject *__pyx_kp_u_failed_to_create_the_input_strea;
+static PyObject *__pyx_kp_u_failed_to_decode_image;
+static PyObject *__pyx_kp_u_failed_to_read_the_header;
+static PyObject *__pyx_kp_u_failed_to_set_the_component_indi;
+static PyObject *__pyx_kp_u_failed_to_set_the_decoded_area;
+static PyObject *__pyx_kp_u_failed_to_setup_the_decoder;
+static PyObject *__pyx_kp_u_failed_to_upscale_subsampled_com;
+static PyObject *__pyx_n_s_fp;
+static PyObject *__pyx_n_s_get_parameters;
+static PyObject *__pyx_n_s_get_version;
+static PyObject *__pyx_n_s_import;
+static PyObject *__pyx_n_u_is_signed;
+static PyObject *__pyx_n_s_main;
+static PyObject *__pyx_n_s_math;
+static PyObject *__pyx_n_u_monochrome;
+static PyObject *__pyx_n_s_msg;
+static PyObject *__pyx_n_s_name;
+static PyObject *__pyx_n_s_np;
+static PyObject *__pyx_n_s_nr_bytes;
+static PyObject *__pyx_n_u_nr_components;
+static PyObject *__pyx_n_u_nr_tiles;
+static PyObject *__pyx_n_s_numpy;
+static PyObject *__pyx_kp_u_numpy_core_multiarray_failed_to;
+static PyObject *__pyx_kp_u_numpy_core_umath_failed_to_impor;
+static PyObject *__pyx_n_s_openjpeg__openjpeg;
+static PyObject *__pyx_kp_s_openjpeg_pyx;
+static PyObject *__pyx_n_s_p_in;
+static PyObject *__pyx_n_s_p_out;
+static PyObject *__pyx_n_s_p_param;
+static PyObject *__pyx_n_s_param;
+static PyObject *__pyx_n_s_parameters;
+static PyObject *__pyx_n_u_precision;
+static PyObject *__pyx_n_s_ptr;
+static PyObject *__pyx_n_s_result;
+static PyObject *__pyx_n_u_rows;
+static PyObject *__pyx_n_u_sRGB;
+static PyObject *__pyx_kp_u_support_for_more_than_16_bits_pe;
+static PyObject *__pyx_n_s_test;
+static PyObject *__pyx_n_s_uint8;
+static PyObject *__pyx_n_u_unknown;
+static PyObject *__pyx_n_u_unspecified;
+static PyObject *__pyx_n_s_version;
+static PyObject *__pyx_n_s_zeros;
+static PyObject *__pyx_pf_8openjpeg_9_openjpeg_get_version(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
+static PyObject *__pyx_pf_8openjpeg_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_fp, PyObject *__pyx_v_codec); /* proto */
+static PyObject *__pyx_pf_8openjpeg_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_fp, PyObject *__pyx_v_codec); /* proto */
+static PyObject *__pyx_int_0;
+static PyObject *__pyx_int_1;
+static PyObject *__pyx_int_2;
+static PyObject *__pyx_int_3;
+static PyObject *__pyx_int_4;
+static PyObject *__pyx_int_5;
+static PyObject *__pyx_int_6;
+static PyObject *__pyx_int_7;
+static PyObject *__pyx_int_8;
+static PyObject *__pyx_int_neg_1;
+static PyObject *__pyx_tuple__2;
+static PyObject *__pyx_tuple__3;
+static PyObject *__pyx_tuple__4;
+static PyObject *__pyx_tuple__6;
+static PyObject *__pyx_tuple__8;
+static PyObject *__pyx_codeobj__5;
+static PyObject *__pyx_codeobj__7;
+static PyObject *__pyx_codeobj__9;
+/* Late includes */
+
+/* "openjpeg/_openjpeg.pyx":37
+ *
+ *
+ * def get_version():             # <<<<<<<<<<<<<<
+ *     """Return the openjpeg version as bytes."""
+ *     cdef char *version = OpenJpegVersion()
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_8openjpeg_9_openjpeg_1get_version(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_8openjpeg_9_openjpeg_get_version[] = "Return the openjpeg version as bytes.";
+static PyMethodDef __pyx_mdef_8openjpeg_9_openjpeg_1get_version = {"get_version", (PyCFunction)__pyx_pw_8openjpeg_9_openjpeg_1get_version, METH_NOARGS, __pyx_doc_8openjpeg_9_openjpeg_get_version};
+static PyObject *__pyx_pw_8openjpeg_9_openjpeg_1get_version(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("get_version (wrapper)", 0);
+  __pyx_r = __pyx_pf_8openjpeg_9_openjpeg_get_version(__pyx_self);
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
 
   /* function exit code */
   __pyx_L0:;
@@ -3379,8 +3793,9 @@ static CYTHON_INLINE PyArray_Descr *__pyx_f_5numpy_7ndarray_5descr_descr(PyArray
   return __pyx_r;
 }
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":257
- * 
+ *
  *         @property
  *         cdef inline int ndim(self) nogil:             # <<<<<<<<<<<<<<
  *             """Returns the number of dimensions in the array.
@@ -3394,14 +3809,14 @@ static CYTHON_INLINE int __pyx_f_5numpy_7ndarray_4ndim_ndim(PyArrayObject *__pyx
  *             """Returns the number of dimensions in the array.
  *             """
  *             return PyArray_NDIM(self)             # <<<<<<<<<<<<<<
- * 
+ *
  *         @property
  */
   __pyx_r = PyArray_NDIM(__pyx_v_self);
   goto __pyx_L0;
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":257
- * 
+ *
  *         @property
  *         cdef inline int ndim(self) nogil:             # <<<<<<<<<<<<<<
  *             """Returns the number of dimensions in the array.
@@ -3414,7 +3829,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_7ndarray_4ndim_ndim(PyArrayObject *__pyx
 }
 
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":263
- * 
+ *
  *         @property
  *         cdef inline npy_intp *shape(self) nogil:             # <<<<<<<<<<<<<<
  *             """Returns a pointer to the dimensions/shape of the array.
@@ -3428,14 +3843,14 @@ static CYTHON_INLINE npy_intp *__pyx_f_5numpy_7ndarray_5shape_shape(PyArrayObjec
  *             Can return NULL for 0-dimensional arrays.
  *             """
  *             return PyArray_DIMS(self)             # <<<<<<<<<<<<<<
- * 
+ *
  *         @property
  */
   __pyx_r = PyArray_DIMS(__pyx_v_self);
   goto __pyx_L0;
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":263
- * 
+ *
  *         @property
  *         cdef inline npy_intp *shape(self) nogil:             # <<<<<<<<<<<<<<
  *             """Returns a pointer to the dimensions/shape of the array.
@@ -3448,7 +3863,7 @@ static CYTHON_INLINE npy_intp *__pyx_f_5numpy_7ndarray_5shape_shape(PyArrayObjec
 }
 
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":271
- * 
+ *
  *         @property
  *         cdef inline npy_intp *strides(self) nogil:             # <<<<<<<<<<<<<<
  *             """Returns a pointer to the strides of the array.
@@ -3462,14 +3877,14 @@ static CYTHON_INLINE npy_intp *__pyx_f_5numpy_7ndarray_7strides_strides(PyArrayO
  *             The number of elements matches the number of dimensions of the array (ndim).
  *             """
  *             return PyArray_STRIDES(self)             # <<<<<<<<<<<<<<
- * 
+ *
  *         @property
  */
   __pyx_r = PyArray_STRIDES(__pyx_v_self);
   goto __pyx_L0;
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":271
- * 
+ *
  *         @property
  *         cdef inline npy_intp *strides(self) nogil:             # <<<<<<<<<<<<<<
  *             """Returns a pointer to the strides of the array.
@@ -3482,7 +3897,7 @@ static CYTHON_INLINE npy_intp *__pyx_f_5numpy_7ndarray_7strides_strides(PyArrayO
 }
 
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":278
- * 
+ *
  *         @property
  *         cdef inline npy_intp size(self) nogil:             # <<<<<<<<<<<<<<
  *             """Returns the total size (in number of elements) of the array.
@@ -3496,14 +3911,14 @@ static CYTHON_INLINE npy_intp __pyx_f_5numpy_7ndarray_4size_size(PyArrayObject *
  *             """Returns the total size (in number of elements) of the array.
  *             """
  *             return PyArray_SIZE(self)             # <<<<<<<<<<<<<<
- * 
+ *
  *         @property
  */
   __pyx_r = PyArray_SIZE(__pyx_v_self);
   goto __pyx_L0;
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":278
- * 
+ *
  *         @property
  *         cdef inline npy_intp size(self) nogil:             # <<<<<<<<<<<<<<
  *             """Returns the total size (in number of elements) of the array.
@@ -3516,7 +3931,7 @@ static CYTHON_INLINE npy_intp __pyx_f_5numpy_7ndarray_4size_size(PyArrayObject *
 }
 
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":284
- * 
+ *
  *         @property
  *         cdef inline char* data(self) nogil:             # <<<<<<<<<<<<<<
  *             """The pointer to the data buffer as a char*.
@@ -3530,14 +3945,14 @@ static CYTHON_INLINE char *__pyx_f_5numpy_7ndarray_4data_data(PyArrayObject *__p
  *             of `PyArray_DATA()` instead, which returns a 'void*'.
  *             """
  *             return PyArray_BYTES(self)             # <<<<<<<<<<<<<<
- * 
+ *
  *     ctypedef unsigned char      npy_bool
  */
   __pyx_r = PyArray_BYTES(__pyx_v_self);
   goto __pyx_L0;
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":284
- * 
+ *
  *         @property
  *         cdef inline char* data(self) nogil:             # <<<<<<<<<<<<<<
  *             """The pointer to the data buffer as a char*.
@@ -3551,13 +3966,17 @@ static CYTHON_INLINE char *__pyx_f_5numpy_7ndarray_4data_data(PyArrayObject *__p
 
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":776
  * ctypedef npy_cdouble     complex_t
- * 
+ *
  * cdef inline object PyArray_MultiIterNew1(a):             # <<<<<<<<<<<<<<
  *     return PyArray_MultiIterNew(1, <void*>a)
- * 
+ *
  */
 
 static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew1(PyObject *__pyx_v_a) {
+=======
+static PyObject *__pyx_pf_8openjpeg_9_openjpeg_get_version(CYTHON_UNUSED PyObject *__pyx_self) {
+  char *__pyx_v_version;
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3566,11 +3985,18 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew1(PyObject *__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew1", 1);
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":777
- * 
+=======
+  /* "openjpeg/_openjpeg.pyx":39
+ * def get_version():
+ *     """Return the openjpeg version as bytes."""
+ *     cdef char *version = OpenJpegVersion()             # <<<<<<<<<<<<<<
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * cdef inline object PyArray_MultiIterNew1(a):
  *     return PyArray_MultiIterNew(1, <void*>a)             # <<<<<<<<<<<<<<
- * 
+ *
  * cdef inline object PyArray_MultiIterNew2(a, b):
  */
   __Pyx_XDECREF(__pyx_r);
@@ -3580,12 +4006,17 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew1(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":776
  * ctypedef npy_cdouble     complex_t
- * 
+=======
+  /* "openjpeg/_openjpeg.pyx":41
+ *     cdef char *version = OpenJpegVersion()
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * cdef inline object PyArray_MultiIterNew1(a):             # <<<<<<<<<<<<<<
  *     return PyArray_MultiIterNew(1, <void*>a)
- * 
+ *
  */
 
   /* function exit code */
@@ -3601,10 +4032,10 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew1(PyObject *__
 
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":779
  *     return PyArray_MultiIterNew(1, <void*>a)
- * 
+ *
  * cdef inline object PyArray_MultiIterNew2(a, b):             # <<<<<<<<<<<<<<
  *     return PyArray_MultiIterNew(2, <void*>a, <void*>b)
- * 
+ *
  */
 
 static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew2(PyObject *__pyx_v_a, PyObject *__pyx_v_b) {
@@ -3617,10 +4048,10 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew2(PyObject *__
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew2", 1);
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":780
- * 
+ *
  * cdef inline object PyArray_MultiIterNew2(a, b):
  *     return PyArray_MultiIterNew(2, <void*>a, <void*>b)             # <<<<<<<<<<<<<<
- * 
+ *
  * cdef inline object PyArray_MultiIterNew3(a, b, c):
  */
   __Pyx_XDECREF(__pyx_r);
@@ -3630,33 +4061,48 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew2(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":779
  *     return PyArray_MultiIterNew(1, <void*>a)
- * 
+=======
+  /* "openjpeg/_openjpeg.pyx":37
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * cdef inline object PyArray_MultiIterNew2(a, b):             # <<<<<<<<<<<<<<
  *     return PyArray_MultiIterNew(2, <void*>a, <void*>b)
- * 
+ *
  */
 
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
+<<<<<<< HEAD
   __Pyx_AddTraceback("numpy.PyArray_MultiIterNew2", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
+=======
+  __Pyx_AddTraceback("openjpeg._openjpeg.get_version", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":782
  *     return PyArray_MultiIterNew(2, <void*>a, <void*>b)
- * 
+=======
+/* "openjpeg/_openjpeg.pyx":44
+ *
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * cdef inline object PyArray_MultiIterNew3(a, b, c):             # <<<<<<<<<<<<<<
  *     return PyArray_MultiIterNew(3, <void*>a, <void*>b, <void*> c)
- * 
+ *
  */
 
+<<<<<<< HEAD
 static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew3(PyObject *__pyx_v_a, PyObject *__pyx_v_b, PyObject *__pyx_v_c) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -3667,10 +4113,10 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew3(PyObject *__
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew3", 1);
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":783
- * 
+ *
  * cdef inline object PyArray_MultiIterNew3(a, b, c):
  *     return PyArray_MultiIterNew(3, <void*>a, <void*>b, <void*> c)             # <<<<<<<<<<<<<<
- * 
+ *
  * cdef inline object PyArray_MultiIterNew4(a, b, c, d):
  */
   __Pyx_XDECREF(__pyx_r);
@@ -3682,11 +4128,77 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew3(PyObject *__
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":782
  *     return PyArray_MultiIterNew(2, <void*>a, <void*>b)
- * 
+ *
  * cdef inline object PyArray_MultiIterNew3(a, b, c):             # <<<<<<<<<<<<<<
  *     return PyArray_MultiIterNew(3, <void*>a, <void*>b, <void*> c)
- * 
+ *
  */
+=======
+/* Python wrapper */
+static PyObject *__pyx_pw_8openjpeg_9_openjpeg_3decode(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_8openjpeg_9_openjpeg_2decode[] = "Return the decoded JPEG 2000 data from Python file-like `fp`.\n\n    Parameters\n    ----------\n    fp : file-like\n        A Python file-like containing the encoded JPEG 2000 data. Must have\n        ``tell()``, ``seek()`` and ``read()`` methods.\n    codec : int, optional\n        The codec to use for decoding, one of:\n\n        * ``0``: JPEG-2000 codestream\n        * ``1``: JPT-stream (JPEG 2000, JPIP)\n        * ``2``: JP2 file format\n\n    Returns\n    -------\n    numpy.ndarray\n        An ndarray of uint8 containing the decoded image data.\n\n    Raises\n    ------\n    RuntimeError\n        If unable to decode the JPEG 2000 data.\n    ";
+static PyMethodDef __pyx_mdef_8openjpeg_9_openjpeg_3decode = {"decode", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_8openjpeg_9_openjpeg_3decode, METH_VARARGS|METH_KEYWORDS, __pyx_doc_8openjpeg_9_openjpeg_2decode};
+static PyObject *__pyx_pw_8openjpeg_9_openjpeg_3decode(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_fp = 0;
+  PyObject *__pyx_v_codec = 0;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("decode (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_fp,&__pyx_n_s_codec,0};
+    PyObject* values[2] = {0,0};
+    values[1] = ((PyObject *)__pyx_int_0);
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_fp)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_codec);
+          if (value) { values[1] = value; kw_args--; }
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "decode") < 0)) __PYX_ERR(0, 44, __pyx_L3_error)
+      }
+    } else {
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+    }
+    __pyx_v_fp = values[0];
+    __pyx_v_codec = values[1];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("decode", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 44, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("openjpeg._openjpeg.decode", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_8openjpeg_9_openjpeg_2decode(__pyx_self, __pyx_v_fp, __pyx_v_codec);
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
 
   /* function exit code */
   __pyx_L1_error:;
@@ -3699,28 +4211,107 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew3(PyObject *__
   return __pyx_r;
 }
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":785
  *     return PyArray_MultiIterNew(3, <void*>a, <void*>b, <void*> c)
- * 
+ *
  * cdef inline object PyArray_MultiIterNew4(a, b, c, d):             # <<<<<<<<<<<<<<
  *     return PyArray_MultiIterNew(4, <void*>a, <void*>b, <void*>c, <void*> d)
- * 
+ *
  */
 
 static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew4(PyObject *__pyx_v_a, PyObject *__pyx_v_b, PyObject *__pyx_v_c, PyObject *__pyx_v_d) {
+=======
+static PyObject *__pyx_pf_8openjpeg_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_fp, PyObject *__pyx_v_codec) {
+  PyObject *__pyx_v_param = NULL;
+  PyObject *__pyx_v_bpp = NULL;
+  PyObject *__pyx_v_nr_bytes = NULL;
+  PyObject *__pyx_v_p_in;
+  PyObject *__pyx_v_arr = NULL;
+  unsigned char *__pyx_v_p_out;
+  int __pyx_v_result;
+  PyObject *__pyx_v_msg = NULL;
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
+<<<<<<< HEAD
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew4", 1);
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":786
- * 
+ *
  * cdef inline object PyArray_MultiIterNew4(a, b, c, d):
  *     return PyArray_MultiIterNew(4, <void*>a, <void*>b, <void*>c, <void*> d)             # <<<<<<<<<<<<<<
- * 
+=======
+  __Pyx_RefNannySetupContext("decode", 0);
+
+  /* "openjpeg/_openjpeg.pyx":69
+ *         If unable to decode the JPEG 2000 data.
+ *     """
+ *     param = get_parameters(fp, codec)             # <<<<<<<<<<<<<<
+ *     bpp = ceil(param['precision'] / 8)
+ *     nr_bytes = param['rows'] * param['columns'] * param['nr_components'] * bpp
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_get_parameters); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = NULL;
+  __pyx_t_4 = 0;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+      __pyx_t_4 = 1;
+    }
+  }
+  #if CYTHON_FAST_PYCALL
+  if (PyFunction_Check(__pyx_t_2)) {
+    PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_v_fp, __pyx_v_codec};
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 69, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_GOTREF(__pyx_t_1);
+  } else
+  #endif
+  #if CYTHON_FAST_PYCCALL
+  if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
+    PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_v_fp, __pyx_v_codec};
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 69, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_GOTREF(__pyx_t_1);
+  } else
+  #endif
+  {
+    __pyx_t_5 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 69, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    if (__pyx_t_3) {
+      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __pyx_t_3 = NULL;
+    }
+    __Pyx_INCREF(__pyx_v_fp);
+    __Pyx_GIVEREF(__pyx_v_fp);
+    PyTuple_SET_ITEM(__pyx_t_5, 0+__pyx_t_4, __pyx_v_fp);
+    __Pyx_INCREF(__pyx_v_codec);
+    __Pyx_GIVEREF(__pyx_v_codec);
+    PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_4, __pyx_v_codec);
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 69, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_v_param = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "openjpeg/_openjpeg.pyx":70
+ *     """
+ *     param = get_parameters(fp, codec)
+ *     bpp = ceil(param['precision'] / 8)             # <<<<<<<<<<<<<<
+ *     nr_bytes = param['rows'] * param['columns'] * param['nr_components'] * bpp
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * cdef inline object PyArray_MultiIterNew5(a, b, c, d, e):
  */
   __Pyx_XDECREF(__pyx_r);
@@ -3730,14 +4321,22 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew4(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":785
  *     return PyArray_MultiIterNew(3, <void*>a, <void*>b, <void*> c)
- * 
+ *
  * cdef inline object PyArray_MultiIterNew4(a, b, c, d):             # <<<<<<<<<<<<<<
  *     return PyArray_MultiIterNew(4, <void*>a, <void*>b, <void*>c, <void*> d)
- * 
+=======
+  /* "openjpeg/_openjpeg.pyx":71
+ *     param = get_parameters(fp, codec)
+ *     bpp = ceil(param['precision'] / 8)
+ *     nr_bytes = param['rows'] * param['columns'] * param['nr_components'] * bpp             # <<<<<<<<<<<<<<
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  */
 
+<<<<<<< HEAD
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
@@ -3751,12 +4350,17 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew4(PyObject *__
 
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":788
  *     return PyArray_MultiIterNew(4, <void*>a, <void*>b, <void*>c, <void*> d)
- * 
+ *
  * cdef inline object PyArray_MultiIterNew5(a, b, c, d, e):             # <<<<<<<<<<<<<<
  *     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)
- * 
+=======
+  /* "openjpeg/_openjpeg.pyx":73
+ *     nr_bytes = param['rows'] * param['columns'] * param['nr_components'] * bpp
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  */
 
+<<<<<<< HEAD
 static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew5(PyObject *__pyx_v_a, PyObject *__pyx_v_b, PyObject *__pyx_v_c, PyObject *__pyx_v_d, PyObject *__pyx_v_e) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -3767,10 +4371,13 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew5(PyObject *__
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew5", 1);
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":789
- * 
+=======
+  /* "openjpeg/_openjpeg.pyx":74
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * cdef inline object PyArray_MultiIterNew5(a, b, c, d, e):
  *     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)             # <<<<<<<<<<<<<<
- * 
+ *
  * cdef inline tuple PyDataType_SHAPE(dtype d):
  */
   __Pyx_XDECREF(__pyx_r);
@@ -3780,14 +4387,22 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew5(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":788
  *     return PyArray_MultiIterNew(4, <void*>a, <void*>b, <void*>c, <void*> d)
- * 
+ *
  * cdef inline object PyArray_MultiIterNew5(a, b, c, d, e):             # <<<<<<<<<<<<<<
  *     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)
- * 
+=======
+  /* "openjpeg/_openjpeg.pyx":75
+ *     cdef PyObject* p_in = <PyObject*>fp
+ *     arr = np.zeros(nr_bytes, dtype=np.uint8)
+ *     cdef unsigned char *p_out = <unsigned char *>np.PyArray_DATA(arr)             # <<<<<<<<<<<<<<
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  */
 
+<<<<<<< HEAD
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
@@ -3801,12 +4416,17 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew5(PyObject *__
 
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":791
  *     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)
- * 
+=======
+  /* "openjpeg/_openjpeg.pyx":77
+ *     cdef unsigned char *p_out = <unsigned char *>np.PyArray_DATA(arr)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * cdef inline tuple PyDataType_SHAPE(dtype d):             # <<<<<<<<<<<<<<
  *     if PyDataType_HASSUBARRAY(d):
  *         return <tuple>d.subarray.shape
  */
 
+<<<<<<< HEAD
 static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyDataType_SHAPE(PyArray_Descr *__pyx_v_d) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -3814,42 +4434,77 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyDataType_SHAPE(PyArray_Descr *__
   __Pyx_RefNannySetupContext("PyDataType_SHAPE", 1);
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":792
- * 
+ *
  * cdef inline tuple PyDataType_SHAPE(dtype d):
  *     if PyDataType_HASSUBARRAY(d):             # <<<<<<<<<<<<<<
  *         return <tuple>d.subarray.shape
  *     else:
+=======
+  /* "openjpeg/_openjpeg.pyx":78
+ *
+ *     result = Decode(p_in, p_out, codec)
+ *     if result != 0:             # <<<<<<<<<<<<<<
+ *         try:
+ *             msg = f": {ERRORS[result]}"
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
   __pyx_t_1 = PyDataType_HASSUBARRAY(__pyx_v_d);
   if (__pyx_t_1) {
 
+<<<<<<< HEAD
     /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":793
  * cdef inline tuple PyDataType_SHAPE(dtype d):
  *     if PyDataType_HASSUBARRAY(d):
  *         return <tuple>d.subarray.shape             # <<<<<<<<<<<<<<
  *     else:
  *         return ()
+=======
+    /* "openjpeg/_openjpeg.pyx":79
+ *     result = Decode(p_in, p_out, codec)
+ *     if result != 0:
+ *         try:             # <<<<<<<<<<<<<<
+ *             msg = f": {ERRORS[result]}"
+ *         except KeyError:
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
     __Pyx_XDECREF(__pyx_r);
     __Pyx_INCREF(((PyObject*)__pyx_v_d->subarray->shape));
     __pyx_r = ((PyObject*)__pyx_v_d->subarray->shape);
     goto __pyx_L0;
 
+<<<<<<< HEAD
     /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":792
- * 
+ *
  * cdef inline tuple PyDataType_SHAPE(dtype d):
  *     if PyDataType_HASSUBARRAY(d):             # <<<<<<<<<<<<<<
  *         return <tuple>d.subarray.shape
  *     else:
+=======
+        /* "openjpeg/_openjpeg.pyx":80
+ *     if result != 0:
+ *         try:
+ *             msg = f": {ERRORS[result]}"             # <<<<<<<<<<<<<<
+ *         except KeyError:
+ *             pass
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
   }
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":795
  *         return <tuple>d.subarray.shape
  *     else:
  *         return ()             # <<<<<<<<<<<<<<
- * 
- * 
+ *
+ *
+=======
+        /* "openjpeg/_openjpeg.pyx":79
+ *     result = Decode(p_in, p_out, codec)
+ *     if result != 0:
+ *         try:             # <<<<<<<<<<<<<<
+ *             msg = f": {ERRORS[result]}"
+ *         except KeyError:
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
@@ -3858,14 +4513,23 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyDataType_SHAPE(PyArray_Descr *__
     goto __pyx_L0;
   }
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":791
  *     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)
- * 
+=======
+      /* "openjpeg/_openjpeg.pyx":81
+ *         try:
+ *             msg = f": {ERRORS[result]}"
+ *         except KeyError:             # <<<<<<<<<<<<<<
+ *             pass
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * cdef inline tuple PyDataType_SHAPE(dtype d):             # <<<<<<<<<<<<<<
  *     if PyDataType_HASSUBARRAY(d):
  *         return <tuple>d.subarray.shape
  */
 
+<<<<<<< HEAD
   /* function exit code */
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -3875,35 +4539,57 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyDataType_SHAPE(PyArray_Descr *__
 
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":970
  *     int _import_umath() except -1
- * 
+ *
  * cdef inline void set_array_base(ndarray arr, object base):             # <<<<<<<<<<<<<<
  *     Py_INCREF(base) # important to do this before stealing the reference below!
  *     PyArray_SetBaseObject(arr, base)
+=======
+      /* "openjpeg/_openjpeg.pyx":79
+ *     result = Decode(p_in, p_out, codec)
+ *     if result != 0:
+ *         try:             # <<<<<<<<<<<<<<
+ *             msg = f": {ERRORS[result]}"
+ *         except KeyError:
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
 
+<<<<<<< HEAD
 static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_arr, PyObject *__pyx_v_base) {
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":971
- * 
+=======
+    /* "openjpeg/_openjpeg.pyx":84
+ *             pass
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * cdef inline void set_array_base(ndarray arr, object base):
  *     Py_INCREF(base) # important to do this before stealing the reference below!             # <<<<<<<<<<<<<<
  *     PyArray_SetBaseObject(arr, base)
- * 
+ *
  */
   Py_INCREF(__pyx_v_base);
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":972
  * cdef inline void set_array_base(ndarray arr, object base):
  *     Py_INCREF(base) # important to do this before stealing the reference below!
  *     PyArray_SetBaseObject(arr, base)             # <<<<<<<<<<<<<<
- * 
+=======
+    /* "openjpeg/_openjpeg.pyx":78
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * cdef inline object get_array_base(ndarray arr):
  */
   (void)(PyArray_SetBaseObject(__pyx_v_arr, __pyx_v_base));
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":970
  *     int _import_umath() except -1
- * 
+=======
+  /* "openjpeg/_openjpeg.pyx":86
+ *         raise RuntimeError("Error decoding the J2K data" + msg)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * cdef inline void set_array_base(ndarray arr, object base):             # <<<<<<<<<<<<<<
  *     Py_INCREF(base) # important to do this before stealing the reference below!
  *     PyArray_SetBaseObject(arr, base)
@@ -3914,7 +4600,7 @@ static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_a
 
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":974
  *     PyArray_SetBaseObject(arr, base)
- * 
+ *
  * cdef inline object get_array_base(ndarray arr):             # <<<<<<<<<<<<<<
  *     base = PyArray_BASE(arr)
  *     if base is NULL:
@@ -3928,7 +4614,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
   __Pyx_RefNannySetupContext("get_array_base", 1);
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":975
- * 
+ *
  * cdef inline object get_array_base(ndarray arr):
  *     base = PyArray_BASE(arr)             # <<<<<<<<<<<<<<
  *     if base is NULL:
@@ -3936,6 +4622,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
  */
   __pyx_v_base = PyArray_BASE(__pyx_v_arr);
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":976
  * cdef inline object get_array_base(ndarray arr):
  *     base = PyArray_BASE(arr)
@@ -3951,7 +4638,10 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
  *     if base is NULL:
  *         return None             # <<<<<<<<<<<<<<
  *     return <object>base
- * 
+=======
+  /* "openjpeg/_openjpeg.pyx":44
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  */
     __Pyx_XDECREF(__pyx_r);
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
@@ -3970,7 +4660,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
  *     if base is NULL:
  *         return None
  *     return <object>base             # <<<<<<<<<<<<<<
- * 
+ *
  * # Versions of the import_* functions which are more suitable for
  */
   __Pyx_XDECREF(__pyx_r);
@@ -3980,19 +4670,31 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":974
  *     PyArray_SetBaseObject(arr, base)
- * 
+ *
  * cdef inline object get_array_base(ndarray arr):             # <<<<<<<<<<<<<<
  *     base = PyArray_BASE(arr)
  *     if base is NULL:
  */
 
   /* function exit code */
+<<<<<<< HEAD
+=======
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_AddTraceback("openjpeg._openjpeg.decode", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":982
  * # Versions of the import_* functions which are more suitable for
  * # Cython code.
@@ -4012,6 +4714,23 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
   PyObject *__pyx_t_6 = NULL;
   PyObject *__pyx_t_7 = NULL;
   PyObject *__pyx_t_8 = NULL;
+=======
+/* "openjpeg/_openjpeg.pyx":89
+ *
+ *
+ * def get_parameters(fp, codec=0):             # <<<<<<<<<<<<<<
+ *     """Return a :class:`dict` containing the JPEG 2000 image parameters.
+ *
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_8openjpeg_9_openjpeg_5get_parameters(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_8openjpeg_9_openjpeg_4get_parameters[] = "Return a :class:`dict` containing the JPEG 2000 image parameters.\n\n    Parameters\n    ----------\n    fp : file-like\n        A Python file-like containing the encoded JPEG 2000 data.\n    codec : int, optional\n        The codec to use for decoding, one of:\n\n        * ``0``: JPEG-2000 codestream\n        * ``1``: JPT-stream (JPEG 2000, JPIP)\n        * ``2``: JP2 file format\n\n    Returns\n    -------\n    dict\n        A :class:`dict` containing the J2K image parameters:\n        ``{'columns': int, 'rows': int, 'colourspace': str,\n        'nr_components: int, 'precision': int, `is_signed`: bool,\n        'nr_tiles: int'}``. Possible colour spaces are \"unknown\",\n        \"unspecified\", \"sRGB\", \"monochrome\", \"YUV\", \"e-YCC\" and \"CYMK\".\n\n    Raises\n    ------\n    RuntimeError\n        If unable to decode the JPEG 2000 data.\n    ";
+static PyMethodDef __pyx_mdef_8openjpeg_9_openjpeg_5get_parameters = {"get_parameters", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_8openjpeg_9_openjpeg_5get_parameters, METH_VARARGS|METH_KEYWORDS, __pyx_doc_8openjpeg_9_openjpeg_4get_parameters};
+static PyObject *__pyx_pw_8openjpeg_9_openjpeg_5get_parameters(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_fp = 0;
+  PyObject *__pyx_v_codec = 0;
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -4061,7 +4780,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
  *         __pyx_import_array()
  *     except Exception:             # <<<<<<<<<<<<<<
  *         raise ImportError("numpy.core.multiarray failed to import")
- * 
+ *
  */
     __pyx_t_4 = __Pyx_PyErr_ExceptionMatches(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])));
     if (__pyx_t_4) {
@@ -4075,7 +4794,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
  *         __pyx_import_array()
  *     except Exception:
  *         raise ImportError("numpy.core.multiarray failed to import")             # <<<<<<<<<<<<<<
- * 
+ *
  * cdef inline int import_umath() except -1:
  */
       __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 986, __pyx_L5_except_error)
@@ -4101,6 +4820,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
     goto __pyx_L1_error;
     __pyx_L8_try_end:;
   }
+<<<<<<< HEAD
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":982
  * # Versions of the import_* functions which are more suitable for
@@ -4109,6 +4829,17 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
  *     try:
  *         __pyx_import_array()
  */
+=======
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("get_parameters", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 89, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("openjpeg._openjpeg.get_parameters", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_8openjpeg_9_openjpeg_4get_parameters(__pyx_self, __pyx_v_fp, __pyx_v_codec);
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
 
   /* function exit code */
   __pyx_r = 0;
@@ -4125,9 +4856,10 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
   return __pyx_r;
 }
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":988
  *         raise ImportError("numpy.core.multiarray failed to import")
- * 
+ *
  * cdef inline int import_umath() except -1:             # <<<<<<<<<<<<<<
  *     try:
  *         _import_umath()
@@ -4135,6 +4867,18 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
 
 static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
   int __pyx_r;
+=======
+static PyObject *__pyx_pf_8openjpeg_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_fp, PyObject *__pyx_v_codec) {
+  struct __pyx_t_8openjpeg_9_openjpeg_JPEG2000Parameters __pyx_v_param;
+  struct __pyx_t_8openjpeg_9_openjpeg_JPEG2000Parameters *__pyx_v_p_param;
+  PyObject *__pyx_v_ptr;
+  int __pyx_v_result;
+  PyObject *__pyx_v_msg = NULL;
+  PyObject *__pyx_v_colours = NULL;
+  PyObject *__pyx_v_colourspace = NULL;
+  PyObject *__pyx_v_parameters = NULL;
+  PyObject *__pyx_r = NULL;
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
@@ -4147,14 +4891,43 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
+<<<<<<< HEAD
   __Pyx_RefNannySetupContext("import_umath", 1);
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":989
- * 
+ *
  * cdef inline int import_umath() except -1:
  *     try:             # <<<<<<<<<<<<<<
  *         _import_umath()
  *     except Exception:
+=======
+  __Pyx_RefNannySetupContext("get_parameters", 0);
+
+  /* "openjpeg/_openjpeg.pyx":118
+ *     """
+ *     cdef JPEG2000Parameters param
+ *     param.columns = 0             # <<<<<<<<<<<<<<
+ *     param.rows = 0
+ *     param.colourspace = 0
+ */
+  __pyx_v_param.columns = 0;
+
+  /* "openjpeg/_openjpeg.pyx":119
+ *     cdef JPEG2000Parameters param
+ *     param.columns = 0
+ *     param.rows = 0             # <<<<<<<<<<<<<<
+ *     param.colourspace = 0
+ *     param.nr_components = 0
+ */
+  __pyx_v_param.rows = 0;
+
+  /* "openjpeg/_openjpeg.pyx":120
+ *     param.columns = 0
+ *     param.rows = 0
+ *     param.colourspace = 0             # <<<<<<<<<<<<<<
+ *     param.nr_components = 0
+ *     param.precision = 0
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
   {
     __Pyx_PyThreadState_declare
@@ -4165,21 +4938,39 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
     __Pyx_XGOTREF(__pyx_t_3);
     /*try:*/ {
 
+<<<<<<< HEAD
       /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":990
  * cdef inline int import_umath() except -1:
  *     try:
  *         _import_umath()             # <<<<<<<<<<<<<<
  *     except Exception:
  *         raise ImportError("numpy.core.umath failed to import")
+=======
+  /* "openjpeg/_openjpeg.pyx":121
+ *     param.rows = 0
+ *     param.colourspace = 0
+ *     param.nr_components = 0             # <<<<<<<<<<<<<<
+ *     param.precision = 0
+ *     param.is_signed = 0
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
       __pyx_t_4 = _import_umath(); if (unlikely(__pyx_t_4 == ((int)-1))) __PYX_ERR(1, 990, __pyx_L3_error)
 
+<<<<<<< HEAD
       /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":989
- * 
+ *
  * cdef inline int import_umath() except -1:
  *     try:             # <<<<<<<<<<<<<<
  *         _import_umath()
  *     except Exception:
+=======
+  /* "openjpeg/_openjpeg.pyx":122
+ *     param.colourspace = 0
+ *     param.nr_components = 0
+ *     param.precision = 0             # <<<<<<<<<<<<<<
+ *     param.is_signed = 0
+ *     param.nr_tiles = 0
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
     }
     __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -4188,12 +4979,20 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
     goto __pyx_L8_try_end;
     __pyx_L3_error:;
 
+<<<<<<< HEAD
     /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":991
  *     try:
  *         _import_umath()
  *     except Exception:             # <<<<<<<<<<<<<<
  *         raise ImportError("numpy.core.umath failed to import")
- * 
+=======
+  /* "openjpeg/_openjpeg.pyx":123
+ *     param.nr_components = 0
+ *     param.precision = 0
+ *     param.is_signed = 0             # <<<<<<<<<<<<<<
+ *     param.nr_tiles = 0
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  */
     __pyx_t_4 = __Pyx_PyErr_ExceptionMatches(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])));
     if (__pyx_t_4) {
@@ -4203,11 +5002,18 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
       __Pyx_XGOTREF(__pyx_t_6);
       __Pyx_XGOTREF(__pyx_t_7);
 
+<<<<<<< HEAD
       /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":992
  *         _import_umath()
  *     except Exception:
  *         raise ImportError("numpy.core.umath failed to import")             # <<<<<<<<<<<<<<
- * 
+=======
+  /* "openjpeg/_openjpeg.pyx":124
+ *     param.precision = 0
+ *     param.is_signed = 0
+ *     param.nr_tiles = 0             # <<<<<<<<<<<<<<
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * cdef inline int import_ufunc() except -1:
  */
       __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 992, __pyx_L5_except_error)
@@ -4218,12 +5024,96 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
     }
     goto __pyx_L5_except_error;
 
+<<<<<<< HEAD
     /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":989
- * 
+ *
  * cdef inline int import_umath() except -1:
  *     try:             # <<<<<<<<<<<<<<
  *         _import_umath()
  *     except Exception:
+=======
+  /* "openjpeg/_openjpeg.pyx":127
+ *
+ *     # Pointer to the JPEGParameters object
+ *     cdef JPEG2000Parameters *p_param = &param             # <<<<<<<<<<<<<<
+ *
+ *     # Pointer to J2K data
+ */
+  __pyx_v_p_param = (&__pyx_v_param);
+
+  /* "openjpeg/_openjpeg.pyx":130
+ *
+ *     # Pointer to J2K data
+ *     cdef PyObject* ptr = <PyObject*>fp             # <<<<<<<<<<<<<<
+ *
+ *     # Decode the data - output is written to output_buffer
+ */
+  __pyx_v_ptr = ((PyObject *)__pyx_v_fp);
+
+  /* "openjpeg/_openjpeg.pyx":133
+ *
+ *     # Decode the data - output is written to output_buffer
+ *     result = GetParameters(ptr, codec, p_param)             # <<<<<<<<<<<<<<
+ *     if result != 0:
+ *         try:
+ */
+  __pyx_t_1 = __Pyx_PyInt_As_int(__pyx_v_codec); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 133, __pyx_L1_error)
+  __pyx_v_result = GetParameters(__pyx_v_ptr, __pyx_t_1, __pyx_v_p_param);
+
+  /* "openjpeg/_openjpeg.pyx":134
+ *     # Decode the data - output is written to output_buffer
+ *     result = GetParameters(ptr, codec, p_param)
+ *     if result != 0:             # <<<<<<<<<<<<<<
+ *         try:
+ *             msg = f": {ERRORS[result]}"
+ */
+  __pyx_t_2 = ((__pyx_v_result != 0) != 0);
+  if (__pyx_t_2) {
+
+    /* "openjpeg/_openjpeg.pyx":135
+ *     result = GetParameters(ptr, codec, p_param)
+ *     if result != 0:
+ *         try:             # <<<<<<<<<<<<<<
+ *             msg = f": {ERRORS[result]}"
+ *         except KeyError:
+ */
+    {
+      __Pyx_PyThreadState_declare
+      __Pyx_PyThreadState_assign
+      __Pyx_ExceptionSave(&__pyx_t_3, &__pyx_t_4, &__pyx_t_5);
+      __Pyx_XGOTREF(__pyx_t_3);
+      __Pyx_XGOTREF(__pyx_t_4);
+      __Pyx_XGOTREF(__pyx_t_5);
+      /*try:*/ {
+
+        /* "openjpeg/_openjpeg.pyx":136
+ *     if result != 0:
+ *         try:
+ *             msg = f": {ERRORS[result]}"             # <<<<<<<<<<<<<<
+ *         except KeyError:
+ *             pass
+ */
+        __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_ERRORS); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 136, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_6);
+        __pyx_t_7 = __Pyx_GetItemInt(__pyx_t_6, __pyx_v_result, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 136, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __pyx_t_6 = __Pyx_PyObject_FormatSimple(__pyx_t_7, __pyx_empty_unicode); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 136, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_6);
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+        __pyx_t_7 = __Pyx_PyUnicode_Concat(__pyx_kp_u_, __pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 136, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __pyx_v_msg = ((PyObject*)__pyx_t_7);
+        __pyx_t_7 = 0;
+
+        /* "openjpeg/_openjpeg.pyx":135
+ *     result = GetParameters(ptr, codec, p_param)
+ *     if result != 0:
+ *         try:             # <<<<<<<<<<<<<<
+ *             msg = f": {ERRORS[result]}"
+ *         except KeyError:
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
     __pyx_L5_except_error:;
     __Pyx_XGIVEREF(__pyx_t_1);
@@ -4234,14 +5124,23 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
     __pyx_L8_try_end:;
   }
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":988
  *         raise ImportError("numpy.core.multiarray failed to import")
- * 
+=======
+      /* "openjpeg/_openjpeg.pyx":137
+ *         try:
+ *             msg = f": {ERRORS[result]}"
+ *         except KeyError:             # <<<<<<<<<<<<<<
+ *             pass
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * cdef inline int import_umath() except -1:             # <<<<<<<<<<<<<<
  *     try:
  *         _import_umath()
  */
 
+<<<<<<< HEAD
   /* function exit code */
   __pyx_r = 0;
   goto __pyx_L0;
@@ -4259,12 +5158,58 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
 
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":994
  *         raise ImportError("numpy.core.umath failed to import")
- * 
+ *
  * cdef inline int import_ufunc() except -1:             # <<<<<<<<<<<<<<
  *     try:
  *         _import_umath()
+=======
+      /* "openjpeg/_openjpeg.pyx":135
+ *     result = GetParameters(ptr, codec, p_param)
+ *     if result != 0:
+ *         try:             # <<<<<<<<<<<<<<
+ *             msg = f": {ERRORS[result]}"
+ *         except KeyError:
+ */
+      __Pyx_XGIVEREF(__pyx_t_3);
+      __Pyx_XGIVEREF(__pyx_t_4);
+      __Pyx_XGIVEREF(__pyx_t_5);
+      __Pyx_ExceptionReset(__pyx_t_3, __pyx_t_4, __pyx_t_5);
+      goto __pyx_L1_error;
+      __pyx_L5_exception_handled:;
+      __Pyx_XGIVEREF(__pyx_t_3);
+      __Pyx_XGIVEREF(__pyx_t_4);
+      __Pyx_XGIVEREF(__pyx_t_5);
+      __Pyx_ExceptionReset(__pyx_t_3, __pyx_t_4, __pyx_t_5);
+      __pyx_L9_try_end:;
+    }
+
+    /* "openjpeg/_openjpeg.pyx":140
+ *             pass
+ *
+ *         raise RuntimeError("Error decoding the J2K data" + msg)             # <<<<<<<<<<<<<<
+ *
+ *     # From openjpeg.h#L309
+ */
+    if (unlikely(!__pyx_v_msg)) { __Pyx_RaiseUnboundLocalError("msg"); __PYX_ERR(0, 140, __pyx_L1_error) }
+    __pyx_t_7 = __Pyx_PyUnicode_Concat(__pyx_kp_u_Error_decoding_the_J2K_data, __pyx_v_msg); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 140, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_builtin_RuntimeError, __pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 140, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __Pyx_Raise(__pyx_t_6, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __PYX_ERR(0, 140, __pyx_L1_error)
+
+    /* "openjpeg/_openjpeg.pyx":134
+ *     # Decode the data - output is written to output_buffer
+ *     result = GetParameters(ptr, codec, p_param)
+ *     if result != 0:             # <<<<<<<<<<<<<<
+ *         try:
+ *             msg = f": {ERRORS[result]}"
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
 
+<<<<<<< HEAD
 static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
@@ -4282,7 +5227,30 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
   __Pyx_RefNannySetupContext("import_ufunc", 1);
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":995
- * 
+=======
+  /* "openjpeg/_openjpeg.pyx":144
+ *     # From openjpeg.h#L309
+ *     colours = {
+ *         -1: "unknown",             # <<<<<<<<<<<<<<
+ *          0: "unspecified",
+ *          1: "sRGB",
+ */
+  __pyx_t_6 = __Pyx_PyDict_NewPresized(7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 144, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  if (PyDict_SetItem(__pyx_t_6, __pyx_int_neg_1, __pyx_n_u_unknown) < 0) __PYX_ERR(0, 144, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_int_0, __pyx_n_u_unspecified) < 0) __PYX_ERR(0, 144, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_int_1, __pyx_n_u_sRGB) < 0) __PYX_ERR(0, 144, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_int_2, __pyx_n_u_monochrome) < 0) __PYX_ERR(0, 144, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_int_3, __pyx_n_u_YUV) < 0) __PYX_ERR(0, 144, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_int_4, __pyx_kp_u_e_YCC) < 0) __PYX_ERR(0, 144, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_int_5, __pyx_n_u_CYMK) < 0) __PYX_ERR(0, 144, __pyx_L1_error)
+  __pyx_v_colours = ((PyObject*)__pyx_t_6);
+  __pyx_t_6 = 0;
+
+  /* "openjpeg/_openjpeg.pyx":153
+ *     }
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * cdef inline int import_ufunc() except -1:
  *     try:             # <<<<<<<<<<<<<<
  *         _import_umath()
@@ -4297,8 +5265,13 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
     __Pyx_XGOTREF(__pyx_t_3);
     /*try:*/ {
 
+<<<<<<< HEAD
       /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":996
  * cdef inline int import_ufunc() except -1:
+=======
+      /* "openjpeg/_openjpeg.pyx":154
+ *
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  *     try:
  *         _import_umath()             # <<<<<<<<<<<<<<
  *     except Exception:
@@ -4306,8 +5279,13 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
  */
       __pyx_t_4 = _import_umath(); if (unlikely(__pyx_t_4 == ((int)-1))) __PYX_ERR(1, 996, __pyx_L3_error)
 
+<<<<<<< HEAD
       /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":995
- * 
+=======
+      /* "openjpeg/_openjpeg.pyx":153
+ *     }
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * cdef inline int import_ufunc() except -1:
  *     try:             # <<<<<<<<<<<<<<
  *         _import_umath()
@@ -4320,12 +5298,13 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
     goto __pyx_L8_try_end;
     __pyx_L3_error:;
 
+<<<<<<< HEAD
     /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":997
  *     try:
  *         _import_umath()
  *     except Exception:             # <<<<<<<<<<<<<<
  *         raise ImportError("numpy.core.umath failed to import")
- * 
+ *
  */
     __pyx_t_4 = __Pyx_PyErr_ExceptionMatches(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])));
     if (__pyx_t_4) {
@@ -4339,8 +5318,29 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
  *         _import_umath()
  *     except Exception:
  *         raise ImportError("numpy.core.umath failed to import")             # <<<<<<<<<<<<<<
- * 
- * 
+ *
+=======
+    /* "openjpeg/_openjpeg.pyx":155
+ *     try:
+ *         colourspace = colours[param.colourspace]
+ *     except KeyError:             # <<<<<<<<<<<<<<
+ *         colourspace = "unknown"
+ *
+ */
+    __pyx_t_1 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_KeyError);
+    if (__pyx_t_1) {
+      __Pyx_AddTraceback("openjpeg._openjpeg.get_parameters", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      if (__Pyx_GetException(&__pyx_t_7, &__pyx_t_6, &__pyx_t_8) < 0) __PYX_ERR(0, 155, __pyx_L12_except_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      __Pyx_GOTREF(__pyx_t_6);
+      __Pyx_GOTREF(__pyx_t_8);
+
+      /* "openjpeg/_openjpeg.pyx":156
+ *         colourspace = colours[param.colourspace]
+ *     except KeyError:
+ *         colourspace = "unknown"             # <<<<<<<<<<<<<<
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  */
       __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 998, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_8);
@@ -4350,8 +5350,13 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
     }
     goto __pyx_L5_except_error;
 
+<<<<<<< HEAD
     /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":995
- * 
+=======
+    /* "openjpeg/_openjpeg.pyx":153
+ *     }
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * cdef inline int import_ufunc() except -1:
  *     try:             # <<<<<<<<<<<<<<
  *         _import_umath()
@@ -4366,9 +5371,116 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
     __pyx_L8_try_end:;
   }
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":994
  *         raise ImportError("numpy.core.umath failed to import")
- * 
+=======
+  /* "openjpeg/_openjpeg.pyx":159
+ *
+ *     parameters = {
+ *         'rows' : param.rows,             # <<<<<<<<<<<<<<
+ *         'columns' : param.columns,
+ *         'colourspace' : colourspace,
+ */
+  __pyx_t_8 = __Pyx_PyDict_NewPresized(7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 159, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_8);
+  __pyx_t_6 = __Pyx_PyInt_From_uint32_t(__pyx_v_param.rows); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 159, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_rows, __pyx_t_6) < 0) __PYX_ERR(0, 159, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+
+  /* "openjpeg/_openjpeg.pyx":160
+ *     parameters = {
+ *         'rows' : param.rows,
+ *         'columns' : param.columns,             # <<<<<<<<<<<<<<
+ *         'colourspace' : colourspace,
+ *         'nr_components' : param.nr_components,
+ */
+  __pyx_t_6 = __Pyx_PyInt_From_uint32_t(__pyx_v_param.columns); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 160, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_columns, __pyx_t_6) < 0) __PYX_ERR(0, 159, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+
+  /* "openjpeg/_openjpeg.pyx":161
+ *         'rows' : param.rows,
+ *         'columns' : param.columns,
+ *         'colourspace' : colourspace,             # <<<<<<<<<<<<<<
+ *         'nr_components' : param.nr_components,
+ *         'precision' : param.precision,
+ */
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_colourspace, __pyx_v_colourspace) < 0) __PYX_ERR(0, 159, __pyx_L1_error)
+
+  /* "openjpeg/_openjpeg.pyx":162
+ *         'columns' : param.columns,
+ *         'colourspace' : colourspace,
+ *         'nr_components' : param.nr_components,             # <<<<<<<<<<<<<<
+ *         'precision' : param.precision,
+ *         'is_signed' : bool(param.is_signed),
+ */
+  __pyx_t_6 = __Pyx_PyInt_From_uint32_t(__pyx_v_param.nr_components); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 162, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_nr_components, __pyx_t_6) < 0) __PYX_ERR(0, 159, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+
+  /* "openjpeg/_openjpeg.pyx":163
+ *         'colourspace' : colourspace,
+ *         'nr_components' : param.nr_components,
+ *         'precision' : param.precision,             # <<<<<<<<<<<<<<
+ *         'is_signed' : bool(param.is_signed),
+ *         'nr_tiles' : param.nr_tiles,
+ */
+  __pyx_t_6 = __Pyx_PyInt_From_uint32_t(__pyx_v_param.precision); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 163, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_precision, __pyx_t_6) < 0) __PYX_ERR(0, 159, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+
+  /* "openjpeg/_openjpeg.pyx":164
+ *         'nr_components' : param.nr_components,
+ *         'precision' : param.precision,
+ *         'is_signed' : bool(param.is_signed),             # <<<<<<<<<<<<<<
+ *         'nr_tiles' : param.nr_tiles,
+ *     }
+ */
+  __pyx_t_6 = __Pyx_PyInt_From_unsigned_int(__pyx_v_param.is_signed); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 164, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 164, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __pyx_t_6 = __Pyx_PyBool_FromLong((!(!__pyx_t_2))); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 164, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_is_signed, __pyx_t_6) < 0) __PYX_ERR(0, 159, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+
+  /* "openjpeg/_openjpeg.pyx":165
+ *         'precision' : param.precision,
+ *         'is_signed' : bool(param.is_signed),
+ *         'nr_tiles' : param.nr_tiles,             # <<<<<<<<<<<<<<
+ *     }
+ *
+ */
+  __pyx_t_6 = __Pyx_PyInt_From_uint32_t(__pyx_v_param.nr_tiles); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 165, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_nr_tiles, __pyx_t_6) < 0) __PYX_ERR(0, 159, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __pyx_v_parameters = ((PyObject*)__pyx_t_8);
+  __pyx_t_8 = 0;
+
+  /* "openjpeg/_openjpeg.pyx":168
+ *     }
+ *
+ *     return parameters             # <<<<<<<<<<<<<<
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(__pyx_v_parameters);
+  __pyx_r = __pyx_v_parameters;
+  goto __pyx_L0;
+
+  /* "openjpeg/_openjpeg.pyx":89
+ *
+ *
+ * def get_parameters(fp, codec=0):             # <<<<<<<<<<<<<<
+ *     """Return a :class:`dict` containing the JPEG 2000 image parameters.
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  * cdef inline int import_ufunc() except -1:             # <<<<<<<<<<<<<<
  *     try:
  *         _import_umath()
@@ -4382,16 +5494,26 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
   __Pyx_XDECREF(__pyx_t_8);
+<<<<<<< HEAD
   __Pyx_AddTraceback("numpy.import_ufunc", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
+=======
+  __Pyx_AddTraceback("openjpeg._openjpeg.get_parameters", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":1001
- * 
- * 
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":734
+ * ctypedef npy_cdouble     complex_t
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  * cdef inline bint is_timedelta64_object(object obj):             # <<<<<<<<<<<<<<
  *     """
  *     Cython equivalent of `isinstance(obj, np.timedelta64)`
@@ -4400,19 +5522,35 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
 static CYTHON_INLINE int __pyx_f_5numpy_is_timedelta64_object(PyObject *__pyx_v_obj) {
   int __pyx_r;
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":1013
  *     bool
  *     """
  *     return PyObject_TypeCheck(obj, &PyTimedeltaArrType_Type)             # <<<<<<<<<<<<<<
- * 
- * 
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":735
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  */
+<<<<<<< HEAD
   __pyx_r = PyObject_TypeCheck(__pyx_v_obj, (&PyTimedeltaArrType_Type));
   goto __pyx_L0;
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":1001
- * 
- * 
+=======
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyArray_MultiIterNew(1, ((void *)__pyx_v_a)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 735, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":734
+ * ctypedef npy_cdouble     complex_t
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  * cdef inline bint is_timedelta64_object(object obj):             # <<<<<<<<<<<<<<
  *     """
  *     Cython equivalent of `isinstance(obj, np.timedelta64)`
@@ -4423,9 +5561,14 @@ static CYTHON_INLINE int __pyx_f_5numpy_is_timedelta64_object(PyObject *__pyx_v_
   return __pyx_r;
 }
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":1016
- * 
- * 
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":737
+ *     return PyArray_MultiIterNew(1, <void*>a)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  * cdef inline bint is_datetime64_object(object obj):             # <<<<<<<<<<<<<<
  *     """
  *     Cython equivalent of `isinstance(obj, np.datetime64)`
@@ -4434,19 +5577,35 @@ static CYTHON_INLINE int __pyx_f_5numpy_is_timedelta64_object(PyObject *__pyx_v_
 static CYTHON_INLINE int __pyx_f_5numpy_is_datetime64_object(PyObject *__pyx_v_obj) {
   int __pyx_r;
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":1028
  *     bool
  *     """
  *     return PyObject_TypeCheck(obj, &PyDatetimeArrType_Type)             # <<<<<<<<<<<<<<
- * 
- * 
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":738
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  */
+<<<<<<< HEAD
   __pyx_r = PyObject_TypeCheck(__pyx_v_obj, (&PyDatetimeArrType_Type));
   goto __pyx_L0;
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":1016
- * 
- * 
+=======
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyArray_MultiIterNew(2, ((void *)__pyx_v_a), ((void *)__pyx_v_b)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 738, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":737
+ *     return PyArray_MultiIterNew(1, <void*>a)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  * cdef inline bint is_datetime64_object(object obj):             # <<<<<<<<<<<<<<
  *     """
  *     Cython equivalent of `isinstance(obj, np.datetime64)`
@@ -4457,9 +5616,14 @@ static CYTHON_INLINE int __pyx_f_5numpy_is_datetime64_object(PyObject *__pyx_v_o
   return __pyx_r;
 }
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":1031
- * 
- * 
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":740
+ *     return PyArray_MultiIterNew(2, <void*>a, <void*>b)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  * cdef inline npy_datetime get_datetime64_value(object obj) nogil:             # <<<<<<<<<<<<<<
  *     """
  *     returns the int64 value underlying scalar numpy datetime64 object
@@ -4468,19 +5632,35 @@ static CYTHON_INLINE int __pyx_f_5numpy_is_datetime64_object(PyObject *__pyx_v_o
 static CYTHON_INLINE npy_datetime __pyx_f_5numpy_get_datetime64_value(PyObject *__pyx_v_obj) {
   npy_datetime __pyx_r;
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":1038
  *     also needed.  That can be found using `get_datetime64_unit`.
  *     """
  *     return (<PyDatetimeScalarObject*>obj).obval             # <<<<<<<<<<<<<<
- * 
- * 
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":741
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  */
+<<<<<<< HEAD
   __pyx_r = ((PyDatetimeScalarObject *)__pyx_v_obj)->obval;
   goto __pyx_L0;
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":1031
- * 
- * 
+=======
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyArray_MultiIterNew(3, ((void *)__pyx_v_a), ((void *)__pyx_v_b), ((void *)__pyx_v_c)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 741, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":740
+ *     return PyArray_MultiIterNew(2, <void*>a, <void*>b)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  * cdef inline npy_datetime get_datetime64_value(object obj) nogil:             # <<<<<<<<<<<<<<
  *     """
  *     returns the int64 value underlying scalar numpy datetime64 object
@@ -4491,9 +5671,14 @@ static CYTHON_INLINE npy_datetime __pyx_f_5numpy_get_datetime64_value(PyObject *
   return __pyx_r;
 }
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":1041
- * 
- * 
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":743
+ *     return PyArray_MultiIterNew(3, <void*>a, <void*>b, <void*> c)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  * cdef inline npy_timedelta get_timedelta64_value(object obj) nogil:             # <<<<<<<<<<<<<<
  *     """
  *     returns the int64 value underlying scalar numpy timedelta64 object
@@ -4502,19 +5687,35 @@ static CYTHON_INLINE npy_datetime __pyx_f_5numpy_get_datetime64_value(PyObject *
 static CYTHON_INLINE npy_timedelta __pyx_f_5numpy_get_timedelta64_value(PyObject *__pyx_v_obj) {
   npy_timedelta __pyx_r;
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":1045
  *     returns the int64 value underlying scalar numpy timedelta64 object
  *     """
  *     return (<PyTimedeltaScalarObject*>obj).obval             # <<<<<<<<<<<<<<
- * 
- * 
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":744
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  */
+<<<<<<< HEAD
   __pyx_r = ((PyTimedeltaScalarObject *)__pyx_v_obj)->obval;
   goto __pyx_L0;
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":1041
- * 
- * 
+=======
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyArray_MultiIterNew(4, ((void *)__pyx_v_a), ((void *)__pyx_v_b), ((void *)__pyx_v_c), ((void *)__pyx_v_d)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 744, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":743
+ *     return PyArray_MultiIterNew(3, <void*>a, <void*>b, <void*> c)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  * cdef inline npy_timedelta get_timedelta64_value(object obj) nogil:             # <<<<<<<<<<<<<<
  *     """
  *     returns the int64 value underlying scalar numpy timedelta64 object
@@ -4525,9 +5726,14 @@ static CYTHON_INLINE npy_timedelta __pyx_f_5numpy_get_timedelta64_value(PyObject
   return __pyx_r;
 }
 
+<<<<<<< HEAD
 /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":1048
- * 
- * 
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":746
+ *     return PyArray_MultiIterNew(4, <void*>a, <void*>b, <void*>c, <void*> d)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  * cdef inline NPY_DATETIMEUNIT get_datetime64_unit(object obj) nogil:             # <<<<<<<<<<<<<<
  *     """
  *     returns the unit part of the dtype for a numpy datetime64 object.
@@ -4536,6 +5742,7 @@ static CYTHON_INLINE npy_timedelta __pyx_f_5numpy_get_timedelta64_value(PyObject
 static CYTHON_INLINE NPY_DATETIMEUNIT __pyx_f_5numpy_get_datetime64_unit(PyObject *__pyx_v_obj) {
   NPY_DATETIMEUNIT __pyx_r;
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":1052
  *     returns the unit part of the dtype for a numpy datetime64 object.
  *     """
@@ -4545,8 +5752,26 @@ static CYTHON_INLINE NPY_DATETIMEUNIT __pyx_f_5numpy_get_datetime64_unit(PyObjec
   goto __pyx_L0;
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":1048
- * 
- * 
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":747
+ *
+ * cdef inline object PyArray_MultiIterNew5(a, b, c, d, e):
+ *     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)             # <<<<<<<<<<<<<<
+ *
+ * cdef inline tuple PyDataType_SHAPE(dtype d):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyArray_MultiIterNew(5, ((void *)__pyx_v_a), ((void *)__pyx_v_b), ((void *)__pyx_v_c), ((void *)__pyx_v_d), ((void *)__pyx_v_e)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 747, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":746
+ *     return PyArray_MultiIterNew(4, <void*>a, <void*>b, <void*>c, <void*> d)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  * cdef inline NPY_DATETIMEUNIT get_datetime64_unit(object obj) nogil:             # <<<<<<<<<<<<<<
  *     """
  *     returns the unit part of the dtype for a numpy datetime64 object.
@@ -4557,9 +5782,14 @@ static CYTHON_INLINE NPY_DATETIMEUNIT __pyx_f_5numpy_get_datetime64_unit(PyObjec
   return __pyx_r;
 }
 
+<<<<<<< HEAD
 /* "_openjpeg.pyx":37
- * 
- * 
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":749
+ *     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  * def get_version():             # <<<<<<<<<<<<<<
  *     """Return the openjpeg version as bytes."""
  *     cdef char *version = OpenJpegVersion()
@@ -4577,6 +5807,7 @@ static PyObject *__pyx_pw_9_openjpeg_1get_version(PyObject *__pyx_self, CYTHON_U
   __pyx_kwvalues = __Pyx_KwValues_VARARGS(__pyx_args, __pyx_nargs);
   __pyx_r = __pyx_pf_9_openjpeg_get_version(__pyx_self);
 
+<<<<<<< HEAD
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -4596,17 +5827,49 @@ static PyObject *__pyx_pf_9_openjpeg_get_version(CYTHON_UNUSED PyObject *__pyx_s
  * def get_version():
  *     """Return the openjpeg version as bytes."""
  *     cdef char *version = OpenJpegVersion()             # <<<<<<<<<<<<<<
- * 
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":750
+ *
+ * cdef inline tuple PyDataType_SHAPE(dtype d):
+ *     if PyDataType_HASSUBARRAY(d):             # <<<<<<<<<<<<<<
+ *         return <tuple>d.subarray.shape
+ *     else:
+ */
+  __pyx_t_1 = (PyDataType_HASSUBARRAY(__pyx_v_d) != 0);
+  if (__pyx_t_1) {
+
+    /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":751
+ * cdef inline tuple PyDataType_SHAPE(dtype d):
+ *     if PyDataType_HASSUBARRAY(d):
+ *         return <tuple>d.subarray.shape             # <<<<<<<<<<<<<<
+ *     else:
+ *         return ()
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __Pyx_INCREF(((PyObject*)__pyx_v_d->subarray->shape));
+    __pyx_r = ((PyObject*)__pyx_v_d->subarray->shape);
+    goto __pyx_L0;
+
+    /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":750
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  *     return version
  */
   __pyx_v_version = OpenJpegVersion();
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":41
  *     cdef char *version = OpenJpegVersion()
- * 
+ *
  *     return version             # <<<<<<<<<<<<<<
- * 
- * 
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":753
+ *         return <tuple>d.subarray.shape
+ *     else:
+ *         return ()             # <<<<<<<<<<<<<<
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = __Pyx_PyBytes_FromString(__pyx_v_version); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
@@ -4615,9 +5878,14 @@ static PyObject *__pyx_pf_9_openjpeg_get_version(CYTHON_UNUSED PyObject *__pyx_s
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":37
- * 
- * 
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":749
+ *     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  * def get_version():             # <<<<<<<<<<<<<<
  *     """Return the openjpeg version as bytes."""
  *     cdef char *version = OpenJpegVersion()
@@ -4634,16 +5902,64 @@ static PyObject *__pyx_pf_9_openjpeg_get_version(CYTHON_UNUSED PyObject *__pyx_s
   return __pyx_r;
 }
 
+<<<<<<< HEAD
 /* "_openjpeg.pyx":44
- * 
- * 
+ *
+ *
  * def decode(fp, codec=0):             # <<<<<<<<<<<<<<
  *     """Return the decoded JPEG 2000 data from Python file-like `fp`.
- * 
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":928
+ *     int _import_umath() except -1
+ *
+ * cdef inline void set_array_base(ndarray arr, object base):             # <<<<<<<<<<<<<<
+ *     Py_INCREF(base) # important to do this before stealing the reference below!
+ *     PyArray_SetBaseObject(arr, base)
  */
 
+static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_arr, PyObject *__pyx_v_base) {
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("set_array_base", 0);
+
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":929
+ *
+ * cdef inline void set_array_base(ndarray arr, object base):
+ *     Py_INCREF(base) # important to do this before stealing the reference below!             # <<<<<<<<<<<<<<
+ *     PyArray_SetBaseObject(arr, base)
+ *
+ */
+  Py_INCREF(__pyx_v_base);
+
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":930
+ * cdef inline void set_array_base(ndarray arr, object base):
+ *     Py_INCREF(base) # important to do this before stealing the reference below!
+ *     PyArray_SetBaseObject(arr, base)             # <<<<<<<<<<<<<<
+ *
+ * cdef inline object get_array_base(ndarray arr):
+ */
+  (void)(PyArray_SetBaseObject(__pyx_v_arr, __pyx_v_base));
+
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":928
+ *     int _import_umath() except -1
+ *
+ * cdef inline void set_array_base(ndarray arr, object base):             # <<<<<<<<<<<<<<
+ *     Py_INCREF(base) # important to do this before stealing the reference below!
+ *     PyArray_SetBaseObject(arr, base)
+ */
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+}
+
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":932
+ *     PyArray_SetBaseObject(arr, base)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ */
+
+<<<<<<< HEAD
 /* Python wrapper */
-static PyObject *__pyx_pw_9_openjpeg_3decode(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_9_openjpeg_3decode(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -4652,7 +5968,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 ); /*proto*/
 PyDoc_STRVAR(__pyx_doc_9_openjpeg_2decode, "Return the decoded JPEG 2000 data from Python file-like `fp`.\n\n    Parameters\n    ----------\n    fp : file-like\n        A Python file-like containing the encoded JPEG 2000 data. Must have\n        ``tell()``, ``seek()`` and ``read()`` methods.\n    codec : int, optional\n        The codec to use for decoding, one of:\n\n        * ``0``: JPEG-2000 codestream\n        * ``1``: JPT-stream (JPEG 2000, JPIP)\n        * ``2``: JP2 file format\n\n    Returns\n    -------\n    numpy.ndarray\n        An ndarray of uint8 containing the decoded image data.\n\n    Raises\n    ------\n    RuntimeError\n        If unable to decode the JPEG 2000 data.\n    ");
 static PyMethodDef __pyx_mdef_9_openjpeg_3decode = {"decode", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_9_openjpeg_3decode, __Pyx_METH_FASTCALL|METH_KEYWORDS, __pyx_doc_9_openjpeg_2decode};
-static PyObject *__pyx_pw_9_openjpeg_3decode(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_9_openjpeg_3decode(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -4743,6 +6059,73 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   return NULL;
   __pyx_L4_argument_unpacking_done:;
   __pyx_r = __pyx_pf_9_openjpeg_2decode(__pyx_self, __pyx_v_fp, __pyx_v_codec);
+=======
+static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__pyx_v_arr) {
+  PyObject *__pyx_v_base;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  __Pyx_RefNannySetupContext("get_array_base", 0);
+
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":933
+ *
+ * cdef inline object get_array_base(ndarray arr):
+ *     base = PyArray_BASE(arr)             # <<<<<<<<<<<<<<
+ *     if base is NULL:
+ *         return None
+ */
+  __pyx_v_base = PyArray_BASE(__pyx_v_arr);
+
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":934
+ * cdef inline object get_array_base(ndarray arr):
+ *     base = PyArray_BASE(arr)
+ *     if base is NULL:             # <<<<<<<<<<<<<<
+ *         return None
+ *     return <object>base
+ */
+  __pyx_t_1 = ((__pyx_v_base == NULL) != 0);
+  if (__pyx_t_1) {
+
+    /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":935
+ *     base = PyArray_BASE(arr)
+ *     if base is NULL:
+ *         return None             # <<<<<<<<<<<<<<
+ *     return <object>base
+ *
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+    goto __pyx_L0;
+
+    /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":934
+ * cdef inline object get_array_base(ndarray arr):
+ *     base = PyArray_BASE(arr)
+ *     if base is NULL:             # <<<<<<<<<<<<<<
+ *         return None
+ *     return <object>base
+ */
+  }
+
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":936
+ *     if base is NULL:
+ *         return None
+ *     return <object>base             # <<<<<<<<<<<<<<
+ *
+ * # Versions of the import_* functions which are more suitable for
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(((PyObject *)__pyx_v_base));
+  __pyx_r = ((PyObject *)__pyx_v_base);
+  goto __pyx_L0;
+
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":932
+ *     PyArray_SetBaseObject(arr, base)
+ *
+ * cdef inline object get_array_base(ndarray arr):             # <<<<<<<<<<<<<<
+ *     base = PyArray_BASE(arr)
+ *     if base is NULL:
+ */
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
 
   /* function exit code */
   {
@@ -4755,6 +6138,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   return __pyx_r;
 }
 
+<<<<<<< HEAD
 static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_fp, PyObject *__pyx_v_codec) {
   PyObject *__pyx_v_param = NULL;
   PyObject *__pyx_v_bpp = NULL;
@@ -4765,6 +6149,18 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
   int __pyx_v_result;
   PyObject *__pyx_v_msg = NULL;
   PyObject *__pyx_r = NULL;
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":940
+ * # Versions of the import_* functions which are more suitable for
+ * # Cython code.
+ * cdef inline int import_array() except -1:             # <<<<<<<<<<<<<<
+ *     try:
+ *         __pyx_import_array()
+ */
+
+static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
+  int __pyx_r;
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
@@ -4781,12 +6177,21 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("decode", 1);
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":69
  *         If unable to decode the JPEG 2000 data.
  *     """
  *     param = get_parameters(fp, codec)             # <<<<<<<<<<<<<<
  *     bpp = ceil(param['precision'] / 8)
  *     nr_bytes = param['rows'] * param['columns'] * param['nr_components'] * bpp
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":941
+ * # Cython code.
+ * cdef inline int import_array() except -1:
+ *     try:             # <<<<<<<<<<<<<<
+ *         __pyx_import_array()
+ *     except Exception:
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_get_parameters); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -4805,6 +6210,7 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
   }
   #endif
   {
+<<<<<<< HEAD
     PyObject *__pyx_callargs[3] = {__pyx_t_3, __pyx_v_fp, __pyx_v_codec};
     __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_2, __pyx_callargs+1-__pyx_t_4, 2+__pyx_t_4);
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -4820,7 +6226,32 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
  *     param = get_parameters(fp, codec)
  *     bpp = ceil(param['precision'] / 8)             # <<<<<<<<<<<<<<
  *     nr_bytes = param['rows'] * param['columns'] * param['nr_components'] * bpp
- * 
+ *
+=======
+    __Pyx_PyThreadState_declare
+    __Pyx_PyThreadState_assign
+    __Pyx_ExceptionSave(&__pyx_t_1, &__pyx_t_2, &__pyx_t_3);
+    __Pyx_XGOTREF(__pyx_t_1);
+    __Pyx_XGOTREF(__pyx_t_2);
+    __Pyx_XGOTREF(__pyx_t_3);
+    /*try:*/ {
+
+      /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":942
+ * cdef inline int import_array() except -1:
+ *     try:
+ *         __pyx_import_array()             # <<<<<<<<<<<<<<
+ *     except Exception:
+ *         raise ImportError("numpy.core.multiarray failed to import")
+ */
+      __pyx_t_4 = _import_array(); if (unlikely(__pyx_t_4 == ((int)-1))) __PYX_ERR(1, 942, __pyx_L3_error)
+
+      /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":941
+ * # Cython code.
+ * cdef inline int import_array() except -1:
+ *     try:             # <<<<<<<<<<<<<<
+ *         __pyx_import_array()
+ *     except Exception:
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_ceil); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -4855,13 +6286,22 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
   __pyx_v_bpp = __pyx_t_1;
   __pyx_t_1 = 0;
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":71
  *     param = get_parameters(fp, codec)
  *     bpp = ceil(param['precision'] / 8)
  *     nr_bytes = param['rows'] * param['columns'] * param['nr_components'] * bpp             # <<<<<<<<<<<<<<
- * 
+=======
+    /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":943
+ *     try:
+ *         __pyx_import_array()
+ *     except Exception:             # <<<<<<<<<<<<<<
+ *         raise ImportError("numpy.core.multiarray failed to import")
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  *     cdef PyObject* p_in = <PyObject*>fp
  */
+<<<<<<< HEAD
   __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_param, __pyx_n_u_rows); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_param, __pyx_n_u_columns); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)
@@ -4884,19 +6324,51 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
 
   /* "_openjpeg.pyx":73
  *     nr_bytes = param['rows'] * param['columns'] * param['nr_components'] * bpp
- * 
+=======
+    __pyx_t_4 = __Pyx_PyErr_ExceptionMatches(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])));
+    if (__pyx_t_4) {
+      __Pyx_AddTraceback("numpy.import_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      if (__Pyx_GetException(&__pyx_t_5, &__pyx_t_6, &__pyx_t_7) < 0) __PYX_ERR(1, 943, __pyx_L5_except_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __Pyx_GOTREF(__pyx_t_6);
+      __Pyx_GOTREF(__pyx_t_7);
+
+      /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":944
+ *         __pyx_import_array()
+ *     except Exception:
+ *         raise ImportError("numpy.core.multiarray failed to import")             # <<<<<<<<<<<<<<
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  *     cdef PyObject* p_in = <PyObject*>fp             # <<<<<<<<<<<<<<
  *     arr = np.zeros(nr_bytes, dtype=np.uint8)
  *     cdef unsigned char *p_out = <unsigned char *>np.PyArray_DATA(arr)
  */
+<<<<<<< HEAD
   __pyx_v_p_in = ((PyObject *)__pyx_v_fp);
 
   /* "_openjpeg.pyx":74
- * 
+ *
  *     cdef PyObject* p_in = <PyObject*>fp
  *     arr = np.zeros(nr_bytes, dtype=np.uint8)             # <<<<<<<<<<<<<<
  *     cdef unsigned char *p_out = <unsigned char *>np.PyArray_DATA(arr)
- * 
+ *
+=======
+      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 944, __pyx_L5_except_error)
+      __Pyx_GOTREF(__pyx_t_8);
+      __Pyx_Raise(__pyx_t_8, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __PYX_ERR(1, 944, __pyx_L5_except_error)
+    }
+    goto __pyx_L5_except_error;
+    __pyx_L5_except_error:;
+
+    /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":941
+ * # Cython code.
+ * cdef inline int import_array() except -1:
+ *     try:             # <<<<<<<<<<<<<<
+ *         __pyx_import_array()
+ *     except Exception:
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 74, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -4925,19 +6397,28 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
   __pyx_v_arr = __pyx_t_6;
   __pyx_t_6 = 0;
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":75
  *     cdef PyObject* p_in = <PyObject*>fp
  *     arr = np.zeros(nr_bytes, dtype=np.uint8)
  *     cdef unsigned char *p_out = <unsigned char *>np.PyArray_DATA(arr)             # <<<<<<<<<<<<<<
- * 
+ *
  *     result = Decode(p_in, p_out, codec)
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":940
+ * # Versions of the import_* functions which are more suitable for
+ * # Cython code.
+ * cdef inline int import_array() except -1:             # <<<<<<<<<<<<<<
+ *     try:
+ *         __pyx_import_array()
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
   if (!(likely(((__pyx_v_arr) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_arr, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 75, __pyx_L1_error)
   __pyx_v_p_out = ((unsigned char *)PyArray_DATA(((PyArrayObject *)__pyx_v_arr)));
 
   /* "_openjpeg.pyx":77
  *     cdef unsigned char *p_out = <unsigned char *>np.PyArray_DATA(arr)
- * 
+ *
  *     result = Decode(p_in, p_out, codec)             # <<<<<<<<<<<<<<
  *     if result != 0:
  *         try:
@@ -4945,8 +6426,13 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
   __pyx_t_4 = __Pyx_PyInt_As_int(__pyx_v_codec); if (unlikely((__pyx_t_4 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 77, __pyx_L1_error)
   __pyx_v_result = Decode(__pyx_v_p_in, __pyx_v_p_out, __pyx_t_4);
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":78
- * 
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":946
+ *         raise ImportError("numpy.core.multiarray failed to import")
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  *     result = Decode(p_in, p_out, codec)
  *     if result != 0:             # <<<<<<<<<<<<<<
  *         try:
@@ -4971,12 +6457,21 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
       __Pyx_XGOTREF(__pyx_t_10);
       /*try:*/ {
 
+<<<<<<< HEAD
         /* "_openjpeg.pyx":80
  *     if result != 0:
  *         try:
  *             msg = f": {ERRORS[result]}"             # <<<<<<<<<<<<<<
  *         except KeyError:
  *             pass
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":947
+ *
+ * cdef inline int import_umath() except -1:
+ *     try:             # <<<<<<<<<<<<<<
+ *         _import_umath()
+ *     except Exception:
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
         __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_ERRORS); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 80, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_6);
@@ -4992,6 +6487,7 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
         __pyx_v_msg = ((PyObject*)__pyx_t_5);
         __pyx_t_5 = 0;
 
+<<<<<<< HEAD
         /* "_openjpeg.pyx":79
  *     result = Decode(p_in, p_out, codec)
  *     if result != 0:
@@ -5016,7 +6512,19 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
  *             msg = f": {ERRORS[result]}"
  *         except KeyError:             # <<<<<<<<<<<<<<
  *             pass
- * 
+=======
+      /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":948
+ * cdef inline int import_umath() except -1:
+ *     try:
+ *         _import_umath()             # <<<<<<<<<<<<<<
+ *     except Exception:
+ *         raise ImportError("numpy.core.umath failed to import")
+ */
+      __pyx_t_4 = _import_umath(); if (unlikely(__pyx_t_4 == ((int)-1))) __PYX_ERR(1, 948, __pyx_L3_error)
+
+      /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":947
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  */
       __pyx_t_4 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_KeyError);
       if (__pyx_t_4) {
@@ -5025,6 +6533,7 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
       }
       goto __pyx_L6_except_error;
 
+<<<<<<< HEAD
       /* "_openjpeg.pyx":79
  *     result = Decode(p_in, p_out, codec)
  *     if result != 0:
@@ -5048,11 +6557,33 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
 
     /* "_openjpeg.pyx":84
  *             pass
- * 
+=======
+    /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":949
+ *     try:
+ *         _import_umath()
+ *     except Exception:             # <<<<<<<<<<<<<<
+ *         raise ImportError("numpy.core.umath failed to import")
+ *
+ */
+    __pyx_t_4 = __Pyx_PyErr_ExceptionMatches(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])));
+    if (__pyx_t_4) {
+      __Pyx_AddTraceback("numpy.import_umath", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      if (__Pyx_GetException(&__pyx_t_5, &__pyx_t_6, &__pyx_t_7) < 0) __PYX_ERR(1, 949, __pyx_L5_except_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __Pyx_GOTREF(__pyx_t_6);
+      __Pyx_GOTREF(__pyx_t_7);
+
+      /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":950
+ *         _import_umath()
+ *     except Exception:
+ *         raise ImportError("numpy.core.umath failed to import")             # <<<<<<<<<<<<<<
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  *         raise RuntimeError("Error decoding the J2K data" + msg)             # <<<<<<<<<<<<<<
- * 
+ *
  *     return arr
  */
+<<<<<<< HEAD
     if (unlikely(!__pyx_v_msg)) { __Pyx_RaiseUnboundLocalError("msg"); __PYX_ERR(0, 84, __pyx_L1_error) }
     __pyx_t_5 = __Pyx_PyUnicode_Concat(__pyx_kp_u_Error_decoding_the_J2K_data, __pyx_v_msg); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 84, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
@@ -5064,7 +6595,19 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
     __PYX_ERR(0, 84, __pyx_L1_error)
 
     /* "_openjpeg.pyx":78
- * 
+=======
+      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 950, __pyx_L5_except_error)
+      __Pyx_GOTREF(__pyx_t_8);
+      __Pyx_Raise(__pyx_t_8, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __PYX_ERR(1, 950, __pyx_L5_except_error)
+    }
+    goto __pyx_L5_except_error;
+    __pyx_L5_except_error:;
+
+    /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":947
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  *     result = Decode(p_in, p_out, codec)
  *     if result != 0:             # <<<<<<<<<<<<<<
  *         try:
@@ -5072,12 +6615,17 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
  */
   }
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":86
  *         raise RuntimeError("Error decoding the J2K data" + msg)
- * 
+ *
  *     return arr             # <<<<<<<<<<<<<<
- * 
- * 
+ *
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":946
+ *         raise ImportError("numpy.core.multiarray failed to import")
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  */
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(__pyx_v_arr);
@@ -5085,11 +6633,11 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
   goto __pyx_L0;
 
   /* "_openjpeg.pyx":44
- * 
- * 
+ *
+ *
  * def decode(fp, codec=0):             # <<<<<<<<<<<<<<
  *     """Return the decoded JPEG 2000 data from Python file-like `fp`.
- * 
+ *
  */
 
   /* function exit code */
@@ -5112,16 +6660,21 @@ static PyObject *__pyx_pf_9_openjpeg_2decode(CYTHON_UNUSED PyObject *__pyx_self,
   return __pyx_r;
 }
 
+<<<<<<< HEAD
 /* "_openjpeg.pyx":89
- * 
- * 
+ *
+ *
  * def get_parameters(fp, codec=0):             # <<<<<<<<<<<<<<
  *     """Return a :class:`dict` containing the JPEG 2000 image parameters.
- * 
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":952
+ *         raise ImportError("numpy.core.umath failed to import")
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9_openjpeg_5get_parameters(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_9_openjpeg_5get_parameters(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -5130,7 +6683,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 ); /*proto*/
 PyDoc_STRVAR(__pyx_doc_9_openjpeg_4get_parameters, "Return a :class:`dict` containing the JPEG 2000 image parameters.\n\n    Parameters\n    ----------\n    fp : file-like\n        A Python file-like containing the encoded JPEG 2000 data.\n    codec : int, optional\n        The codec to use for decoding, one of:\n\n        * ``0``: JPEG-2000 codestream\n        * ``1``: JPT-stream (JPEG 2000, JPIP)\n        * ``2``: JP2 file format\n\n    Returns\n    -------\n    dict\n        A :class:`dict` containing the J2K image parameters:\n        ``{'columns': int, 'rows': int, 'colourspace': str,\n        'nr_components: int, 'precision': int, `is_signed`: bool,\n        'nr_tiles: int'}``. Possible colour spaces are \"unknown\",\n        \"unspecified\", \"sRGB\", \"monochrome\", \"YUV\", \"e-YCC\" and \"CYMK\".\n\n    Raises\n    ------\n    RuntimeError\n        If unable to decode the JPEG 2000 data.\n    ");
 static PyMethodDef __pyx_mdef_9_openjpeg_5get_parameters = {"get_parameters", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_9_openjpeg_5get_parameters, __Pyx_METH_FASTCALL|METH_KEYWORDS, __pyx_doc_9_openjpeg_4get_parameters};
-static PyObject *__pyx_pw_9_openjpeg_5get_parameters(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_9_openjpeg_5get_parameters(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -5257,15 +6810,25 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("get_parameters", 1);
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":118
  *     """
  *     cdef JPEG2000Parameters param
  *     param.columns = 0             # <<<<<<<<<<<<<<
  *     param.rows = 0
  *     param.colourspace = 0
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":953
+ *
+ * cdef inline int import_ufunc() except -1:
+ *     try:             # <<<<<<<<<<<<<<
+ *         _import_umath()
+ *     except Exception:
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
   __pyx_v_param.columns = 0;
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":119
  *     cdef JPEG2000Parameters param
  *     param.columns = 0
@@ -5281,9 +6844,27 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
  *     param.colourspace = 0             # <<<<<<<<<<<<<<
  *     param.nr_components = 0
  *     param.precision = 0
+=======
+      /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":954
+ * cdef inline int import_ufunc() except -1:
+ *     try:
+ *         _import_umath()             # <<<<<<<<<<<<<<
+ *     except Exception:
+ *         raise ImportError("numpy.core.umath failed to import")
+ */
+      __pyx_t_4 = _import_umath(); if (unlikely(__pyx_t_4 == ((int)-1))) __PYX_ERR(1, 954, __pyx_L3_error)
+
+      /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":953
+ *
+ * cdef inline int import_ufunc() except -1:
+ *     try:             # <<<<<<<<<<<<<<
+ *         _import_umath()
+ *     except Exception:
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
   __pyx_v_param.colourspace = 0;
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":121
  *     param.rows = 0
  *     param.colourspace = 0
@@ -5307,39 +6888,114 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
  *     param.precision = 0
  *     param.is_signed = 0             # <<<<<<<<<<<<<<
  *     param.nr_tiles = 0
- * 
+=======
+    /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":955
+ *     try:
+ *         _import_umath()
+ *     except Exception:             # <<<<<<<<<<<<<<
+ *         raise ImportError("numpy.core.umath failed to import")
+ *
+ */
+    __pyx_t_4 = __Pyx_PyErr_ExceptionMatches(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])));
+    if (__pyx_t_4) {
+      __Pyx_AddTraceback("numpy.import_ufunc", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      if (__Pyx_GetException(&__pyx_t_5, &__pyx_t_6, &__pyx_t_7) < 0) __PYX_ERR(1, 955, __pyx_L5_except_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __Pyx_GOTREF(__pyx_t_6);
+      __Pyx_GOTREF(__pyx_t_7);
+
+      /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":956
+ *         _import_umath()
+ *     except Exception:
+ *         raise ImportError("numpy.core.umath failed to import")             # <<<<<<<<<<<<<<
+ *
+ * cdef extern from *:
+ */
+      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 956, __pyx_L5_except_error)
+      __Pyx_GOTREF(__pyx_t_8);
+      __Pyx_Raise(__pyx_t_8, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __PYX_ERR(1, 956, __pyx_L5_except_error)
+    }
+    goto __pyx_L5_except_error;
+    __pyx_L5_except_error:;
+
+    /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":953
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  */
   __pyx_v_param.is_signed = 0;
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":124
  *     param.precision = 0
  *     param.is_signed = 0
  *     param.nr_tiles = 0             # <<<<<<<<<<<<<<
- * 
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":952
+ *         raise ImportError("numpy.core.umath failed to import")
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  *     # Pointer to the JPEGParameters object
  */
   __pyx_v_param.nr_tiles = 0;
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":127
- * 
+=======
+  /* function exit code */
+  __pyx_r = 0;
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_AddTraceback("numpy.import_ufunc", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = -1;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":966
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  *     # Pointer to the JPEGParameters object
  *     cdef JPEG2000Parameters *p_param = &param             # <<<<<<<<<<<<<<
- * 
+ *
  *     # Pointer to J2K data
  */
   __pyx_v_p_param = (&__pyx_v_param);
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":130
- * 
+=======
+static CYTHON_INLINE int __pyx_f_5numpy_is_timedelta64_object(PyObject *__pyx_v_obj) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("is_timedelta64_object", 0);
+
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":978
+ *     bool
+ *     """
+ *     return PyObject_TypeCheck(obj, &PyTimedeltaArrType_Type)             # <<<<<<<<<<<<<<
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  *     # Pointer to J2K data
  *     cdef PyObject* ptr = <PyObject*>fp             # <<<<<<<<<<<<<<
- * 
+ *
  *     # Decode the data - output is written to output_buffer
  */
   __pyx_v_ptr = ((PyObject *)__pyx_v_fp);
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":133
- * 
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":966
+ *
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  *     # Decode the data - output is written to output_buffer
  *     result = GetParameters(ptr, codec, p_param)             # <<<<<<<<<<<<<<
  *     if result != 0:
@@ -5358,12 +7014,21 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
   __pyx_t_2 = (__pyx_v_result != 0);
   if (__pyx_t_2) {
 
+<<<<<<< HEAD
     /* "_openjpeg.pyx":135
  *     result = GetParameters(ptr, codec, p_param)
  *     if result != 0:
  *         try:             # <<<<<<<<<<<<<<
  *             msg = f": {ERRORS[result]}"
  *         except KeyError:
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":981
+ *
+ *
+ * cdef inline bint is_datetime64_object(object obj):             # <<<<<<<<<<<<<<
+ *     """
+ *     Cython equivalent of `isinstance(obj, np.datetime64)`
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
     {
       __Pyx_PyThreadState_declare
@@ -5395,12 +7060,21 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
         __pyx_v_msg = ((PyObject*)__pyx_t_7);
         __pyx_t_7 = 0;
 
+<<<<<<< HEAD
         /* "_openjpeg.pyx":135
  *     result = GetParameters(ptr, codec, p_param)
  *     if result != 0:
  *         try:             # <<<<<<<<<<<<<<
  *             msg = f": {ERRORS[result]}"
  *         except KeyError:
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":993
+ *     bool
+ *     """
+ *     return PyObject_TypeCheck(obj, &PyDatetimeArrType_Type)             # <<<<<<<<<<<<<<
+ *
+ *
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
       }
       __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -5411,12 +7085,17 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
       __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
 
+<<<<<<< HEAD
       /* "_openjpeg.pyx":137
  *         try:
  *             msg = f": {ERRORS[result]}"
  *         except KeyError:             # <<<<<<<<<<<<<<
  *             pass
- * 
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":981
+ *
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  */
       __pyx_t_1 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_KeyError);
       if (__pyx_t_1) {
@@ -5446,11 +7125,15 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
       __pyx_L9_try_end:;
     }
 
+<<<<<<< HEAD
     /* "_openjpeg.pyx":140
  *             pass
- * 
+=======
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":996
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  *         raise RuntimeError("Error decoding the J2K data" + msg)             # <<<<<<<<<<<<<<
- * 
+ *
  *     # From openjpeg.h#L309
  */
     if (unlikely(!__pyx_v_msg)) { __Pyx_RaiseUnboundLocalError("msg"); __PYX_ERR(0, 140, __pyx_L1_error) }
@@ -5472,12 +7155,21 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
  */
   }
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":144
  *     # From openjpeg.h#L309
  *     colours = {
  *         -1: "unknown",             # <<<<<<<<<<<<<<
  *          0: "unspecified",
  *          1: "sRGB",
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":1003
+ *     also needed.  That can be found using `get_datetime64_unit`.
+ *     """
+ *     return (<PyDatetimeScalarObject*>obj).obval             # <<<<<<<<<<<<<<
+ *
+ *
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
   __pyx_t_6 = __Pyx_PyDict_NewPresized(7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 144, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
@@ -5491,9 +7183,14 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
   __pyx_v_colours = ((PyObject*)__pyx_t_6);
   __pyx_t_6 = 0;
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":153
  *     }
- * 
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":996
+ *
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  *     try:             # <<<<<<<<<<<<<<
  *         colourspace = colours[param.colourspace]
  *     except KeyError:
@@ -5507,8 +7204,18 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
     __Pyx_XGOTREF(__pyx_t_3);
     /*try:*/ {
 
+<<<<<<< HEAD
       /* "_openjpeg.pyx":154
- * 
+=======
+  /* function exit code */
+  __pyx_L0:;
+  return __pyx_r;
+}
+
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":1006
+ *
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  *     try:
  *         colourspace = colours[param.colourspace]             # <<<<<<<<<<<<<<
  *     except KeyError:
@@ -5522,9 +7229,20 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
       __pyx_v_colourspace = __pyx_t_7;
       __pyx_t_7 = 0;
 
+<<<<<<< HEAD
       /* "_openjpeg.pyx":153
  *     }
- * 
+=======
+static CYTHON_INLINE npy_timedelta __pyx_f_5numpy_get_timedelta64_value(PyObject *__pyx_v_obj) {
+  npy_timedelta __pyx_r;
+
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":1010
+ *     returns the int64 value underlying scalar numpy timedelta64 object
+ *     """
+ *     return (<PyTimedeltaScalarObject*>obj).obval             # <<<<<<<<<<<<<<
+ *
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  *     try:             # <<<<<<<<<<<<<<
  *         colourspace = colours[param.colourspace]
  *     except KeyError:
@@ -5538,12 +7256,17 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
 
+<<<<<<< HEAD
     /* "_openjpeg.pyx":155
  *     try:
  *         colourspace = colours[param.colourspace]
  *     except KeyError:             # <<<<<<<<<<<<<<
  *         colourspace = "unknown"
- * 
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":1006
+ *
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  */
     __pyx_t_1 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_KeyError);
     if (__pyx_t_1) {
@@ -5553,11 +7276,20 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
       __Pyx_XGOTREF(__pyx_t_6);
       __Pyx_XGOTREF(__pyx_t_8);
 
+<<<<<<< HEAD
       /* "_openjpeg.pyx":156
  *         colourspace = colours[param.colourspace]
  *     except KeyError:
  *         colourspace = "unknown"             # <<<<<<<<<<<<<<
- * 
+=======
+  /* function exit code */
+  __pyx_L0:;
+  return __pyx_r;
+}
+
+/* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":1013
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
  *     parameters = {
  */
       __Pyx_INCREF(__pyx_n_u_unknown);
@@ -5571,7 +7303,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
 
     /* "_openjpeg.pyx":153
  *     }
- * 
+ *
  *     try:             # <<<<<<<<<<<<<<
  *         colourspace = colours[param.colourspace]
  *     except KeyError:
@@ -5591,7 +7323,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
   }
 
   /* "_openjpeg.pyx":159
- * 
+ *
  *     parameters = {
  *         'rows' : param.rows,             # <<<<<<<<<<<<<<
  *         'columns' : param.columns,
@@ -5604,12 +7336,19 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
   if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_rows, __pyx_t_6) < 0) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":160
  *     parameters = {
  *         'rows' : param.rows,
  *         'columns' : param.columns,             # <<<<<<<<<<<<<<
  *         'colourspace' : colourspace,
  *         'nr_components' : param.nr_components,
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":1017
+ *     returns the unit part of the dtype for a numpy datetime64 object.
+ *     """
+ *     return <NPY_DATETIMEUNIT>(<PyDatetimeScalarObject*>obj).obmeta.base             # <<<<<<<<<<<<<<
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  */
   __pyx_t_6 = __Pyx_PyInt_From_uint32_t(__pyx_v_param.columns); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 160, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
@@ -5670,7 +7409,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
  *         'is_signed' : bool(param.is_signed),
  *         'nr_tiles' : param.nr_tiles,             # <<<<<<<<<<<<<<
  *     }
- * 
+ *
  */
   __pyx_t_6 = __Pyx_PyInt_From_uint32_t(__pyx_v_param.nr_tiles); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 165, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
@@ -5681,7 +7420,7 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
 
   /* "_openjpeg.pyx":168
  *     }
- * 
+ *
  *     return parameters             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
@@ -5689,12 +7428,16 @@ static PyObject *__pyx_pf_9_openjpeg_4get_parameters(CYTHON_UNUSED PyObject *__p
   __pyx_r = __pyx_v_parameters;
   goto __pyx_L0;
 
+<<<<<<< HEAD
   /* "_openjpeg.pyx":89
- * 
- * 
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":1013
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *
+ *
  * def get_parameters(fp, codec=0):             # <<<<<<<<<<<<<<
  *     """Return a :class:`dict` containing the JPEG 2000 image parameters.
- * 
+ *
  */
 
   /* function exit code */
@@ -5726,6 +7469,7 @@ static PyMethodDef __pyx_methods[] = {
     #define CYTHON_SMALL_CODE
 #endif
 #endif
+<<<<<<< HEAD
 /* #### Code section: pystring_table ### */
 
 static int __Pyx_CreateStringTabAndInitStrings(void) {
@@ -5809,6 +7553,79 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) __PYX_ERR(0, 81, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(0, 84, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(1, 986, __pyx_L1_error)
+=======
+
+static __Pyx_StringTabEntry __pyx_string_tab[] = {
+  {&__pyx_kp_u_, __pyx_k_, sizeof(__pyx_k_), 0, 1, 0, 0},
+  {&__pyx_n_u_CYMK, __pyx_k_CYMK, sizeof(__pyx_k_CYMK), 0, 1, 0, 1},
+  {&__pyx_n_s_ERRORS, __pyx_k_ERRORS, sizeof(__pyx_k_ERRORS), 0, 0, 1, 1},
+  {&__pyx_kp_u_Error_decoding_the_J2K_data, __pyx_k_Error_decoding_the_J2K_data, sizeof(__pyx_k_Error_decoding_the_J2K_data), 0, 1, 0, 0},
+  {&__pyx_n_s_ImportError, __pyx_k_ImportError, sizeof(__pyx_k_ImportError), 0, 0, 1, 1},
+  {&__pyx_n_s_KeyError, __pyx_k_KeyError, sizeof(__pyx_k_KeyError), 0, 0, 1, 1},
+  {&__pyx_n_s_RuntimeError, __pyx_k_RuntimeError, sizeof(__pyx_k_RuntimeError), 0, 0, 1, 1},
+  {&__pyx_n_u_YUV, __pyx_k_YUV, sizeof(__pyx_k_YUV), 0, 1, 0, 1},
+  {&__pyx_n_s_arr, __pyx_k_arr, sizeof(__pyx_k_arr), 0, 0, 1, 1},
+  {&__pyx_n_s_bpp, __pyx_k_bpp, sizeof(__pyx_k_bpp), 0, 0, 1, 1},
+  {&__pyx_n_s_ceil, __pyx_k_ceil, sizeof(__pyx_k_ceil), 0, 0, 1, 1},
+  {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
+  {&__pyx_n_s_codec, __pyx_k_codec, sizeof(__pyx_k_codec), 0, 0, 1, 1},
+  {&__pyx_n_s_colours, __pyx_k_colours, sizeof(__pyx_k_colours), 0, 0, 1, 1},
+  {&__pyx_n_s_colourspace, __pyx_k_colourspace, sizeof(__pyx_k_colourspace), 0, 0, 1, 1},
+  {&__pyx_n_u_colourspace, __pyx_k_colourspace, sizeof(__pyx_k_colourspace), 0, 1, 0, 1},
+  {&__pyx_n_u_columns, __pyx_k_columns, sizeof(__pyx_k_columns), 0, 1, 0, 1},
+  {&__pyx_n_s_decode, __pyx_k_decode, sizeof(__pyx_k_decode), 0, 0, 1, 1},
+  {&__pyx_n_s_dtype, __pyx_k_dtype, sizeof(__pyx_k_dtype), 0, 0, 1, 1},
+  {&__pyx_kp_u_e_YCC, __pyx_k_e_YCC, sizeof(__pyx_k_e_YCC), 0, 1, 0, 0},
+  {&__pyx_kp_u_failed_to_create_the_input_strea, __pyx_k_failed_to_create_the_input_strea, sizeof(__pyx_k_failed_to_create_the_input_strea), 0, 1, 0, 0},
+  {&__pyx_kp_u_failed_to_decode_image, __pyx_k_failed_to_decode_image, sizeof(__pyx_k_failed_to_decode_image), 0, 1, 0, 0},
+  {&__pyx_kp_u_failed_to_read_the_header, __pyx_k_failed_to_read_the_header, sizeof(__pyx_k_failed_to_read_the_header), 0, 1, 0, 0},
+  {&__pyx_kp_u_failed_to_set_the_component_indi, __pyx_k_failed_to_set_the_component_indi, sizeof(__pyx_k_failed_to_set_the_component_indi), 0, 1, 0, 0},
+  {&__pyx_kp_u_failed_to_set_the_decoded_area, __pyx_k_failed_to_set_the_decoded_area, sizeof(__pyx_k_failed_to_set_the_decoded_area), 0, 1, 0, 0},
+  {&__pyx_kp_u_failed_to_setup_the_decoder, __pyx_k_failed_to_setup_the_decoder, sizeof(__pyx_k_failed_to_setup_the_decoder), 0, 1, 0, 0},
+  {&__pyx_kp_u_failed_to_upscale_subsampled_com, __pyx_k_failed_to_upscale_subsampled_com, sizeof(__pyx_k_failed_to_upscale_subsampled_com), 0, 1, 0, 0},
+  {&__pyx_n_s_fp, __pyx_k_fp, sizeof(__pyx_k_fp), 0, 0, 1, 1},
+  {&__pyx_n_s_get_parameters, __pyx_k_get_parameters, sizeof(__pyx_k_get_parameters), 0, 0, 1, 1},
+  {&__pyx_n_s_get_version, __pyx_k_get_version, sizeof(__pyx_k_get_version), 0, 0, 1, 1},
+  {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
+  {&__pyx_n_u_is_signed, __pyx_k_is_signed, sizeof(__pyx_k_is_signed), 0, 1, 0, 1},
+  {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
+  {&__pyx_n_s_math, __pyx_k_math, sizeof(__pyx_k_math), 0, 0, 1, 1},
+  {&__pyx_n_u_monochrome, __pyx_k_monochrome, sizeof(__pyx_k_monochrome), 0, 1, 0, 1},
+  {&__pyx_n_s_msg, __pyx_k_msg, sizeof(__pyx_k_msg), 0, 0, 1, 1},
+  {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
+  {&__pyx_n_s_np, __pyx_k_np, sizeof(__pyx_k_np), 0, 0, 1, 1},
+  {&__pyx_n_s_nr_bytes, __pyx_k_nr_bytes, sizeof(__pyx_k_nr_bytes), 0, 0, 1, 1},
+  {&__pyx_n_u_nr_components, __pyx_k_nr_components, sizeof(__pyx_k_nr_components), 0, 1, 0, 1},
+  {&__pyx_n_u_nr_tiles, __pyx_k_nr_tiles, sizeof(__pyx_k_nr_tiles), 0, 1, 0, 1},
+  {&__pyx_n_s_numpy, __pyx_k_numpy, sizeof(__pyx_k_numpy), 0, 0, 1, 1},
+  {&__pyx_kp_u_numpy_core_multiarray_failed_to, __pyx_k_numpy_core_multiarray_failed_to, sizeof(__pyx_k_numpy_core_multiarray_failed_to), 0, 1, 0, 0},
+  {&__pyx_kp_u_numpy_core_umath_failed_to_impor, __pyx_k_numpy_core_umath_failed_to_impor, sizeof(__pyx_k_numpy_core_umath_failed_to_impor), 0, 1, 0, 0},
+  {&__pyx_n_s_openjpeg__openjpeg, __pyx_k_openjpeg__openjpeg, sizeof(__pyx_k_openjpeg__openjpeg), 0, 0, 1, 1},
+  {&__pyx_kp_s_openjpeg_pyx, __pyx_k_openjpeg_pyx, sizeof(__pyx_k_openjpeg_pyx), 0, 0, 1, 0},
+  {&__pyx_n_s_p_in, __pyx_k_p_in, sizeof(__pyx_k_p_in), 0, 0, 1, 1},
+  {&__pyx_n_s_p_out, __pyx_k_p_out, sizeof(__pyx_k_p_out), 0, 0, 1, 1},
+  {&__pyx_n_s_p_param, __pyx_k_p_param, sizeof(__pyx_k_p_param), 0, 0, 1, 1},
+  {&__pyx_n_s_param, __pyx_k_param, sizeof(__pyx_k_param), 0, 0, 1, 1},
+  {&__pyx_n_s_parameters, __pyx_k_parameters, sizeof(__pyx_k_parameters), 0, 0, 1, 1},
+  {&__pyx_n_u_precision, __pyx_k_precision, sizeof(__pyx_k_precision), 0, 1, 0, 1},
+  {&__pyx_n_s_ptr, __pyx_k_ptr, sizeof(__pyx_k_ptr), 0, 0, 1, 1},
+  {&__pyx_n_s_result, __pyx_k_result, sizeof(__pyx_k_result), 0, 0, 1, 1},
+  {&__pyx_n_u_rows, __pyx_k_rows, sizeof(__pyx_k_rows), 0, 1, 0, 1},
+  {&__pyx_n_u_sRGB, __pyx_k_sRGB, sizeof(__pyx_k_sRGB), 0, 1, 0, 1},
+  {&__pyx_kp_u_support_for_more_than_16_bits_pe, __pyx_k_support_for_more_than_16_bits_pe, sizeof(__pyx_k_support_for_more_than_16_bits_pe), 0, 1, 0, 0},
+  {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
+  {&__pyx_n_s_uint8, __pyx_k_uint8, sizeof(__pyx_k_uint8), 0, 0, 1, 1},
+  {&__pyx_n_u_unknown, __pyx_k_unknown, sizeof(__pyx_k_unknown), 0, 1, 0, 1},
+  {&__pyx_n_u_unspecified, __pyx_k_unspecified, sizeof(__pyx_k_unspecified), 0, 1, 0, 1},
+  {&__pyx_n_s_version, __pyx_k_version, sizeof(__pyx_k_version), 0, 0, 1, 1},
+  {&__pyx_n_s_zeros, __pyx_k_zeros, sizeof(__pyx_k_zeros), 0, 0, 1, 1},
+  {0, 0, 0, 0, 0, 0, 0}
+};
+static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
+  __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) __PYX_ERR(0, 81, __pyx_L1_error)
+  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(0, 84, __pyx_L1_error)
+  __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(1, 944, __pyx_L1_error)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -5819,47 +7636,73 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
+<<<<<<< HEAD
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":986
+=======
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":944
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
  *         __pyx_import_array()
  *     except Exception:
  *         raise ImportError("numpy.core.multiarray failed to import")             # <<<<<<<<<<<<<<
- * 
+ *
  * cdef inline int import_umath() except -1:
  */
+<<<<<<< HEAD
   __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_u_numpy_core_multiarray_failed_to); if (unlikely(!__pyx_tuple_)) __PYX_ERR(1, 986, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
   /* "../../../../../tmp/tmp50gx4n2_/.venv/lib/python3.8/site-packages/numpy/__init__.cython-30.pxd":992
- *         _import_umath()
- *     except Exception:
- *         raise ImportError("numpy.core.umath failed to import")             # <<<<<<<<<<<<<<
- * 
- * cdef inline int import_ufunc() except -1:
- */
-  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_u_numpy_core_umath_failed_to_impor); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(1, 992, __pyx_L1_error)
+=======
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_u_numpy_core_multiarray_failed_to); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(1, 944, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "_openjpeg.pyx":37
- * 
- * 
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":950
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+ *         _import_umath()
+ *     except Exception:
+ *         raise ImportError("numpy.core.umath failed to import")             # <<<<<<<<<<<<<<
+ *
+ * cdef inline int import_ufunc() except -1:
+ */
+<<<<<<< HEAD
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_u_numpy_core_umath_failed_to_impor); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(1, 992, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__2);
+  __Pyx_GIVEREF(__pyx_tuple__2);
+=======
+  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_u_numpy_core_umath_failed_to_impor); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(1, 950, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__3);
+  __Pyx_GIVEREF(__pyx_tuple__3);
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
+
+  /* "openjpeg/_openjpeg.pyx":37
+ *
+ *
  * def get_version():             # <<<<<<<<<<<<<<
  *     """Return the openjpeg version as bytes."""
  *     cdef char *version = OpenJpegVersion()
  */
+<<<<<<< HEAD
   __pyx_tuple__6 = PyTuple_Pack(1, __pyx_n_s_version); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
   __pyx_codeobj__7 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__6, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openjpeg__openjpeg_pyx, __pyx_n_s_get_version, 37, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__7)) __PYX_ERR(0, 37, __pyx_L1_error)
+=======
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_n_s_version); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 37, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__4);
+  __Pyx_GIVEREF(__pyx_tuple__4);
+  __pyx_codeobj__5 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__4, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openjpeg_pyx, __pyx_n_s_get_version, 37, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__5)) __PYX_ERR(0, 37, __pyx_L1_error)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
 
-  /* "_openjpeg.pyx":44
- * 
- * 
+  /* "openjpeg/_openjpeg.pyx":44
+ *
+ *
  * def decode(fp, codec=0):             # <<<<<<<<<<<<<<
  *     """Return the decoded JPEG 2000 data from Python file-like `fp`.
- * 
+ *
  */
+<<<<<<< HEAD
   __pyx_tuple__8 = PyTuple_Pack(10, __pyx_n_s_fp, __pyx_n_s_codec, __pyx_n_s_param, __pyx_n_s_bpp, __pyx_n_s_nr_bytes, __pyx_n_s_p_in, __pyx_n_s_arr, __pyx_n_s_p_out, __pyx_n_s_result, __pyx_n_s_msg); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__8);
   __Pyx_GIVEREF(__pyx_tuple__8);
@@ -5867,18 +7710,31 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__10 = PyTuple_Pack(1, ((PyObject *)__pyx_int_0)); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__10);
   __Pyx_GIVEREF(__pyx_tuple__10);
+=======
+  __pyx_tuple__6 = PyTuple_Pack(10, __pyx_n_s_fp, __pyx_n_s_codec, __pyx_n_s_param, __pyx_n_s_bpp, __pyx_n_s_nr_bytes, __pyx_n_s_p_in, __pyx_n_s_arr, __pyx_n_s_p_out, __pyx_n_s_result, __pyx_n_s_msg); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__6);
+  __Pyx_GIVEREF(__pyx_tuple__6);
+  __pyx_codeobj__7 = (PyObject*)__Pyx_PyCode_New(2, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__6, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openjpeg_pyx, __pyx_n_s_decode, 44, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__7)) __PYX_ERR(0, 44, __pyx_L1_error)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
 
-  /* "_openjpeg.pyx":89
- * 
- * 
+  /* "openjpeg/_openjpeg.pyx":89
+ *
+ *
  * def get_parameters(fp, codec=0):             # <<<<<<<<<<<<<<
  *     """Return a :class:`dict` containing the JPEG 2000 image parameters.
- * 
+ *
  */
+<<<<<<< HEAD
   __pyx_tuple__11 = PyTuple_Pack(10, __pyx_n_s_fp, __pyx_n_s_codec, __pyx_n_s_param, __pyx_n_s_p_param, __pyx_n_s_ptr, __pyx_n_s_result, __pyx_n_s_msg, __pyx_n_s_colours, __pyx_n_s_colourspace, __pyx_n_s_parameters); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 89, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__11);
   __Pyx_GIVEREF(__pyx_tuple__11);
   __pyx_codeobj__12 = (PyObject*)__Pyx_PyCode_New(2, 0, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__11, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openjpeg__openjpeg_pyx, __pyx_n_s_get_parameters, 89, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__12)) __PYX_ERR(0, 89, __pyx_L1_error)
+=======
+  __pyx_tuple__8 = PyTuple_Pack(10, __pyx_n_s_fp, __pyx_n_s_codec, __pyx_n_s_param, __pyx_n_s_p_param, __pyx_n_s_ptr, __pyx_n_s_result, __pyx_n_s_msg, __pyx_n_s_colours, __pyx_n_s_colourspace, __pyx_n_s_parameters); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 89, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__8);
+  __Pyx_GIVEREF(__pyx_tuple__8);
+  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(2, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openjpeg_pyx, __pyx_n_s_get_parameters, 89, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 89, __pyx_L1_error)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -5887,8 +7743,13 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 }
 /* #### Code section: init_constants ### */
 
+<<<<<<< HEAD
 static CYTHON_SMALL_CODE int __Pyx_InitConstants(void) {
   if (__Pyx_CreateStringTabAndInitStrings() < 0) __PYX_ERR(0, 1, __pyx_L1_error);
+=======
+static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
+  if (__Pyx_InitStrings(__pyx_string_tab) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_2 = PyInt_FromLong(2); if (unlikely(!__pyx_int_2)) __PYX_ERR(0, 1, __pyx_L1_error)
@@ -5981,7 +7842,7 @@ static int __Pyx_modinit_type_import_code(void) {
   /*--- Type import code ---*/
   __pyx_t_1 = PyImport_ImportModule(__Pyx_BUILTIN_MODULE_NAME); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 9, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_ptype_7cpython_4type_type = __Pyx_ImportType_3_0_7(__pyx_t_1, __Pyx_BUILTIN_MODULE_NAME, "type", 
+  __pyx_ptype_7cpython_4type_type = __Pyx_ImportType_3_0_7(__pyx_t_1, __Pyx_BUILTIN_MODULE_NAME, "type",
   #if defined(PYPY_VERSION_NUM) && PYPY_VERSION_NUM < 0x050B0000
   sizeof(PyTypeObject), __PYX_GET_STRUCT_ALIGNMENT_3_0_7(PyTypeObject),
   #elif CYTHON_COMPILING_IN_LIMITED_API
@@ -5991,6 +7852,7 @@ static int __Pyx_modinit_type_import_code(void) {
   #endif
   __Pyx_ImportType_CheckSize_Warn_3_0_7); if (!__pyx_ptype_7cpython_4type_type) __PYX_ERR(2, 9, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+<<<<<<< HEAD
   __pyx_t_1 = PyImport_ImportModule("numpy"); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 202, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_ptype_5numpy_dtype = __Pyx_ImportType_3_0_7(__pyx_t_1, "numpy", "dtype", sizeof(PyArray_Descr), __PYX_GET_STRUCT_ALIGNMENT_3_0_7(PyArray_Descr),__Pyx_ImportType_CheckSize_Ignore_3_0_7); if (!__pyx_ptype_5numpy_dtype) __PYX_ERR(1, 202, __pyx_L1_error)
@@ -6008,6 +7870,40 @@ static int __Pyx_modinit_type_import_code(void) {
   __pyx_ptype_5numpy_flexible = __Pyx_ImportType_3_0_7(__pyx_t_1, "numpy", "flexible", sizeof(PyObject), __PYX_GET_STRUCT_ALIGNMENT_3_0_7(PyObject),__Pyx_ImportType_CheckSize_Warn_3_0_7); if (!__pyx_ptype_5numpy_flexible) __PYX_ERR(1, 828, __pyx_L1_error)
   __pyx_ptype_5numpy_character = __Pyx_ImportType_3_0_7(__pyx_t_1, "numpy", "character", sizeof(PyObject), __PYX_GET_STRUCT_ALIGNMENT_3_0_7(PyObject),__Pyx_ImportType_CheckSize_Warn_3_0_7); if (!__pyx_ptype_5numpy_character) __PYX_ERR(1, 830, __pyx_L1_error)
   __pyx_ptype_5numpy_ufunc = __Pyx_ImportType_3_0_7(__pyx_t_1, "numpy", "ufunc", sizeof(PyUFuncObject), __PYX_GET_STRUCT_ALIGNMENT_3_0_7(PyUFuncObject),__Pyx_ImportType_CheckSize_Ignore_3_0_7); if (!__pyx_ptype_5numpy_ufunc) __PYX_ERR(1, 868, __pyx_L1_error)
+=======
+  __pyx_t_1 = PyImport_ImportModule("numpy"); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 199, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_ptype_5numpy_dtype = __Pyx_ImportType(__pyx_t_1, "numpy", "dtype", sizeof(PyArray_Descr), __Pyx_ImportType_CheckSize_Ignore);
+   if (!__pyx_ptype_5numpy_dtype) __PYX_ERR(1, 199, __pyx_L1_error)
+  __pyx_ptype_5numpy_flatiter = __Pyx_ImportType(__pyx_t_1, "numpy", "flatiter", sizeof(PyArrayIterObject), __Pyx_ImportType_CheckSize_Ignore);
+   if (!__pyx_ptype_5numpy_flatiter) __PYX_ERR(1, 222, __pyx_L1_error)
+  __pyx_ptype_5numpy_broadcast = __Pyx_ImportType(__pyx_t_1, "numpy", "broadcast", sizeof(PyArrayMultiIterObject), __Pyx_ImportType_CheckSize_Ignore);
+   if (!__pyx_ptype_5numpy_broadcast) __PYX_ERR(1, 226, __pyx_L1_error)
+  __pyx_ptype_5numpy_ndarray = __Pyx_ImportType(__pyx_t_1, "numpy", "ndarray", sizeof(PyArrayObject), __Pyx_ImportType_CheckSize_Ignore);
+   if (!__pyx_ptype_5numpy_ndarray) __PYX_ERR(1, 238, __pyx_L1_error)
+  __pyx_ptype_5numpy_generic = __Pyx_ImportType(__pyx_t_1, "numpy", "generic", sizeof(PyObject), __Pyx_ImportType_CheckSize_Warn);
+   if (!__pyx_ptype_5numpy_generic) __PYX_ERR(1, 770, __pyx_L1_error)
+  __pyx_ptype_5numpy_number = __Pyx_ImportType(__pyx_t_1, "numpy", "number", sizeof(PyObject), __Pyx_ImportType_CheckSize_Warn);
+   if (!__pyx_ptype_5numpy_number) __PYX_ERR(1, 772, __pyx_L1_error)
+  __pyx_ptype_5numpy_integer = __Pyx_ImportType(__pyx_t_1, "numpy", "integer", sizeof(PyObject), __Pyx_ImportType_CheckSize_Warn);
+   if (!__pyx_ptype_5numpy_integer) __PYX_ERR(1, 774, __pyx_L1_error)
+  __pyx_ptype_5numpy_signedinteger = __Pyx_ImportType(__pyx_t_1, "numpy", "signedinteger", sizeof(PyObject), __Pyx_ImportType_CheckSize_Warn);
+   if (!__pyx_ptype_5numpy_signedinteger) __PYX_ERR(1, 776, __pyx_L1_error)
+  __pyx_ptype_5numpy_unsignedinteger = __Pyx_ImportType(__pyx_t_1, "numpy", "unsignedinteger", sizeof(PyObject), __Pyx_ImportType_CheckSize_Warn);
+   if (!__pyx_ptype_5numpy_unsignedinteger) __PYX_ERR(1, 778, __pyx_L1_error)
+  __pyx_ptype_5numpy_inexact = __Pyx_ImportType(__pyx_t_1, "numpy", "inexact", sizeof(PyObject), __Pyx_ImportType_CheckSize_Warn);
+   if (!__pyx_ptype_5numpy_inexact) __PYX_ERR(1, 780, __pyx_L1_error)
+  __pyx_ptype_5numpy_floating = __Pyx_ImportType(__pyx_t_1, "numpy", "floating", sizeof(PyObject), __Pyx_ImportType_CheckSize_Warn);
+   if (!__pyx_ptype_5numpy_floating) __PYX_ERR(1, 782, __pyx_L1_error)
+  __pyx_ptype_5numpy_complexfloating = __Pyx_ImportType(__pyx_t_1, "numpy", "complexfloating", sizeof(PyObject), __Pyx_ImportType_CheckSize_Warn);
+   if (!__pyx_ptype_5numpy_complexfloating) __PYX_ERR(1, 784, __pyx_L1_error)
+  __pyx_ptype_5numpy_flexible = __Pyx_ImportType(__pyx_t_1, "numpy", "flexible", sizeof(PyObject), __Pyx_ImportType_CheckSize_Warn);
+   if (!__pyx_ptype_5numpy_flexible) __PYX_ERR(1, 786, __pyx_L1_error)
+  __pyx_ptype_5numpy_character = __Pyx_ImportType(__pyx_t_1, "numpy", "character", sizeof(PyObject), __Pyx_ImportType_CheckSize_Warn);
+   if (!__pyx_ptype_5numpy_character) __PYX_ERR(1, 788, __pyx_L1_error)
+  __pyx_ptype_5numpy_ufunc = __Pyx_ImportType(__pyx_t_1, "numpy", "ufunc", sizeof(PyUFuncObject), __Pyx_ImportType_CheckSize_Ignore);
+   if (!__pyx_ptype_5numpy_ufunc) __PYX_ERR(1, 826, __pyx_L1_error)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_RefNannyFinishContext();
   return 0;
@@ -6277,6 +8173,28 @@ if (!__Pyx_RefNanny) {
   #if defined(WITH_THREAD) && PY_VERSION_HEX < 0x030700F0 && defined(__PYX_FORCE_INIT_THREADS) && __PYX_FORCE_INIT_THREADS
   PyEval_InitThreads();
   #endif
+<<<<<<< HEAD
+=======
+  /*--- Module creation code ---*/
+  #if CYTHON_PEP489_MULTI_PHASE_INIT
+  __pyx_m = __pyx_pyinit_module;
+  Py_INCREF(__pyx_m);
+  #else
+  #if PY_MAJOR_VERSION < 3
+  __pyx_m = Py_InitModule4("_openjpeg", __pyx_methods, 0, 0, PYTHON_API_VERSION); Py_XINCREF(__pyx_m);
+  #else
+  __pyx_m = PyModule_Create(&__pyx_moduledef);
+  #endif
+  if (unlikely(!__pyx_m)) __PYX_ERR(0, 1, __pyx_L1_error)
+  #endif
+  __pyx_d = PyModule_GetDict(__pyx_m); if (unlikely(!__pyx_d)) __PYX_ERR(0, 1, __pyx_L1_error)
+  Py_INCREF(__pyx_d);
+  __pyx_b = PyImport_AddModule(__Pyx_BUILTIN_MODULE_NAME); if (unlikely(!__pyx_b)) __PYX_ERR(0, 1, __pyx_L1_error)
+  Py_INCREF(__pyx_b);
+  __pyx_cython_runtime = PyImport_AddModule((char *) "cython_runtime"); if (unlikely(!__pyx_cython_runtime)) __PYX_ERR(0, 1, __pyx_L1_error)
+  Py_INCREF(__pyx_cython_runtime);
+  if (PyObject_SetAttrString(__pyx_m, "__builtins__", __pyx_b) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   /*--- Initialize various global constants etc. ---*/
   if (__Pyx_InitConstants() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   stringtab_initialized = 1;
@@ -6284,14 +8202,19 @@ if (!__Pyx_RefNanny) {
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
-  if (__pyx_module_is_main__openjpeg) {
+  if (__pyx_module_is_main_openjpeg___openjpeg) {
     if (PyObject_SetAttr(__pyx_m, __pyx_n_s_name, __pyx_n_s_main) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) __PYX_ERR(0, 1, __pyx_L1_error)
+<<<<<<< HEAD
     if (!PyDict_GetItemString(modules, "_openjpeg")) {
       if (unlikely((PyDict_SetItemString(modules, "_openjpeg", __pyx_m) < 0))) __PYX_ERR(0, 1, __pyx_L1_error)
+=======
+    if (!PyDict_GetItemString(modules, "openjpeg._openjpeg")) {
+      if (unlikely(PyDict_SetItemString(modules, "openjpeg._openjpeg", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
     }
   }
   #endif
@@ -6312,11 +8235,11 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "_openjpeg.pyx":3
+  /* "openjpeg/_openjpeg.pyx":3
  * # cython: language_level=3
  * # distutils: language=c
  * from math import ceil             # <<<<<<<<<<<<<<
- * 
+ *
  * from libc.stdint cimport uint32_t
  */
   __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 3, __pyx_L1_error)
@@ -6333,20 +8256,20 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "_openjpeg.pyx":8
- * 
+  /* "openjpeg/_openjpeg.pyx":8
+ *
  * from cpython.ref cimport PyObject
  * import numpy as np             # <<<<<<<<<<<<<<
  * cimport numpy as np
- * 
+ *
  */
   __pyx_t_3 = __Pyx_ImportDottedModule(__pyx_n_s_numpy, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 8, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_3) < 0) __PYX_ERR(0, 8, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "_openjpeg.pyx":26
- * 
+  /* "openjpeg/_openjpeg.pyx":26
+ *
  * ERRORS = {
  *     1: "failed to create the input stream",             # <<<<<<<<<<<<<<
  *     2: "failed to setup the decoder",
@@ -6365,53 +8288,89 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_ERRORS, __pyx_t_3) < 0) __PYX_ERR(0, 25, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "_openjpeg.pyx":37
- * 
- * 
+  /* "openjpeg/_openjpeg.pyx":37
+ *
+ *
  * def get_version():             # <<<<<<<<<<<<<<
  *     """Return the openjpeg version as bytes."""
  *     cdef char *version = OpenJpegVersion()
  */
+<<<<<<< HEAD
   __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_9_openjpeg_1get_version, 0, __pyx_n_s_get_version, NULL, __pyx_n_s_openjpeg, __pyx_d, ((PyObject *)__pyx_codeobj__7)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_version, __pyx_t_3) < 0) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+=======
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_8openjpeg_9_openjpeg_1get_version, NULL, __pyx_n_s_openjpeg__openjpeg); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 37, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_version, __pyx_t_2) < 0) __PYX_ERR(0, 37, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
 
-  /* "_openjpeg.pyx":44
- * 
- * 
+  /* "openjpeg/_openjpeg.pyx":44
+ *
+ *
  * def decode(fp, codec=0):             # <<<<<<<<<<<<<<
  *     """Return the decoded JPEG 2000 data from Python file-like `fp`.
- * 
+ *
  */
+<<<<<<< HEAD
   __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_9_openjpeg_3decode, 0, __pyx_n_s_decode, NULL, __pyx_n_s_openjpeg, __pyx_d, ((PyObject *)__pyx_codeobj__9)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_tuple__10);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_decode, __pyx_t_3) < 0) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+=======
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_8openjpeg_9_openjpeg_3decode, NULL, __pyx_n_s_openjpeg__openjpeg); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_decode, __pyx_t_2) < 0) __PYX_ERR(0, 44, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
 
-  /* "_openjpeg.pyx":89
- * 
- * 
+  /* "openjpeg/_openjpeg.pyx":89
+ *
+ *
  * def get_parameters(fp, codec=0):             # <<<<<<<<<<<<<<
  *     """Return a :class:`dict` containing the JPEG 2000 image parameters.
- * 
+ *
  */
+<<<<<<< HEAD
   __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_9_openjpeg_5get_parameters, 0, __pyx_n_s_get_parameters, NULL, __pyx_n_s_openjpeg, __pyx_d, ((PyObject *)__pyx_codeobj__12)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 89, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_tuple__10);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_parameters, __pyx_t_3) < 0) __PYX_ERR(0, 89, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+=======
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_8openjpeg_9_openjpeg_5get_parameters, NULL, __pyx_n_s_openjpeg__openjpeg); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 89, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_parameters, __pyx_t_2) < 0) __PYX_ERR(0, 89, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
 
-  /* "_openjpeg.pyx":1
+  /* "openjpeg/_openjpeg.pyx":1
  * # cython: language_level=3             # <<<<<<<<<<<<<<
  * # distutils: language=c
  * from math import ceil
  */
+<<<<<<< HEAD
   __pyx_t_3 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_3) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+=======
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_2) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "../.venv/lib/python3.10/site-packages/numpy/__init__.pxd":1013
+ *
+ *
+ * cdef inline NPY_DATETIMEUNIT get_datetime64_unit(object obj) nogil:             # <<<<<<<<<<<<<<
+ *     """
+ *     returns the unit part of the dtype for a numpy datetime64 object.
+ */
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
 
   /*--- Wrapped vars code ---*/
 
@@ -6420,8 +8379,13 @@ if (!__Pyx_RefNanny) {
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   if (__pyx_m) {
+<<<<<<< HEAD
     if (__pyx_d && stringtab_initialized) {
       __Pyx_AddTraceback("init _openjpeg", __pyx_clineno, __pyx_lineno, __pyx_filename);
+=======
+    if (__pyx_d) {
+      __Pyx_AddTraceback("init openjpeg._openjpeg", __pyx_clineno, __pyx_lineno, __pyx_filename);
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
     }
     #if !CYTHON_USE_MODULE_STATE
     Py_CLEAR(__pyx_m);
@@ -6435,7 +8399,7 @@ if (!__Pyx_RefNanny) {
     }
     #endif
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init _openjpeg");
+    PyErr_SetString(PyExc_ImportError, "init openjpeg._openjpeg");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -7006,12 +8970,28 @@ bad:
 
 /* TupleAndListFromArray */
 #if CYTHON_COMPILING_IN_CPYTHON
+<<<<<<< HEAD
 static CYTHON_INLINE void __Pyx_copy_object_array(PyObject *const *CYTHON_RESTRICT src, PyObject** CYTHON_RESTRICT dest, Py_ssize_t length) {
     PyObject *v;
     Py_ssize_t i;
     for (i = 0; i < length; i++) {
         v = dest[i] = src[i];
         Py_INCREF(v);
+=======
+static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw) {
+    PyObject *result;
+    ternaryfunc call = Py_TYPE(func)->tp_call;
+    if (unlikely(!call))
+        return PyObject_Call(func, arg, kw);
+    if (unlikely(Py_EnterRecursiveCall((char*)" while calling a Python object")))
+        return NULL;
+    result = (*call)(func, arg, kw);
+    Py_LeaveRecursiveCall();
+    if (unlikely(!result) && unlikely(!PyErr_Occurred())) {
+        PyErr_SetString(
+            PyExc_SystemError,
+            "NULL result without error in PyObject_Call");
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
     }
 }
 static CYTHON_INLINE PyObject *
@@ -7730,7 +9710,7 @@ static PyObject* __Pyx_PyInt_TrueDivideObjC(PyObject *op1, PyObject *op2, long i
     if (likely(PyInt_CheckExact(op1))) {
         const long b = intval;
         long a = PyInt_AS_LONG(op1);
-        
+
             if (8 * sizeof(long) <= 53 || likely(labs(a) <= ((PY_LONG_LONG)1 << 53))) {
                 return PyFloat_FromDouble((double)a / (double)b);
             }
@@ -7794,7 +9774,7 @@ static PyObject* __Pyx_PyInt_TrueDivideObjC(PyObject *op1, PyObject *op2, long i
                 }
                 return PyLong_Type.tp_as_number->nb_true_divide(op1, op2);
             return PyLong_FromLong(x);
-        
+
     }
     #endif
     if (PyFloat_CheckExact(op1)) {
@@ -7805,7 +9785,7 @@ static PyObject* __Pyx_PyInt_TrueDivideObjC(PyObject *op1, PyObject *op2, long i
         double a = PyFloat_AS_DOUBLE(op1);
 #endif
             double result;
-            
+
             PyFPE_START_PROTECT("divide", return NULL)
             result = ((double)a) / (double)b;
             PyFPE_END_PROTECT(result)
@@ -9526,7 +11506,11 @@ static PyObject *__Pyx_CyFunction_New(PyMethodDef *ml, int flags, PyObject* qual
 
 /* CLineInTraceback */
 #ifndef CYTHON_CLINE_IN_TRACEBACK
+<<<<<<< HEAD
 static int __Pyx_CLineForTraceback(PyThreadState *tstate, int c_line) {
+=======
+static int __Pyx_CLineForTraceback(CYTHON_UNUSED PyThreadState *tstate, int c_line) {
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
     PyObject *use_cline;
     PyObject *ptype, *pvalue, *ptraceback;
 #if CYTHON_COMPILING_IN_CPYTHON
@@ -9653,12 +11637,17 @@ static void __pyx_insert_code_object(int code_line, PyCodeObject* code_object) {
 #include "compile.h"
 #include "frameobject.h"
 #include "traceback.h"
+<<<<<<< HEAD
 #if PY_VERSION_HEX >= 0x030b00a6 && !CYTHON_COMPILING_IN_LIMITED_API
+=======
+#if PY_VERSION_HEX >= 0x030b00a6
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
   #ifndef Py_BUILD_CORE
     #define Py_BUILD_CORE 1
   #endif
   #include "internal/pycore_frame.h"
 #endif
+<<<<<<< HEAD
 #if CYTHON_COMPILING_IN_LIMITED_API
 static PyObject *__Pyx_PyCode_Replace_For_AddTraceback(PyObject *code, PyObject *scratch_dict,
                                                        PyObject *firstlineno, PyObject *name) {
@@ -9742,6 +11731,8 @@ static void __Pyx_AddTraceback(const char *funcname, int c_line,
     Py_XDECREF(frame);
 }
 #else
+=======
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
 static PyCodeObject* __Pyx_CreateCodeObjectForTraceback(
             const char *funcname, int c_line,
             int py_line, const char *filename) {
@@ -11106,6 +13097,7 @@ static CYTHON_INLINE int __Pyx_PyErr_GivenExceptionMatches2(PyObject *err, PyObj
 #endif
 
 /* CheckBinaryVersion */
+<<<<<<< HEAD
 static unsigned long __Pyx_get_runtime_version(void) {
 #if __PYX_LIMITED_VERSION_HEX >= 0x030B00A4
     return Py_Version & ~0xFFUL;
@@ -11137,7 +13129,36 @@ static int __Pyx_check_binary_version(unsigned long ct_version, unsigned long rt
     if (likely(allow_newer && (rt_version & MAJOR_MINOR) > (ct_version & MAJOR_MINOR)))
         return 1;
     {
+=======
+static int __Pyx_check_binary_version(void) {
+    char ctversion[5];
+    int same=1, i, found_dot;
+    const char* rt_from_call = Py_GetVersion();
+    PyOS_snprintf(ctversion, 5, "%d.%d", PY_MAJOR_VERSION, PY_MINOR_VERSION);
+    found_dot = 0;
+    for (i = 0; i < 4; i++) {
+        if (!ctversion[i]) {
+            same = (rt_from_call[i] < '0' || rt_from_call[i] > '9');
+            break;
+        }
+        if (rt_from_call[i] != ctversion[i]) {
+            same = 0;
+            break;
+        }
+    }
+    if (!same) {
+        char rtversion[5] = {'\0'};
+>>>>>>> bfb3362bd8f4454d2999287434d8b8cd61769986
         char message[200];
+        for (i=0; i<4; ++i) {
+            if (rt_from_call[i] == '.') {
+                if (found_dot) break;
+                found_dot = 1;
+            } else if (rt_from_call[i] < '0' || rt_from_call[i] > '9') {
+                break;
+            }
+            rtversion[i] = rt_from_call[i];
+        }
         PyOS_snprintf(message, sizeof(message),
                       "compile time Python version %d.%d "
                       "of module '%.100s' "

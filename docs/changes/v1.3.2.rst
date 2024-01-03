@@ -1,0 +1,9 @@
+.. _v1.3.2:
+
+1.3.2
+=====
+
+Changes
+.......
+
+* Added wheels for Python 3.11 (contributed by James Meakin)
