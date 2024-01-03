@@ -30,8 +30,8 @@ classifiers=[
 "Topic :: Software Development :: Libraries",
 ]
 description = """\
-    A Python framework for decoding JPEG and decoding/encoding DICOM\
-    RLE data, with a focus on supporting pydicom\
+    "A Python wrapper for openjpeg, with a focus on use as a plugin for "\
+    "for pylibjpeg"\
 """
 homepage = "https://github.com/pydicom/pylibjpeg-openjpeg"
 include = [
@@ -44,12 +44,14 @@ include = [
     "openjpeg/src/openjpeg/*.md",
     "openjpeg/src/openjpeg/LICENSE",
     "build_tools/*",
-    {path = "*.so", format= "wheel"},
 ]
-keywords = ["dicom pydicom python imaging jpg jpeg jpg-ls jpeg-ls jpeg2k jpeg2000 rle"]
+keywords = ["dicom pydicom python imaging jpg jpeg jpeg2k jpeg2000 pylibjpeg openjpeg"]
 license = "MIT"
 maintainers = ["scaramallion <scaramallion@users.noreply.github.com>"]
-name = "openjpeg"
+name = "pylibjpeg-openjpeg"
+packages = [
+    {include = "openjpeg"}
+]
 readme = "README.md"
 version = "2.0.0.dev0"
 
@@ -85,7 +87,7 @@ omit = [
 [tool.mypy]
 python_version = "3.8"
 files = "openjpeg"
-exclude = ["openjpeg/tests", "openjpeg/tools/tests"]
+exclude = ["openjpeg/tests"]
 show_error_codes = true
 warn_redundant_casts = true
 warn_unused_ignores = true

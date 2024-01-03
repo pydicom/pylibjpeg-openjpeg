@@ -3,6 +3,9 @@ name: release-deploy
 on:
   release:
     types: [ published ]
+  push:
+    branches: [ main ]
+  pull_request:
 
 jobs:
   build-sdist:
@@ -10,19 +13,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: true
 
     - uses: actions/setup-python@v4
       name: Install Python
       with:
-        python-version: '3.11'
+        python-version: '3.10'
 
     - name: Build sdist
       run: |
-        python -m pip install .
-        python setup.py sdist
+        python -m pip install -U pip
+        python -m pip install poetry
+        poetry build -f sdist
 
     - name: Store artifacts
       uses: actions/upload-artifact@v3
@@ -38,9 +42,6 @@ jobs:
       matrix:
         include:
           # Windows 32 bit
-          - os: windows-latest
-            python: 37
-            platform_id: win32
           - os: windows-latest
             python: 38
             platform_id: win32
@@ -59,9 +60,6 @@ jobs:
 
           # Windows 64 bit
           - os: windows-latest
-            python: 37
-            platform_id: win_amd64
-          - os: windows-latest
             python: 38
             platform_id: win_amd64
           - os: windows-latest
@@ -79,10 +77,6 @@ jobs:
 
           # Linux 64 bit manylinux2014
           - os: ubuntu-latest
-            python: 37
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
-          - os: ubuntu-latest
             python: 38
             platform_id: manylinux_x86_64
             manylinux_image: manylinux2014
@@ -100,18 +94,11 @@ jobs:
             manylinux_image: manylinux2014
           - os: ubuntu-latest
             python: 312
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
-          - os: ubuntu-latest
-            python: 311
             platform_id: manylinux_x86_64
             manylinux_image: manylinux2014
 
           # Linux aarch64
           - os: ubuntu-latest
-            python: 37
-            platform_id: manylinux_aarch64
-          - os: ubuntu-latest
             python: 38
             platform_id: manylinux_aarch64
           - os: ubuntu-latest
@@ -123,11 +110,11 @@ jobs:
           - os: ubuntu-latest
             python: 311
             platform_id: manylinux_aarch64
+          - os: ubuntu-latest
+            python: 312
+            platform_id: manylinux_aarch64
 
           # MacOS x86_64
-          - os: macos-latest
-            python: 37
-            platform_id: macosx_x86_64
           - os: macos-latest
             python: 38
             platform_id: macosx_x86_64
@@ -141,9 +128,6 @@ jobs:
             platform_id: macosx_x86_64
           - os: macos-latest
             python: 312
-            platform_id: macosx_x86_64
-          - os: macos-latest
-            python: 311
             platform_id: macosx_x86_64
 
           # MacOS arm64
@@ -164,7 +148,7 @@ jobs:
             platform_id: macosx_arm64
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: true
 
@@ -182,7 +166,7 @@ jobs:
     - name: Install cibuildwheel
       run: |
         python -m pip install -U pip
-        python -m pip install cibuildwheel==2.16.2
+        python -m pip install cibuildwheel>=2.16
 
     - name: Build wheels
       env:
@@ -232,8 +216,8 @@ jobs:
         python -m pip install pytest pydicom pylibjpeg
         python -m pip uninstall -y pylibjpeg-openjpeg
         python -m pip install git+https://github.com/pydicom/pylibjpeg-data
-        python -m pip install -U --find-links dist/ pylibjpeg-openjpeg
-        python -c "import pytest; pytest.main(['--pyargs', 'openjpeg.tests'])"
+        python -m pip install -U --pre --find-links dist/ pylibjpeg-openjpeg
+        python -m pytest --pyargs openjpeg.tests
         deactivate
 
     - name: Install from package tarball and test
@@ -244,36 +228,36 @@ jobs:
         python -m pip install pytest pydicom pylibjpeg
         python -m pip uninstall -y pylibjpeg-openjpeg
         python -m pip install git+https://github.com/pydicom/pylibjpeg-data
-        python -m pip install -U dist/pylibjpeg-openjpeg-*.tar.gz
-        python -c "import pytest; pytest.main(['--pyargs', 'openjpeg.tests'])"
+        python -m pip install -U dist/pylibjpeg*openjpeg-*.tar.gz
+        python -m pytest --pyargs openjpeg.tests
         deactivate
 
 
   # The pypi upload fails with non-linux containers, so grab the uploaded
   #     artifacts and run using those
   # See: https://github.com/pypa/gh-action-pypi-publish/discussions/15
-  deploy:
-    name: Upload wheels to PyPI
-    needs: [ test-package ]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    steps:
-    - name: Download the wheels
-      uses: actions/download-artifact@v3
-      with:
-        name: wheels
-        path: dist/
-
-    #- name: Publish package to Test PyPi
-    #  uses: pypa/gh-action-pypi-publish@master
-    #  with:
-    #    user: __token__
-    #    password: ${{ secrets.TEST_PYPI_PASSWORD }}
-    #    repository_url: https://test.pypi.org/legacy/
-
-    - name: Publish package to PyPi
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_PASSWORD }}
+  # deploy:
+  #   name: Upload wheels to PyPI
+  #   needs: [ test-package ]
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 10
+  #
+  #   steps:
+  #   - name: Download the wheels
+  #     uses: actions/download-artifact@v3
+  #     with:
+  #       name: wheels
+  #       path: dist/
+  #
+  #   #- name: Publish package to Test PyPi
+  #   #  uses: pypa/gh-action-pypi-publish@master
+  #   #  with:
+  #   #    user: __token__
+  #   #    password: ${{ secrets.TEST_PYPI_PASSWORD }}
+  #   #    repository_url: https://test.pypi.org/legacy/
+  #
+  #   - name: Publish package to PyPi
+  #     uses: pypa/gh-action-pypi-publish@master
+  #     with:
+  #       user: __token__
+  #       password: ${{ secrets.PYPI_PASSWORD }}
