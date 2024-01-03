@@ -55,7 +55,7 @@ class HandlerTestBase(object):
     """Baseclass for handler tests."""
     uid = None
 
-    def setup(self):
+    def setup_method(self):
         self.ds = get_indexed_datasets(self.uid)
 
     def plot(self, arr, index=None, cmap=None):

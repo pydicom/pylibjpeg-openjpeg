@@ -2,7 +2,7 @@ name: unit-tests
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
         arch: ['x64', 'x86']
 
     steps:
@@ -48,7 +48,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
 
     steps:
     - uses: actions/checkout@v3
@@ -82,7 +82,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
 
     steps:
     - uses: actions/checkout@v3
@@ -110,7 +110,8 @@ jobs:
         pip install pydicom pylibjpeg
         pytest --cov openjpeg --ignore=openjpeg/src/openjpeg
 
-    - name: Switch to pydicom dev and rerun pytest
+    - name: Switch to pydicom dev and rerun pytest (3.10+)
+      if: ${{ contains('3.10 3.11 3.12', matrix.python-version) }}
       run: |
         pip uninstall -y pydicom
         pip install git+https://github.com/pydicom/pydicom

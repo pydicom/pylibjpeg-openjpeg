@@ -1,9 +1,97 @@
 [build-system]
 requires = [
-    "setuptools == 60.5",
-    "cython == 0.29.33",
-    "wheel == 0.37",
-    "numpy==1.20; python_version=='3.7'",
-    "numpy==1.22; python_version>='3.8' and python_version<'3.11'",
-    "numpy==1.23.2; python_version>='3.11'",
+    "poetry-core >=1.8,<2",
+    "numpy >= 1.24",
+    "cython >= 3.0",
+    "setuptools",
 ]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.build]
+script = "build.py"
+generate-setup-file = true
+
+[tool.poetry]
+authors = ["pylibjpeg-openjpeg contributors"]
+classifiers=[
+"License :: OSI Approved :: MIT License",
+"Intended Audience :: Developers",
+"Intended Audience :: Healthcare Industry",
+"Intended Audience :: Science/Research",
+"Development Status :: 5 - Production/Stable",
+"Natural Language :: English",
+"Programming Language :: Python :: 3.8",
+"Programming Language :: Python :: 3.9",
+"Programming Language :: Python :: 3.10",
+"Programming Language :: Python :: 3.11",
+"Programming Language :: Python :: 3.12",
+"Operating System :: OS Independent",
+"Topic :: Scientific/Engineering :: Medical Science Apps.",
+"Topic :: Software Development :: Libraries",
+]
+description = """\
+    A Python framework for decoding JPEG and decoding/encoding DICOM\
+    RLE data, with a focus on supporting pydicom\
+"""
+homepage = "https://github.com/pydicom/pylibjpeg-openjpeg"
+include = [
+    "openjpeg/src/interface/*",
+    # openjpeg source file includes
+    "openjpeg/src/openjpeg/src/lib/openjp2/*",
+    "openjpeg/src/openjpeg/src/lib/CMakeLists.txt",
+    "openjpeg/src/openjpeg/src/CMakeLists.txt",
+    "openjpeg/src/openjpeg/cmake/*",
+    "openjpeg/src/openjpeg/*.md",
+    "openjpeg/src/openjpeg/LICENSE",
+    "build_tools/*",
+    {path = "*.so", format= "wheel"},
+]
+keywords = ["dicom pydicom python imaging jpg jpeg jpg-ls jpeg-ls jpeg2k jpeg2000 rle"]
+license = "MIT"
+maintainers = ["scaramallion <scaramallion@users.noreply.github.com>"]
+name = "openjpeg"
+readme = "README.md"
+version = "2.0.0.dev0"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+numpy = "^1.24"
+
+# Optional dependencies
+black = { version = "^23.1", optional = true }
+coverage = { version = "^7.3", optional = true }
+mypy = { version = "^1.7", optional = true }
+pytest = { version = "^7.4", optional = true }
+pytest-cov = { version = "^4.1", optional = true }
+pylibjpeg-data = { git = "https://github.com/pydicom/pylibjpeg-data.git"}
+
+[tool.poetry.extras]
+dev = ["black", "coverage", "mypy", "pytest", "pytest-cov"]
+tests = ["coverage", "pytest", "pytest-cov", "pylibjpeg-data"]
+
+[tool.poetry.plugins."pylibjpeg.jpeg_2000_decoders"]
+openjpeg = "openjpeg:decode"
+
+[tool.poetry.plugins."pylibjpeg.pixel_data_decoders"]
+"1.2.840.10008.1.2.4.90" = "openjpeg:decode_pixel_data"
+"1.2.840.10008.1.2.4.91" = "openjpeg:decode_pixel_data"
+
+
+[tool.coverage.run]
+omit = [
+    "openjpeg/tests/*",
+]
+
+[tool.mypy]
+python_version = "3.8"
+files = "openjpeg"
+exclude = ["openjpeg/tests", "openjpeg/tools/tests"]
+show_error_codes = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+warn_unreachable = false
+ignore_missing_imports = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
