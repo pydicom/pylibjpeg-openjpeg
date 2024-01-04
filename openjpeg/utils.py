@@ -1,18 +1,26 @@
 
 from io import BytesIO
 from math import ceil
+import os
 from pathlib import Path
+from typing import BinaryIO, Tuple, Union, TYPE_CHECKING, Any, Dict, cast
 import warnings
+
+import numpy as np
 
 import _openjpeg
 
 
-def _get_format(stream):
+if TYPE_CHECKING:  # pragma: no cover
+    from pydicom.dataset import Dataset
+
+
+def _get_format(stream: BinaryIO) -> int:
     """Return the JPEG 2000 format for the encoded data in `stream`.
 
     Parameters
     ----------
-    stream : bytes or file-like
+    stream : file-like
         A Python object containing the encoded JPEG 2000 data. If not
         :class:`bytes` then the object must have ``tell()``, ``seek()`` and
         ``read()`` methods.
@@ -56,13 +64,17 @@ def _get_format(stream):
     raise ValueError("No matching JPEG 2000 format found")
 
 
-def get_openjpeg_version():
+def get_openjpeg_version() -> Tuple[int, ...]:
     """Return the openjpeg version as tuple of int."""
     version = _openjpeg.get_version().decode("ascii").split(".")
     return tuple([int(ii) for ii in version])
 
 
-def decode(stream, j2k_format=None, reshape=True):
+def decode(
+    stream: Union[str, os.PathLike, bytes, bytearray, BinaryIO],
+    j2k_format: Union[int, None] = None,
+    reshape: bool = True,
+) -> np.ndarray:
     """Return the decoded JPEG2000 data from `stream` as a
     :class:`numpy.ndarray`.
 
@@ -98,42 +110,53 @@ def decode(stream, j2k_format=None, reshape=True):
     """
     if isinstance(stream, (str, Path)):
         with open(stream, 'rb') as f:
-            stream = f.read()
-
-    if isinstance(stream, (bytes, bytearray)):
-        stream = BytesIO(stream)
-
-    required_methods = ["read", "tell", "seek"]
-    if not all([hasattr(stream, meth) for meth in required_methods]):
-        raise TypeError(
-            "The Python object containing the encoded JPEG 2000 data must "
-            "either be bytes or have read(), tell() and seek() methods."
-        )
+            buffer: BinaryIO = BytesIO(f.read())
+            buffer.seek(0)
+    elif isinstance(stream, (bytes, bytearray)):
+        buffer = BytesIO(stream)
+    else:
+        # BinaryIO
+        required_methods = ["read", "tell", "seek"]
+        if not all([hasattr(stream, meth) for meth in required_methods]):
+            raise TypeError(
+                "The Python object containing the encoded JPEG 2000 data must "
+                "either be bytes or have read(), tell() and seek() methods."
+            )
+        buffer = stream
 
     if j2k_format is None:
-        j2k_format = _get_format(stream)
+        j2k_format = _get_format(buffer)
 
     if j2k_format not in [0, 1, 2]:
         raise ValueError(f"Unsupported 'j2k_format' value: {j2k_format}")
 
-    arr = _openjpeg.decode(stream, j2k_format)
+    arr = cast(np.ndarray, _openjpeg.decode(buffer, j2k_format))
     if not reshape:
         return arr
 
-    meta = get_parameters(stream, j2k_format)
-    bpp = ceil(meta["precision"] / 8)
+    meta = get_parameters(buffer, j2k_format)
+    precision = cast(int, meta["precision"])
+    rows = cast(int, meta["rows"])
+    columns = cast(int, meta["columns"])
+    pixels_per_sample = cast(int, meta["nr_components"])
+    pixel_representation = cast(bool, meta["is_signed"])
+    bpp = ceil(precision / 8)
 
-    dtype = f"uint{8 * bpp}" if not meta["is_signed"] else f"int{8 * bpp}"
+    dtype = f"u{bpp}" if not pixel_representation else f"i{bpp}"
     arr = arr.view(dtype)
 
-    shape = [meta["rows"], meta["columns"]]
-    if meta["nr_components"] > 1:
-        shape.append(meta["nr_components"])
+    shape = [rows, columns]
+    if pixels_per_sample> 1:
+        shape.append(pixels_per_sample)
 
     return arr.reshape(*shape)
 
 
-def decode_pixel_data(stream, ds=None, **kwargs):
+def decode_pixel_data(
+    stream: Union[bytes, bytearray, BinaryIO],
+    ds: "Dataset" = None,
+    **kwargs: Any
+) -> np.ndarray:
     """Return the decoded JPEG 2000 data as a :class:`numpy.ndarray`.
 
     Intended for use with *pydicom* ``Dataset`` objects.
@@ -189,7 +212,7 @@ def decode_pixel_data(stream, ds=None, **kwargs):
     )
 
     if not ds and no_kwargs:
-        return arr
+        return cast(np.ndarray, arr)
 
     samples_per_pixel = ds.get("SamplesPerPixel", samples_per_pixel)
     bits_stored = ds.get("BitsStored", bits_stored)
@@ -224,10 +247,13 @@ def decode_pixel_data(stream, ds=None, **kwargs):
             f"JPEG 2000 data '{val}'"
         )
 
-    return arr
+    return cast(np.ndarray, arr)
 
 
-def get_parameters(stream, j2k_format=None):
+def get_parameters(
+    stream: Union[str, os.PathLike, bytes, bytearray, BinaryIO],
+    j2k_format: Union[int, None] = None,
+) -> Dict[str, Union[int, str, bool]]:
     """Return a :class:`dict` containing the JPEG2000 image parameters.
 
     .. versionchanged:: 1.1
@@ -263,22 +289,27 @@ def get_parameters(stream, j2k_format=None):
     """
     if isinstance(stream, (str, Path)):
         with open(stream, 'rb') as f:
-            stream = f.read()
-
-    if isinstance(stream, (bytes, bytearray)):
-        stream = BytesIO(stream)
-
-    required_methods = ["read", "tell", "seek"]
-    if not all([hasattr(stream, func) for func in required_methods]):
-        raise TypeError(
-            "The Python object containing the encoded JPEG 2000 data must "
-            "either be bytes or have read(), tell() and seek() methods."
-        )
+            buffer: BinaryIO = BytesIO(f.read())
+            buffer.seek(0)
+    elif isinstance(stream, (bytes, bytearray)):
+        buffer = BytesIO(stream)
+    else:
+        # BinaryIO
+        required_methods = ["read", "tell", "seek"]
+        if not all([hasattr(stream, meth) for meth in required_methods]):
+            raise TypeError(
+                "The Python object containing the encoded JPEG 2000 data must "
+                "either be bytes or have read(), tell() and seek() methods."
+            )
+        buffer = stream
 
     if j2k_format is None:
-        j2k_format = _get_format(stream)
+        j2k_format = _get_format(buffer)
 
     if j2k_format not in [0, 1, 2]:
         raise ValueError(f"Unsupported 'j2k_format' value: {j2k_format}")
 
-    return _openjpeg.get_parameters(stream, j2k_format)
+    return cast(
+        Dict[str, Union[str, int, bool]],
+        _openjpeg.get_parameters(buffer, j2k_format),
+    )

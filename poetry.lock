@@ -311,10 +311,49 @@ dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
+name = "pydicom"
+version = "2.4.4"
+description = "A pure Python package for reading and writing DICOM data"
+optional = true
+python-versions = ">=3.7"
+files = [
+    {file = "pydicom-2.4.4-py3-none-any.whl", hash = "sha256:f9f8e19b78525be57aa6384484298833e4d06ac1d6226c79459131ddb0bd7c42"},
+    {file = "pydicom-2.4.4.tar.gz", hash = "sha256:90b4801d851ce65be3df520e16bbfa3d6c767cf2a3a3b1c18f6780e6b670b87a"},
+]
+
+[package.extras]
+docs = ["matplotlib", "numpy", "numpydoc", "pillow", "sphinx", "sphinx-copybutton", "sphinx-gallery", "sphinx_rtd_theme", "sphinxcontrib-napoleon"]
+
+[[package]]
+name = "pylibjpeg"
+version = "2.0.0.dev0"
+description = "A Python framework for decoding JPEG and decoding/encoding DICOMRLE data, with a focus on supporting pydicom"
+optional = true
+python-versions = ">=3.8"
+files = []
+develop = false
+
+[package.dependencies]
+numpy = "*"
+
+[package.extras]
+all = ["pylibjpeg-libjpeg", "pylibjpeg-openjpeg", "pylibjpeg-rle"]
+dev = ["black (==23.12.1)", "mypy (==1.8.0)", "pytest", "pytest-cov"]
+libjpeg = ["pylibjpeg-libjpeg"]
+openjpeg = ["pylibjpeg-openjpeg"]
+rle = ["pylibjpeg-rle"]
+
+[package.source]
+type = "git"
+url = "https://github.com/pydicom/pylibjpeg.git"
+reference = "HEAD"
+resolved_reference = "1b4fab891295aed33c6a504ab983e48cf763cc0e"
+
+[[package]]
 name = "pylibjpeg-data"
 version = "1.0.0.dev0"
 description = "Optional JPEG and DICOM data used for testing pylibjpeg"
-optional = false
+optional = true
 python-versions = ">=3.6"
 files = []
 develop = false
@@ -389,9 +428,9 @@ files = [
 
 [extras]
 dev = ["black", "coverage", "mypy", "pytest", "pytest-cov"]
-tests = ["coverage", "pylibjpeg-data", "pytest", "pytest-cov"]
+tests = ["coverage", "pydicom", "pylibjpeg", "pylibjpeg-data", "pytest", "pytest-cov"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "fa474af2ba57592aba0fee6940e9429b0e6899490a235c2bc5157782328801ff"
+content-hash = "e4f29c6332ebc09ac33a172012e49c702d00f76e4bc2d29661ca0c33304e4b60"
