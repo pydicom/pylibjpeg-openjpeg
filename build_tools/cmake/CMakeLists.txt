@@ -103,6 +103,8 @@ set (EXECUTABLE_OUTPUT_PATH ${OPENJPEG_BINARY_DIR}/bin CACHE PATH "Single output
 set (LIBRARY_OUTPUT_PATH ${OPENJPEG_BINARY_DIR}/bin CACHE PATH "Single output directory for building all libraries.")
 mark_as_advanced(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
 
+set(BUILD_SHARED_LIBS ON)
+
 #-----------------------------------------------------------------------------
 # configure name mangling to allow multiple libraries to coexist
 # peacefully
