@@ -14,20 +14,20 @@ generate-setup-file = true
 [tool.poetry]
 authors = ["pylibjpeg-openjpeg contributors"]
 classifiers=[
-"License :: OSI Approved :: MIT License",
-"Intended Audience :: Developers",
-"Intended Audience :: Healthcare Industry",
-"Intended Audience :: Science/Research",
-"Development Status :: 5 - Production/Stable",
-"Natural Language :: English",
-"Programming Language :: Python :: 3.8",
-"Programming Language :: Python :: 3.9",
-"Programming Language :: Python :: 3.10",
-"Programming Language :: Python :: 3.11",
-"Programming Language :: Python :: 3.12",
-"Operating System :: OS Independent",
-"Topic :: Scientific/Engineering :: Medical Science Apps.",
-"Topic :: Software Development :: Libraries",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Healthcare Industry",
+    "Intended Audience :: Science/Research",
+    "Development Status :: 5 - Production/Stable",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Topic :: Software Development :: Libraries",
 ]
 description = """\
     "A Python wrapper for openjpeg, with a focus on use as a plugin for "\
@@ -46,7 +46,7 @@ include = [
     "build_tools/*",
 ]
 keywords = ["dicom pydicom python imaging jpg jpeg jpeg2k jpeg2000 pylibjpeg openjpeg"]
-license = {text = "MIT"}
+license = "MIT"
 maintainers = ["scaramallion <scaramallion@users.noreply.github.com>"]
 name = "pylibjpeg-openjpeg"
 packages = [
