@@ -1,6 +1,7 @@
 # cython: language_level=3
 # distutils: language=c
 from math import ceil
+from typing import Union, Dict, BinaryIO
 
 from libc.stdint cimport uint32_t
 
@@ -34,14 +35,18 @@ ERRORS = {
 }
 
 
-def get_version():
+def get_version() -> bytes:
     """Return the openjpeg version as bytes."""
     cdef char *version = OpenJpegVersion()
 
     return version
 
 
-def decode(fp, codec=0):
+def decode(
+    fp: BinaryIO,
+    codec: int = 0,
+    as_array: bool = False
+) -> Union[np.ndarray, bytearray]:
     """Return the decoded JPEG 2000 data from Python file-like `fp`.
 
     Parameters
@@ -55,11 +60,16 @@ def decode(fp, codec=0):
         * ``0``: JPEG-2000 codestream
         * ``1``: JPT-stream (JPEG 2000, JPIP)
         * ``2``: JP2 file format
+    as_array : bool, optional
+        If ``True`` then return the decoded image data as a :class:`numpy.ndarray`
+        otherwise return the data as a :class:`bytearray` (default).
 
     Returns
     -------
-    numpy.ndarray
-        An ndarray of uint8 containing the decoded image data.
+    bytearray | numpy.ndarray
+        If `as_array` is False (default) then returns the decoded image data
+        as a :class:`bytearray`, otherwise returns the image data as a
+        :class:`numpy.ndarray`.
 
     Raises
     ------
@@ -71,22 +81,24 @@ def decode(fp, codec=0):
     nr_bytes = param['rows'] * param['columns'] * param['nr_components'] * bpp
 
     cdef PyObject* p_in = <PyObject*>fp
-    arr = np.zeros(nr_bytes, dtype=np.uint8)
-    cdef unsigned char *p_out = <unsigned char *>np.PyArray_DATA(arr)
+    cdef unsigned char *p_out
+    if as_array:
+        out = np.zeros(nr_bytes, dtype=np.uint8)
+        p_out = <unsigned char *>np.PyArray_DATA(out)
+    else:
+        out = bytearray(nr_bytes)
+        p_out = <unsigned char *>out
 
     result = Decode(p_in, p_out, codec)
     if result != 0:
-        try:
-            msg = f": {ERRORS[result]}"
-        except KeyError:
-            pass
+        raise RuntimeError(
+            f"Error decoding the J2K data: {ERRORS.get(result, result)}"
+        )
 
-        raise RuntimeError("Error decoding the J2K data" + msg)
-
-    return arr
+    return out
 
 
-def get_parameters(fp, codec=0):
+def get_parameters(fp: BinaryIO, codec: int = 0) -> Dict[str, Union[str, int, bool]]:
     """Return a :class:`dict` containing the JPEG 2000 image parameters.
 
     Parameters

@@ -24,7 +24,7 @@ def generate_frames(ds):
 
 
 @pytest.mark.skipif(not HAS_PYDICOM, reason="pydicom unavailable")
-class TestHandler(object):
+class TestHandler:
     """Tests for the pixel data handler."""
     def test_invalid_type_raises(self):
         """Test decoding using invalid type raises."""
@@ -51,7 +51,7 @@ class TestHandler(object):
         assert (length,) == arr.shape
 
 
-class HandlerTestBase(object):
+class HandlerTestBase:
     """Baseclass for handler tests."""
     uid = None
 
@@ -76,7 +76,7 @@ class HandlerTestBase(object):
 
 
 @pytest.mark.skipif(not HAS_PYDICOM, reason="No dependencies")
-class TestLibrary(object):
+class TestLibrary:
     """Tests for libjpeg itself."""
     def test_non_conformant_raises(self):
         """Test that a non-conformant JPEG image raises an exception."""
