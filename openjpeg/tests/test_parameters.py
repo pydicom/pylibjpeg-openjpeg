@@ -66,18 +66,22 @@ def test_bad_decode():
     with pytest.raises(RuntimeError, match=msg):
         get_parameters(stream)
 
+
 def test_subsampling():
     """Test parameters with subsampled data (see #36)."""
     jpg = DIR_15444 / "2KLS" / "oj36.j2k"
     params = get_parameters(jpg)
-    print(params)
-    # 0: (1, 1)
-    # 1: (2, 1)
-    # 2: (2, 1)
+    assert params["rows"] == 256
+    assert params["columns"] == 256
+    assert params["colourspace"] == "unspecified"
+    assert params["nr_components"] == 3
+    assert params["precision"] == 8
+    assert params["is_signed"] is False
+    assert params["nr_tiles"] == 0
 
 
 @pytest.mark.skipif(not HAS_PYDICOM, reason="No pydicom")
-class TestGetParametersDCM(object):
+class TestGetParametersDCM:
     """Tests for get_parameters() using DICOM datasets."""
     @pytest.mark.parametrize("fname, info", REF_DCM['1.2.840.10008.1.2.4.90'])
     def test_jpeg2000r(self, fname, info):

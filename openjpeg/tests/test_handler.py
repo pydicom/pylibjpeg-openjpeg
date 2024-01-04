@@ -24,7 +24,7 @@ def generate_frames(ds):
 
 
 @pytest.mark.skipif(not HAS_PYDICOM, reason="pydicom unavailable")
-class TestHandler(object):
+class TestHandler:
     """Tests for the pixel data handler."""
     def test_invalid_type_raises(self):
         """Test decoding using invalid type raises."""
@@ -33,10 +33,7 @@ class TestHandler(object):
         frame = tuple(next(generate_frames(ds)))
         assert not hasattr(frame, 'tell') and not isinstance(frame, bytes)
 
-        msg = (
-            r"The Python object containing the encoded JPEG 2000 data must "
-            r"either be bytes or have read\(\), tell\(\) and seek\(\) methods."
-        )
+        msg = "a bytes-like object is required, not 'tuple'"
         with pytest.raises(TypeError, match=msg):
             decode_pixel_data(frame)
 
@@ -51,7 +48,7 @@ class TestHandler(object):
         assert (length,) == arr.shape
 
 
-class HandlerTestBase(object):
+class HandlerTestBase:
     """Baseclass for handler tests."""
     uid = None
 
@@ -76,7 +73,7 @@ class HandlerTestBase(object):
 
 
 @pytest.mark.skipif(not HAS_PYDICOM, reason="No dependencies")
-class TestLibrary(object):
+class TestLibrary:
     """Tests for libjpeg itself."""
     def test_non_conformant_raises(self):
         """Test that a non-conformant JPEG image raises an exception."""

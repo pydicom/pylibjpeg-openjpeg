@@ -17,7 +17,12 @@ import numpy as np
 import pytest
 
 from openjpeg.data import get_indexed_datasets, JPEG_DIRECTORY
-from openjpeg.utils import get_openjpeg_version, decode, get_parameters
+from openjpeg.utils import (
+    get_openjpeg_version,
+    decode,
+    get_parameters,
+    decode_pixel_data,
+)
 
 
 DIR_15444 = JPEG_DIRECTORY / '15444'
@@ -84,7 +89,7 @@ def test_bad_decode():
         decode(frame)
 
 
-class TestDecode(object):
+class TestDecode:
     """General tests for decode."""
     @pytest.mark.skipif(not HAS_PYDICOM, reason="No pydicom")
     def test_decode_bytes(self):
@@ -217,9 +222,97 @@ class TestDecode(object):
         assert (256, 256, 3) == arr.shape
         assert [235, 244, 245] == arr[0, 0, :].tolist()
 
+    def test_reference_J2KLS(self):
+        """Test the reference J2KLS images."""
+        d = DIR_15444 / "2KLS"
+        arr = decode(d / "693.j2k")
+        assert arr[270, 55:65].tolist() == [
+            340, 815, 1229, 1358, 1351, 1302, 1069, 618, 215, 71
+        ]
+        arr = decode(d / "oj36.j2k")
+        assert arr[60, 35:45].tolist() == [
+            [160, 171, 199],
+            [174, 182, 193],
+            [190, 198, 209],
+            [209, 217, 213],
+            [219, 227, 223],
+            [226, 235, 221],
+            [233, 242, 228],
+            [239, 246, 236],
+            [243, 250, 240],
+            [247, 250, 248],
+        ]
+
+    def test_reference_HTJ2K(self):
+        """Test the reference HTJ2K images."""
+        d = DIR_15444 / "HTJ2K"
+
+        arr = decode(d / "Bretagne1_ht_lossy.j2k")
+        assert arr[160, 295:305].tolist() == [
+            [ 91,  37,  2],
+            [ 94,  40,  1],
+            [ 97,  42,  5],
+            [174, 123, 59],
+            [172, 132, 69],
+            [169, 134, 74],
+            [168, 136, 77],
+            [168, 137, 80],
+            [168, 136, 80],
+            [169, 136, 78],
+        ]
+        assert arr[275:285, 635].tolist() == [
+            [207, 193, 171],
+            [238, 229, 215],
+            [235, 228, 216],
+            [233, 226, 213],
+            [238, 231, 218],
+            [239, 232, 219],
+            [225, 218, 206],
+            [240, 234, 223],
+            [247, 240, 232],
+            [242, 236, 227],
+        ]
+
+        arr = decode(d / "Bretagne1_ht.j2k")
+        assert arr[160, 295:305].tolist() == [
+            [ 90,  38,  1],
+            [ 94,  40,  1],
+            [ 97,  42,  5],
+            [173, 122, 59],
+            [172, 133, 69],
+            [169, 135, 75],
+            [168, 136, 79],
+            [169, 137, 79],
+            [169, 137, 81],
+            [169, 136, 79],
+        ]
+        assert arr[275:285, 635].tolist() == [
+            [208, 193, 172],
+            [238, 228, 215],
+            [235, 229, 216],
+            [233, 226, 212],
+            [239, 231, 218],
+            [238, 232, 219],
+            [224, 218, 205],
+            [239, 234, 223],
+            [246, 241, 232],
+            [242, 236, 226],
+        ]
+
+    def test_decode_pixel_data(self):
+        """Test decode_pixel_data"""
+        d = DIR_15444 / "2KLS"
+        with (d / "693.j2k").open("rb") as f:
+            buffer = decode_pixel_data(f.read(), version=2)
+            assert isinstance(buffer, bytearray)
+            arr = np.frombuffer(buffer, dtype="i2").reshape((512, 512))
+            assert arr[270, 55:65].tolist() == [
+                340, 815, 1229, 1358, 1351, 1302, 1069, 618, 215, 71
+            ]
+
 
 @pytest.mark.skipif(not HAS_PYDICOM, reason="No pydicom")
-class TestDecodeDCM(object):
+class TestDecodeDCM:
     """Tests for get_parameters() using DICOM datasets."""
     @pytest.mark.parametrize("fname, info", REF_DCM['1.2.840.10008.1.2.4.90'])
     def test_jpeg2000r(self, fname, info):

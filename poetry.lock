@@ -354,7 +354,7 @@ name = "pylibjpeg-data"
 version = "1.0.0.dev0"
 description = "Optional JPEG and DICOM data used for testing pylibjpeg"
 optional = true
-python-versions = ">=3.6"
+python-versions = ">=3.8"
 files = []
 develop = false
 
@@ -362,7 +362,7 @@ develop = false
 type = "git"
 url = "https://github.com/pydicom/pylibjpeg-data.git"
 reference = "HEAD"
-resolved_reference = "2ab4b8a65b070656eca2582bd23197a3d01cdccd"
+resolved_reference = "916aa154a06ac6e85678d8bcffe4273814752c96"
 
 [[package]]
 name = "pytest"

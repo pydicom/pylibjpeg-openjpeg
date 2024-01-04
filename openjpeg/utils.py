@@ -1,4 +1,5 @@
 
+from enum import IntEnum
 from io import BytesIO
 from math import ceil
 import os
@@ -13,6 +14,11 @@ import _openjpeg
 
 if TYPE_CHECKING:  # pragma: no cover
     from pydicom.dataset import Dataset
+
+
+class Version(IntEnum):
+    v1 = 1
+    v2 = 2
 
 
 def _get_format(stream: BinaryIO) -> int:
@@ -122,7 +128,7 @@ def decode(
                 "The Python object containing the encoded JPEG 2000 data must "
                 "either be bytes or have read(), tell() and seek() methods."
             )
-        buffer = stream
+        buffer = cast(BinaryIO, stream)
 
     if j2k_format is None:
         j2k_format = _get_format(buffer)
@@ -130,7 +136,7 @@ def decode(
     if j2k_format not in [0, 1, 2]:
         raise ValueError(f"Unsupported 'j2k_format' value: {j2k_format}")
 
-    arr = cast(np.ndarray, _openjpeg.decode(buffer, j2k_format))
+    arr = cast(np.ndarray, _openjpeg.decode(buffer, j2k_format, as_array=True))
     if not reshape:
         return arr
 
@@ -153,17 +159,18 @@ def decode(
 
 
 def decode_pixel_data(
-    stream: Union[bytes, bytearray, BinaryIO],
-    ds: "Dataset" = None,
+    src: bytes,
+    ds: Union["Dataset", Dict[str, Any], None] = None,
+    version: int = Version.v1,
     **kwargs: Any
-) -> np.ndarray:
+) -> Union[np.ndarray, bytearray]:
     """Return the decoded JPEG 2000 data as a :class:`numpy.ndarray`.
 
     Intended for use with *pydicom* ``Dataset`` objects.
 
     Parameters
     ----------
-    stream : bytes or file-like
+    src : bytes
         A Python object containing the encoded JPEG 2000 data. If not
         :class:`bytes` then the object must have ``tell()``, ``seek()`` and
         ``read()`` methods.
@@ -173,81 +180,83 @@ def decode_pixel_data(
         *Samples per Pixel*, *Bits Stored* and *Pixel Representation* values
         will be checked against the JPEG 2000 data and warnings issued if
         different.
+    version : int, optional
+
+        * If ``1`` (default) then return the image data as an :class:`numpy.ndarray`
+        * If ``2`` then return the image data as :class:`bytearray`
 
     Returns
     -------
-    numpy.ndarray
-        A 1D array of ``numpy.uint8`` containing the decoded image data.
+    bytearray | numpy.ndarray
+        The image data as either a bytearray or ndarray.
 
     Raises
     ------
     RuntimeError
         If the decoding failed.
     """
-    if isinstance(stream, (bytes, bytearray)):
-        stream = BytesIO(stream)
+    buffer = BytesIO(src)
+    j2k_format = _get_format(buffer)
 
-    required_methods = ["read", "tell", "seek"]
-    if not all([hasattr(stream, meth) for meth in required_methods]):
-        raise TypeError(
-            "The Python object containing the encoded JPEG 2000 data must "
-            "either be bytes or have read(), tell() and seek() methods."
+    # Version 1
+    if version == Version.v1:
+        if j2k_format != 0:
+            warnings.warn(
+                "The (7FE0,0010) Pixel Data contains a JPEG 2000 codestream "
+                "with the optional JP2 file format header, which is "
+                "non-conformant to the DICOM Standard (Part 5, Annex A.4.4)"
+            )
+
+        arr = _openjpeg.decode(buffer, j2k_format, as_array=True)
+
+        samples_per_pixel = kwargs.get("samples_per_pixel")
+        bits_stored = kwargs.get("bits_stored")
+        pixel_representation = kwargs.get("pixel_representation")
+        no_kwargs = None in (
+            samples_per_pixel, bits_stored, pixel_representation
         )
 
-    j2k_format = _get_format(stream)
-    if j2k_format != 0:
-        warnings.warn(
-            "The (7FE0,0010) Pixel Data contains a JPEG 2000 codestream "
-            "with the optional JP2 file format header, which is "
-            "non-conformant to the DICOM Standard (Part 5, Annex A.4.4)"
-        )
+        if not ds and no_kwargs:
+            return cast(np.ndarray, arr)
 
-    arr = _openjpeg.decode(stream, j2k_format)
 
-    samples_per_pixel = kwargs.get("samples_per_pixel")
-    bits_stored = kwargs.get("bits_stored")
-    pixel_representation = kwargs.get("pixel_representation")
-    no_kwargs = None in (
-        samples_per_pixel, bits_stored, pixel_representation
-    )
+        samples_per_pixel = ds.get("SamplesPerPixel", samples_per_pixel)
+        bits_stored = ds.get("BitsStored", bits_stored)
+        pixel_representation = ds.get("PixelRepresentation", pixel_representation)
 
-    if not ds and no_kwargs:
+        meta = get_parameters(buffer, j2k_format)
+        if samples_per_pixel != meta["nr_components"]:
+            warnings.warn(
+                f"The (0028,0002) Samples per Pixel value '{samples_per_pixel}' "
+                f"in the dataset does not match the number of components "
+                f"\'{meta['nr_components']}\' found in the JPEG 2000 data. "
+                f"It's recommended that you change the  Samples per Pixel value "
+                f"to produce the correct output"
+            )
+
+        if bits_stored != meta["precision"]:
+            warnings.warn(
+                f"The (0028,0101) Bits Stored value '{bits_stored}' in the "
+                f"dataset does not match the component precision value "
+                f"\'{meta['precision']}\' found in the JPEG 2000 data. "
+                f"It's recommended that you change the Bits Stored value to "
+                f"produce the correct output"
+            )
+
+        if bool(pixel_representation) != meta["is_signed"]:
+            val = "signed" if meta["is_signed"] else "unsigned"
+            ds_val = "signed" if bool(pixel_representation) else "unsigned"
+            ds_val = f"'{pixel_representation}' ({ds_val})"
+            warnings.warn(
+                f"The (0028,0103) Pixel Representation value {ds_val} in the "
+                f"dataset does not match the format of the values found in the "
+                f"JPEG 2000 data '{val}'"
+            )
+
         return cast(np.ndarray, arr)
 
-    samples_per_pixel = ds.get("SamplesPerPixel", samples_per_pixel)
-    bits_stored = ds.get("BitsStored", bits_stored)
-    pixel_representation = ds.get("PixelRepresentation", pixel_representation)
-
-    meta = get_parameters(stream, j2k_format)
-    if samples_per_pixel != meta["nr_components"]:
-        warnings.warn(
-            f"The (0028,0002) Samples per Pixel value '{samples_per_pixel}' "
-            f"in the dataset does not match the number of components "
-            f"\'{meta['nr_components']}\' found in the JPEG 2000 data. "
-            f"It's recommended that you change the  Samples per Pixel value "
-            f"to produce the correct output"
-        )
-
-    if bits_stored != meta["precision"]:
-        warnings.warn(
-            f"The (0028,0101) Bits Stored value '{bits_stored}' in the "
-            f"dataset does not match the component precision value "
-            f"\'{meta['precision']}\' found in the JPEG 2000 data. "
-            f"It's recommended that you change the Bits Stored value to "
-            f"produce the correct output"
-        )
-
-    if bool(pixel_representation) != meta["is_signed"]:
-        val = "signed" if meta["is_signed"] else "unsigned"
-        ds_val = "signed" if bool(pixel_representation) else "unsigned"
-        ds_val = f"'{pixel_representation}' ({ds_val})"
-        warnings.warn(
-            f"The (0028,0103) Pixel Representation value {ds_val} in the "
-            f"dataset does not match the format of the values found in the "
-            f"JPEG 2000 data '{val}'"
-        )
-
-    return cast(np.ndarray, arr)
+    # Version 2
+    return cast(bytearray, _openjpeg.decode(buffer, j2k_format, as_array=False))
 
 
 def get_parameters(
@@ -301,7 +310,7 @@ def get_parameters(
                 "The Python object containing the encoded JPEG 2000 data must "
                 "either be bytes or have read(), tell() and seek() methods."
             )
-        buffer = stream
+        buffer = cast(BinaryIO, stream)
 
     if j2k_format is None:
         j2k_format = _get_format(buffer)

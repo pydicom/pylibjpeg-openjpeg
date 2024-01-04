@@ -14,20 +14,20 @@ generate-setup-file = true
 [tool.poetry]
 authors = ["pylibjpeg-openjpeg contributors"]
 classifiers=[
-"License :: OSI Approved :: MIT License",
-"Intended Audience :: Developers",
-"Intended Audience :: Healthcare Industry",
-"Intended Audience :: Science/Research",
-"Development Status :: 5 - Production/Stable",
-"Natural Language :: English",
-"Programming Language :: Python :: 3.8",
-"Programming Language :: Python :: 3.9",
-"Programming Language :: Python :: 3.10",
-"Programming Language :: Python :: 3.11",
-"Programming Language :: Python :: 3.12",
-"Operating System :: OS Independent",
-"Topic :: Scientific/Engineering :: Medical Science Apps.",
-"Topic :: Software Development :: Libraries",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Healthcare Industry",
+    "Intended Audience :: Science/Research",
+    "Development Status :: 5 - Production/Stable",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Topic :: Software Development :: Libraries",
 ]
 description = """\
     "A Python wrapper for openjpeg, with a focus on use as a plugin for "\
@@ -79,6 +79,9 @@ openjpeg = "openjpeg:decode"
 [tool.poetry.plugins."pylibjpeg.pixel_data_decoders"]
 "1.2.840.10008.1.2.4.90" = "openjpeg:decode_pixel_data"
 "1.2.840.10008.1.2.4.91" = "openjpeg:decode_pixel_data"
+"1.2.840.10008.1.2.4.201" = "openjpeg:decode_pixel_data"
+"1.2.840.10008.1.2.4.202" = "openjpeg:decode_pixel_data"
+"1.2.840.10008.1.2.4.203" = "openjpeg:decode_pixel_data"
 
 
 [tool.coverage.run]

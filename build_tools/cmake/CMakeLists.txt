@@ -95,6 +95,35 @@ include (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 TEST_BIG_ENDIAN(OPJ_BIG_ENDIAN)
 endif()
 
+#-----------------------------------------------------------------------------
+# OpenJPEG build configuration options.
+option(BUILD_SHARED_LIBS "Build OpenJPEG shared library and link executables against it." ON)
+option(BUILD_STATIC_LIBS "Build OpenJPEG static library." ON)
+set (EXECUTABLE_OUTPUT_PATH ${OPENJPEG_BINARY_DIR}/bin CACHE PATH "Single output directory for building all executables.")
+set (LIBRARY_OUTPUT_PATH ${OPENJPEG_BINARY_DIR}/bin CACHE PATH "Single output directory for building all libraries.")
+mark_as_advanced(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
+
+set(BUILD_SHARED_LIBS ON)
+
+#-----------------------------------------------------------------------------
+# configure name mangling to allow multiple libraries to coexist
+# peacefully
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/openjpeg_mangle.h.in)
+set(MANGLE_PREFIX ${OPENJPEG_LIBRARY_NAME})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/openjpeg_mangle.h.in
+               ${CMAKE_CURRENT_BINARY_DIR}/openjpeg_mangle.h
+               @ONLY)
+endif()
+
+#-----------------------------------------------------------------------------
+# Compiler specific flags:
+if(CMAKE_COMPILER_IS_GNUCC)
+  # For all builds, make sure openjpeg is std99 compliant:
+  # set(CMAKE_C_FLAGS "-Wall -std=c99 ${CMAKE_C_FLAGS}") # FIXME: this setting prevented us from setting a coverage build.
+  # Do not use ffast-math for all build, it would produce incorrect results, only set for release:
+  set(OPENJPEG_LIBRARY_COMPILE_OPTIONS ${OPENJPEG_LIBRARY_COMPILE_OPTIONS} "$<$<CONFIG:Release>:-ffast-math>")
+  set(OPENJP2_COMPILE_OPTIONS ${OPENJP2_COMPILE_OPTIONS} "$<$<CONFIG:Release>:-ffast-math>" -Wall -Wextra -Wconversion -Wunused-parameter -Wdeclaration-after-statement -Werror=declaration-after-statement)
+endif()
 
 #-----------------------------------------------------------------------------
 # opj_config.h generation (1/2)
