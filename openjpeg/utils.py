@@ -209,16 +209,21 @@ def decode_pixel_data(
 
         arr = _openjpeg.decode(buffer, j2k_format, as_array=True)
 
-        ds = {} if not ds else ds
+        samples_per_pixel = kwargs.get("samples_per_pixel")
+        bits_stored = kwargs.get("bits_stored")
+        pixel_representation = kwargs.get("pixel_representation")
+        no_kwargs = None in (
+            samples_per_pixel, bits_stored, pixel_representation
+        )
 
-        samples_per_pixel = ds.get("SamplesPerPixel", kwargs.get("samples_per_pixel"))
-        bits_stored = ds.get("BitsStored", kwargs.get("bits_stored"))
-        pixel_representation = ds.get("PixelRepresentation", kwargs.get("pixel_representation"))
-
-        if  None in (samples_per_pixel, bits_stored, pixel_representation):
+        if not ds and no_kwargs:
             return cast(np.ndarray, arr)
 
-        buffer.seek(0)
+
+        samples_per_pixel = ds.get("SamplesPerPixel", samples_per_pixel)
+        bits_stored = ds.get("BitsStored", bits_stored)
+        pixel_representation = ds.get("PixelRepresentation", pixel_representation)
+
         meta = get_parameters(buffer, j2k_format)
         if samples_per_pixel != meta["nr_components"]:
             warnings.warn(

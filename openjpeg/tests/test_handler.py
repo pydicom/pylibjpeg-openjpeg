@@ -33,10 +33,7 @@ class TestHandler:
         frame = tuple(next(generate_frames(ds)))
         assert not hasattr(frame, 'tell') and not isinstance(frame, bytes)
 
-        msg = (
-            r"The Python object containing the encoded JPEG 2000 data must "
-            r"either be bytes or have read\(\), tell\(\) and seek\(\) methods."
-        )
+        msg = "a bytes-like object is required, not 'tuple'"
         with pytest.raises(TypeError, match=msg):
             decode_pixel_data(frame)
 
