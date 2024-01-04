@@ -40,12 +40,28 @@ maintainers = ["scaramallion <scaramallion@users.noreply.github.com>"]
 name = "pylibjpeg-openjpeg"
 # We want to be able to build from sdist, so include required openjpeg src
 #   But don't include any openjpeg src in the built wheels
+include = [
+    # { path = "openjpeg/src/interface/*", format="sdist" },
+    # # openjpeg source file includes
+    # { path = "openjpeg/src/openjpeg/src/lib/openjp2/*", format="sdist" },
+    # { path = "openjpeg/src/openjpeg/src/lib/CMakeLists.txt", format="sdist" },
+    # { path = "openjpeg/src/openjpeg/src/CMakeLists.txt", format="sdist" },
+    # { path = "openjpeg/src/openjpeg/cmake/*", format="sdist" },
+    # { path = "openjpeg/src/openjpeg/*.md", format="sdist" },
+    { path = "lib/*", format="sdist" },
+    { path = "build_tools/*", format="sdist" },
+    # { path = "src/openjpeg" },
+]
+# exclude = [
+#     { path = "openjpeg/src/openjpeg/tests", format="wheel" },
+#     { path = "openjpeg/src", format="wheel" },
+# ]
 packages = [
-    {include = "openjpeg/*.py"},
-    {include = "openjpeg/*.pyx"},
-    {include = "openjpeg/py.typed"},
-    {include = "openjpeg/tests"},
-    {include = "openjpeg/src", format="sdist"}
+    {include = "openjpeg" },
+    # {include = "openjpeg/*.pyx"},
+    # {include = "openjpeg/py.typed"},
+    # {include = "openjpeg/tests/**/*.py"},
+    # {include = "openjpeg/src", format="sdist"}
 ]
 readme = "README.md"
 version = "2.0.0.dev0"

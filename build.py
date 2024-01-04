@@ -8,9 +8,12 @@ from typing import List, Any
 
 
 PACKAGE_DIR = Path(__file__).parent / "openjpeg"
-BUILD_TOOLS = PACKAGE_DIR.parent / "build_tools"
-OPENJPEG_SRC = PACKAGE_DIR / "src" / "openjpeg" / "src" / "lib" / "openjp2"
-INTERFACE_SRC = PACKAGE_DIR / "src" / "interface"
+LIB_DIR = Path(__file__).parent / "lib"
+BUILD_TOOLS = Path(__file__).parent / "build_tools"
+OPENJPEG_SRC = LIB_DIR / "openjpeg" / "src" / "lib" / "openjp2"
+INTERFACE_SRC = LIB_DIR / "interface"
+BUILD_DIR = LIB_DIR / "openjpeg" / "build"
+BACKUP_DIR = BUILD_TOOLS / "backup"
 
 
 def build(setup_kwargs: Any) -> Any:
@@ -53,6 +56,18 @@ def build(setup_kwargs: Any) -> Any:
 
     reset_oj()
 
+    # Remove openjpeg files from the wheel
+    # print(setup_kwargs["package_data"]["openjpeg"])
+    # print(setup_kwargs["packages"])
+    # setup_kwargs["package_data"]["openjpeg"] = []
+    # setup_kwargs["packages"] = [
+    #     p for p in setup_kwargs["packages"] if ".src.openjpeg" not in p
+    # ]
+    #
+    # print(setup_kwargs["package_data"]["openjpeg"])
+    # print(setup_kwargs["packages"])
+
+
     return setup_kwargs
 
 
@@ -72,37 +87,36 @@ def get_source_files() -> List[Path]:
         if fname.suffix == ".c":
             source_files.append(fname)
 
-    source_files = [p.relative_to(PACKAGE_DIR.parent) for p in source_files]
-    source_files.insert(0, Path("openjpeg/_openjpeg.pyx"))
+    source_files = [p.relative_to(Path(__file__).parent) for p in source_files]
+    source_files.insert(0, PACKAGE_DIR / "_openjpeg.pyx")
 
     return source_files
 
 
 def setup_oj() -> None:
     """Run custom cmake."""
-    base_dir = PACKAGE_DIR / "src" / "openjpeg"
+    base_dir = LIB_DIR / "openjpeg"
     p_openjpeg = base_dir / "src" / "lib" / "openjp2" / "openjpeg.c"
 
     # Backup original CMakeLists.txt and openjpeg.c files
-    backup_dir = BUILD_TOOLS / "backup"
-    if os.path.exists(backup_dir):
-        shutil.rmtree(backup_dir)
+    if os.path.exists(BACKUP_DIR):
+        shutil.rmtree(BACKUP_DIR)
 
-    backup_dir.mkdir(exist_ok=True, parents=True)
+    BACKUP_DIR.mkdir(exist_ok=True, parents=True)
 
     shutil.copy(
-        base_dir / "CMakeLists.txt",
-        backup_dir / "CMakeLists.txt.backup",
+        LIB_DIR / "openjpeg" / "CMakeLists.txt",
+        BACKUP_DIR / "CMakeLists.txt.backup",
     )
     shutil.copy(
-        p_openjpeg,
-        backup_dir / "openjpeg.c.backup",
+        OPENJPEG_SRC / "openjpeg.c",
+        BACKUP_DIR / "openjpeg.c.backup",
     )
 
     # Copy custom CMakeLists.txt file to openjpeg base dir
     shutil.copy(
         BUILD_TOOLS / "cmake" / "CMakeLists.txt",
-        base_dir,
+        LIB_DIR / "openjpeg" / "CMakeLists.txt",
     )
     # Edit openjpeg.c to remove the OPJ_API declaration
     with p_openjpeg.open("r") as f:
@@ -115,9 +129,8 @@ def setup_oj() -> None:
     with p_openjpeg.open("w") as f:
         f.write("".join(data))
 
-    build_dir = base_dir / "build"
-    if os.path.exists(build_dir):
-        shutil.rmtree(build_dir)
+    if os.path.exists(BUILD_DIR):
+        shutil.rmtree(BUILD_DIR)
 
     try:
         os.remove(INTERFACE_SRC / "opj_config.h")
@@ -125,11 +138,11 @@ def setup_oj() -> None:
     except:
         pass
 
-    os.mkdir(build_dir)
-    fpath = os.path.abspath(base_dir)
+    os.mkdir(BUILD_DIR)
+    # fpath =
     cur_dir = os.getcwd()
-    os.chdir(build_dir)
-    subprocess.call(['cmake', fpath])
+    os.chdir(BUILD_DIR)
+    subprocess.call(['cmake', os.fspath((LIB_DIR / "openjpeg").resolve(strict=True))])
     os.chdir(cur_dir)
 
     # Turn off JPIP
@@ -142,26 +155,21 @@ def setup_oj() -> None:
 def reset_oj() -> None:
     # Restore submodule to original state
     # Restore CMakeLists.txt and openjpeg.c files
-    base_dir = PACKAGE_DIR / "src" / "openjpeg"
-    build_dir = base_dir / "build"
-    backup_dir = BUILD_TOOLS / "backup"
-    p_openjpeg = base_dir / "src" / "lib" / "openjp2" / "openjpeg.c"
-
-    if (backup_dir / "CMakeLists.txt.backup").exists():
+    if (BACKUP_DIR / "CMakeLists.txt.backup").exists():
         shutil.copy(
-            backup_dir / "CMakeLists.txt.backup",
-            base_dir / "CMakeLists.txt",
+            BACKUP_DIR / "CMakeLists.txt.backup",
+            LIB_DIR / "openjpeg" / "CMakeLists.txt",
         )
 
-    if (backup_dir / "openjpeg.c.backup").exists():
+    if (BACKUP_DIR / "openjpeg.c.backup").exists():
         shutil.copy(
-            BUILD_TOOLS / "backup" / "openjpeg.c.backup",
-            p_openjpeg,
+            BACKUP_DIR / "openjpeg.c.backup",
+            OPENJPEG_SRC / "openjpeg.c",
         )
 
     # Cleanup added directories
-    if os.path.exists(build_dir):
-        shutil.rmtree(build_dir)
+    if os.path.exists(BUILD_DIR):
+        shutil.rmtree(BUILD_DIR)
 
-    if os.path.exists(backup_dir):
-        shutil.rmtree(backup_dir)
+    if os.path.exists(BACKUP_DIR):
+        shutil.rmtree(BACKUP_DIR)
