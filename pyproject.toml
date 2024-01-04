@@ -46,7 +46,7 @@ include = [
     "build_tools/*",
 ]
 keywords = ["dicom pydicom python imaging jpg jpeg jpeg2k jpeg2000 pylibjpeg openjpeg"]
-license = "MIT"
+license = {text = "MIT"}
 maintainers = ["scaramallion <scaramallion@users.noreply.github.com>"]
 name = "pylibjpeg-openjpeg"
 packages = [
