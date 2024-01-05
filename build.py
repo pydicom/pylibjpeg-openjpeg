@@ -56,18 +56,6 @@ def build(setup_kwargs: Any) -> Any:
 
     reset_oj()
 
-    # Remove openjpeg files from the wheel
-    # print(setup_kwargs["package_data"]["openjpeg"])
-    # print(setup_kwargs["packages"])
-    # setup_kwargs["package_data"]["openjpeg"] = []
-    # setup_kwargs["packages"] = [
-    #     p for p in setup_kwargs["packages"] if ".src.openjpeg" not in p
-    # ]
-    #
-    # print(setup_kwargs["package_data"]["openjpeg"])
-    # print(setup_kwargs["packages"])
-
-
     return setup_kwargs
 
 
