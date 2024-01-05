@@ -127,7 +127,6 @@ def setup_oj() -> None:
         pass
 
     os.mkdir(BUILD_DIR)
-    # fpath =
     cur_dir = os.getcwd()
     os.chdir(BUILD_DIR)
     subprocess.call(['cmake', os.fspath((LIB_DIR / "openjpeg").resolve(strict=True))])
