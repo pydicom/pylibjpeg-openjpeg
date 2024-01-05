@@ -34,23 +34,18 @@ description = """\
     "for pylibjpeg"\
 """
 homepage = "https://github.com/pydicom/pylibjpeg-openjpeg"
-include = [
-    "openjpeg/src/interface/*",
-    # openjpeg source file includes
-    "openjpeg/src/openjpeg/src/lib/openjp2/*",
-    "openjpeg/src/openjpeg/src/lib/CMakeLists.txt",
-    "openjpeg/src/openjpeg/src/CMakeLists.txt",
-    "openjpeg/src/openjpeg/cmake/*",
-    "openjpeg/src/openjpeg/*.md",
-    "openjpeg/src/openjpeg/LICENSE",
-    "build_tools/*",
-]
 keywords = ["dicom pydicom python imaging jpg jpeg jpeg2k jpeg2000 pylibjpeg openjpeg"]
 license = "MIT"
 maintainers = ["scaramallion <scaramallion@users.noreply.github.com>"]
 name = "pylibjpeg-openjpeg"
+# We want to be able to build from sdist, so include required openjpeg src
+#   But don't include any openjpeg src in the built wheels
+include = [
+    { path = "lib", format="sdist" },
+    { path = "build_tools", format="sdist" },
+]
 packages = [
-    {include = "openjpeg"}
+    {include = "openjpeg" },
 ]
 readme = "README.md"
 version = "2.0.0.dev0"

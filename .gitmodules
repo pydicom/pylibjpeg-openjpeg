@@ -1,3 +1,4 @@
-[submodule "openjpeg/src/openjpeg"]
-	path = openjpeg/src/openjpeg
-	url = https://github.com/uclouvain/openjpeg.git
+
+[submodule "lib/openjpeg"]
+	path = lib/openjpeg
+	url = https://github.com/uclouvain/openjpeg

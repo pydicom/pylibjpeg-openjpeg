@@ -36,6 +36,7 @@ python -m pip install pylibjpeg-openjpeg
 | ISO/IEC Standard | ITU Equivalent | JPEG Format |
 | --- | --- | --- |
 | [15444-1](https://www.iso.org/standard/78321.html) | [T.800](https://www.itu.int/rec/T-REC-T.800/en) | [JPEG 2000](https://jpeg.org/jpeg2000/) |
+| [15444-1](https://www.iso.org/standard/78321.html) | [T.800](https://www.itu.int/rec/T-REC-T.800/en) | [High-Throughput JPEG 2000](https://jpeg.org/jpeg2000/) |
 
 #### Encoding
 Encoding of JPEG 2000 images is not currently supported
@@ -46,6 +47,9 @@ Encoding of JPEG 2000 images is not currently supported
 | --- | --- |
 | 1.2.840.10008.1.2.4.90 | JPEG 2000 Image Compression (Lossless Only) |
 | 1.2.840.10008.1.2.4.91 | JPEG 2000 Image Compression |
+| 1.2.840.10008.1.2.4.201 | High-Throughput JPEG 2000 Image Compression (Lossless Only) |
+| 1.2.840.10008.1.2.4.202 | High-Throughput JPEG 2000 with RPCL Options Image Compression (Lossless Only) |
+| 1.2.840.10008.1.2.4.203 | High-Throughput JPEG 2000 Image Compression |
 
 
 ### Usage

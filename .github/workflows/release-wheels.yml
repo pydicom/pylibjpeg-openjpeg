@@ -31,7 +31,7 @@ jobs:
     - name: Store artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: wheels
+        name: sdist
         path: ./dist
 
   build-wheels:
@@ -184,7 +184,7 @@ jobs:
     - name: Store artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: wheels
+        name: wheel-${{ matrix.python }}-${{ matrix.platform_id }}
         path: ./dist
 
   test-package:
@@ -206,8 +206,8 @@ jobs:
     - name: Download the wheels
       uses: actions/download-artifact@v4
       with:
-        name: wheels
         path: dist/
+        merge-multiple: true
 
     - name: Install from package wheels and test
       run: |
