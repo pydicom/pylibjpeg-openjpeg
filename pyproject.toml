@@ -30,8 +30,8 @@ classifiers=[
     "Topic :: Software Development :: Libraries",
 ]
 description = """\
-    "A Python wrapper for openjpeg, with a focus on use as a plugin for "\
-    "for pylibjpeg"\
+A Python wrapper for openjpeg, with a focus on use as a plugin for \
+for pylibjpeg\
 """
 homepage = "https://github.com/pydicom/pylibjpeg-openjpeg"
 keywords = ["dicom pydicom python imaging jpg jpeg jpeg2k jpeg2000 pylibjpeg openjpeg"]
@@ -48,7 +48,7 @@ packages = [
     {include = "openjpeg" },
 ]
 readme = "README.md"
-version = "2.0.0.dev0"
+version = "2.0.0"
 
 [tool.poetry.dependencies]
 python = "^3.8"

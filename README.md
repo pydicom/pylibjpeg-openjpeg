@@ -1,13 +1,16 @@
-[![Build Status](https://github.com/pydicom/pylibjpeg-openjpeg/workflows/unit-tests/badge.svg)](https://github.com/pydicom/pylibjpeg-openjpeg/actions?query=workflow%3Aunit-tests)
-[![codecov](https://codecov.io/gh/pydicom/pylibjpeg-openjpeg/branch/master/graph/badge.svg)](https://codecov.io/gh/pydicom/pylibjpeg-openjpeg)
-[![PyPI version](https://badge.fury.io/py/pylibjpeg-openjpeg.svg)](https://badge.fury.io/py/pylibjpeg-openjpeg)
-[![Python versions](https://img.shields.io/pypi/pyversions/pylibjpeg-openjpeg.svg)](https://img.shields.io/pypi/pyversions/pylibjpeg-openjpeg.svg)
+<p align="center">
+<a href="https://github.com/pydicom/pylibjpeg-openjpeg/actions?query=workflow%3Aunit-tests"><img alt="Build status" src="https://github.com/pydicom/pylibjpeg-openjpeg/workflows/unit-tests/badge.svg"></a>
+<a href="https://codecov.io/gh/pydicom/pylibjpeg-openjpeg"><img alt="Test coverage" src="https://codecov.io/gh/pydicom/pylibjpeg-openjpeg/branch/main/graph/badge.svg"></a>
+<a href="https://pypi.org/project/pylibjpeg-openjpeg/"><img alt="PyPI versions" src="https://img.shields.io/pypi/v/pylibjpeg-openjpeg"></a>
+<a href="https://www.python.org/"><img alt="Python versions" src="https://img.shields.io/pypi/pyversions/pylibjpeg-openjpeg"></a>
+<a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+</p>
+
 
 ## pylibjpeg-openjpeg
 
 A Python 3.8+ wrapper for
-[openjpeg](https://github.com/uclouvain/openjpeg), with a focus on use as a
-plugin for [pylibjpeg](http://github.com/pydicom/pylibjpeg).
+[openjpeg](https://github.com/uclouvain/openjpeg), with a focus on use as a plugin for [pylibjpeg](http://github.com/pydicom/pylibjpeg).
 
 Linux, OSX and Windows are all supported.
 
@@ -36,7 +39,6 @@ python -m pip install pylibjpeg-openjpeg
 | ISO/IEC Standard | ITU Equivalent | JPEG Format |
 | --- | --- | --- |
 | [15444-1](https://www.iso.org/standard/78321.html) | [T.800](https://www.itu.int/rec/T-REC-T.800/en) | [JPEG 2000](https://jpeg.org/jpeg2000/) |
-| [15444-1](https://www.iso.org/standard/78321.html) | [T.800](https://www.itu.int/rec/T-REC-T.800/en) | [High-Throughput JPEG 2000](https://jpeg.org/jpeg2000/) |
 
 #### Encoding
 Encoding of JPEG 2000 images is not currently supported
