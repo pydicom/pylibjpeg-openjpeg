@@ -48,7 +48,7 @@ packages = [
     {include = "openjpeg" },
 ]
 readme = "README.md"
-version = "2.0.0"
+version = "2.1.0.dev0"
 
 [tool.poetry.dependencies]
 python = "^3.8"
