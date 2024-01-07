@@ -1,4 +1,3 @@
-
 from enum import IntEnum
 from io import BytesIO
 from math import ceil
@@ -19,6 +18,16 @@ if TYPE_CHECKING:  # pragma: no cover
 class Version(IntEnum):
     v1 = 1
     v2 = 2
+
+
+MAGIC_NUMBERS = {
+    # JPEG 2000 codestream, has no header, .j2k, .jpc, .j2c
+    b"\xff\x4f\xff\x51": 0,
+    # JP2 and JP2 RFC3745, .jp2
+    b"\x0d\x0a\x87\x0a": 2,
+    b"\x00\x00\x00\x0c\x6a\x50\x20\x20\x0d\x0a\x87\x0a": 2,
+    # JPT, .jpt - shrug
+}
 
 
 def _get_format(stream: BinaryIO) -> int:
@@ -46,24 +55,14 @@ def _get_format(stream: BinaryIO) -> int:
     """
     data = stream.read(20)
     stream.seek(0)
-    #print(" ".join([f"{ii:02X}" for ii in data[:12]]))
-
-    magic_numbers = {
-        # JPEG 2000 codestream, has no header, .j2k, .jpc, .j2c
-        b"\xff\x4f\xff\x51": 0,
-        # JP2 and JP2 RFC3745, .jp2
-        b"\x0d\x0a\x87\x0a": 2,
-        b"\x00\x00\x00\x0c\x6a\x50\x20\x20\x0d\x0a\x87\x0a": 2,
-        # JPT, .jpt - shrug
-    }
 
     try:
-        return magic_numbers[data[:4]]
+        return MAGIC_NUMBERS[data[:4]]
     except KeyError:
         pass
 
     try:
-        return magic_numbers[data[:12]]
+        return MAGIC_NUMBERS[data[:12]]
     except KeyError:
         pass
 
@@ -115,7 +114,7 @@ def decode(
         If the decoding failed.
     """
     if isinstance(stream, (str, Path)):
-        with open(stream, 'rb') as f:
+        with open(stream, "rb") as f:
             buffer: BinaryIO = BytesIO(f.read())
             buffer.seek(0)
     elif isinstance(stream, (bytes, bytearray)):
@@ -152,7 +151,7 @@ def decode(
     arr = arr.view(dtype)
 
     shape = [rows, columns]
-    if pixels_per_sample> 1:
+    if pixels_per_sample > 1:
         shape.append(pixels_per_sample)
 
     return arr.reshape(*shape)
@@ -162,7 +161,7 @@ def decode_pixel_data(
     src: bytes,
     ds: Union["Dataset", Dict[str, Any], None] = None,
     version: int = Version.v1,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> Union[np.ndarray, bytearray]:
     """Return the decoded JPEG 2000 data as a :class:`numpy.ndarray`.
 
@@ -212,14 +211,12 @@ def decode_pixel_data(
         samples_per_pixel = kwargs.get("samples_per_pixel")
         bits_stored = kwargs.get("bits_stored")
         pixel_representation = kwargs.get("pixel_representation")
-        no_kwargs = None in (
-            samples_per_pixel, bits_stored, pixel_representation
-        )
+        no_kwargs = None in (samples_per_pixel, bits_stored, pixel_representation)
 
         if not ds and no_kwargs:
             return cast(np.ndarray, arr)
 
-
+        ds = cast("Dataset", ds)
         samples_per_pixel = ds.get("SamplesPerPixel", samples_per_pixel)
         bits_stored = ds.get("BitsStored", bits_stored)
         pixel_representation = ds.get("PixelRepresentation", pixel_representation)
@@ -229,7 +226,7 @@ def decode_pixel_data(
             warnings.warn(
                 f"The (0028,0002) Samples per Pixel value '{samples_per_pixel}' "
                 f"in the dataset does not match the number of components "
-                f"\'{meta['nr_components']}\' found in the JPEG 2000 data. "
+                f"'{meta['nr_components']}' found in the JPEG 2000 data. "
                 f"It's recommended that you change the  Samples per Pixel value "
                 f"to produce the correct output"
             )
@@ -238,7 +235,7 @@ def decode_pixel_data(
             warnings.warn(
                 f"The (0028,0101) Bits Stored value '{bits_stored}' in the "
                 f"dataset does not match the component precision value "
-                f"\'{meta['precision']}\' found in the JPEG 2000 data. "
+                f"'{meta['precision']}' found in the JPEG 2000 data. "
                 f"It's recommended that you change the Bits Stored value to "
                 f"produce the correct output"
             )
@@ -297,7 +294,7 @@ def get_parameters(
         If reading the image parameters failed.
     """
     if isinstance(stream, (str, Path)):
-        with open(stream, 'rb') as f:
+        with open(stream, "rb") as f:
             buffer: BinaryIO = BytesIO(f.read())
             buffer.seek(0)
     elif isinstance(stream, (bytes, bytearray)):
