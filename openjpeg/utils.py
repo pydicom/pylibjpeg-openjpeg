@@ -21,6 +21,16 @@ class Version(IntEnum):
     v2 = 2
 
 
+MAGIC_NUMBERS = {
+    # JPEG 2000 codestream, has no header, .j2k, .jpc, .j2c
+    b"\xff\x4f\xff\x51": 0,
+    # JP2 and JP2 RFC3745, .jp2
+    b"\x0d\x0a\x87\x0a": 2,
+    b"\x00\x00\x00\x0c\x6a\x50\x20\x20\x0d\x0a\x87\x0a": 2,
+    # JPT, .jpt - shrug
+}
+
+
 def _get_format(stream: BinaryIO) -> int:
     """Return the JPEG 2000 format for the encoded data in `stream`.
 
@@ -46,24 +56,14 @@ def _get_format(stream: BinaryIO) -> int:
     """
     data = stream.read(20)
     stream.seek(0)
-    #print(" ".join([f"{ii:02X}" for ii in data[:12]]))
-
-    magic_numbers = {
-        # JPEG 2000 codestream, has no header, .j2k, .jpc, .j2c
-        b"\xff\x4f\xff\x51": 0,
-        # JP2 and JP2 RFC3745, .jp2
-        b"\x0d\x0a\x87\x0a": 2,
-        b"\x00\x00\x00\x0c\x6a\x50\x20\x20\x0d\x0a\x87\x0a": 2,
-        # JPT, .jpt - shrug
-    }
 
     try:
-        return magic_numbers[data[:4]]
+        return MAGIC_NUMBERS[data[:4]]
     except KeyError:
         pass
 
     try:
-        return magic_numbers[data[:12]]
+        return MAGIC_NUMBERS[data[:12]]
     except KeyError:
         pass
 

@@ -22,6 +22,7 @@ from openjpeg.utils import (
     decode,
     get_parameters,
     decode_pixel_data,
+    _get_format,
 )
 
 
@@ -76,6 +77,14 @@ def generate_frames(ds):
     """Return a frame generator for DICOM datasets."""
     nr_frames = ds.get('NumberOfFrames', 1)
     return generate_pixel_data_frame(ds.PixelData, nr_frames)
+
+
+def test_get_format_raises():
+    """Test get_format() raises for an unknown magic number"""
+    buffer = BytesIO(b"\x00" * 20)
+    msg = "No matching JPEG 2000 format found"
+    with pytest.raises(ValueError, match=msg):
+        _get_format(buffer)
 
 
 @pytest.mark.skipif(not HAS_PYDICOM, reason="No pydicom")
