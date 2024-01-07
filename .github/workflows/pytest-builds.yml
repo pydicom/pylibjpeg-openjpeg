@@ -108,13 +108,14 @@ jobs:
     - name: Install pydicom dev and rerun pytest (3.10+)
       if: ${{ contains('3.10 3.11 3.12', matrix.python-version) }}
       run: |
+        pip install pylibjpeg
         pip install git+https://github.com/pydicom/pydicom
         pytest --cov openjpeg openjpeg/tests
 
     - name: Switch to current pydicom release and rerun pytest
       run: |
         pip uninstall -y pydicom
-        pip install pydicom pylibjpeg
+        pip install pydicom
         pytest --cov openjpeg openjpeg/tests
 
     - name: Send coverage results
