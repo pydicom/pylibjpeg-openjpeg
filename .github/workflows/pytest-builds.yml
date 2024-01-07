@@ -115,7 +115,7 @@ jobs:
     - name: Switch to current pydicom release and rerun pytest
       run: |
         pip uninstall -y pydicom
-        pip install pydicom
+        pip install pydicom pylibjpeg
         pytest --cov openjpeg openjpeg/tests
 
     - name: Send coverage results
