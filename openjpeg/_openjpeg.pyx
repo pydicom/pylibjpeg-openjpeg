@@ -1,13 +1,14 @@
 # cython: language_level=3
 # distutils: language=c
 from math import ceil
-from typing import Union, Dict, BinaryIO
+from io import BytesIO
+from typing import Union, Dict, BinaryIO, Tuple
 
 from libc.stdint cimport uint32_t
 
 from cpython.ref cimport PyObject
 import numpy as np
-cimport numpy as np
+cimport numpy as cnp
 
 cdef extern struct JPEG2000Parameters:
     uint32_t columns
@@ -21,6 +22,16 @@ cdef extern struct JPEG2000Parameters:
 cdef extern char* OpenJpegVersion()
 cdef extern int Decode(void* fp, unsigned char* out, int codec)
 cdef extern int GetParameters(void* fp, int codec, JPEG2000Parameters *param)
+cdef extern int Encode(
+    cnp.PyArrayObject* arr,
+    void *dst,
+    int codec_format,
+    int bits_stored,
+    int photometric_interpretation,
+    int lossless,
+    int use_mct,
+    int compression_ratio,
+)
 
 
 ERRORS = {
@@ -32,6 +43,19 @@ ERRORS = {
     6: "failed to decode image",
     7: "support for more than 16-bits per component is not implemented",
     8: "failed to upscale subsampled components",
+}
+ENCODING_ERRORS = {
+    1: (
+        "the input array has an invalid shape, must be (rows, columns) or "
+        "(rows, columns, planes)"
+    ),
+    2: "the input array has an invalid number of samples per pixel, must be 1, 3 or 4",
+    3: "the input array has an invalid dtype, only bool, u1, u2, i1 and i2 are supported",
+    4: "the input array must use little endian byte ordering",
+    5: "the input array has an invalid shape, the number of rows must be in (1, 65535)",
+    6: "the input array has an invalid shape, the number of columns must be in (1, 65535)",
+    7: "the input array must be C-style, contiguous and aligned",
+    8: "the image precision given by bits stored must be in (1, itemsize of the input array's dtype)"
 }
 
 
@@ -84,7 +108,7 @@ def decode(
     cdef unsigned char *p_out
     if as_array:
         out = np.zeros(nr_bytes, dtype=np.uint8)
-        p_out = <unsigned char *>np.PyArray_DATA(out)
+        p_out = <unsigned char *>cnp.PyArray_DATA(out)
     else:
         out = bytearray(nr_bytes)
         p_out = <unsigned char *>out
@@ -178,3 +202,38 @@ def get_parameters(fp: BinaryIO, codec: int = 0) -> Dict[str, Union[str, int, bo
     }
 
     return parameters
+
+
+def encode(
+    cnp.ndarray arr,
+    int codec,
+    int bits_stored,
+    int photometric_interpretation,
+    int lossless,
+    int use_mct,
+    int compression_ratio,
+) -> Tuple[int, bytes]:
+    # The source for the image data
+    cdef cnp.PyArrayObject* p_in = <cnp.PyArrayObject*>arr
+    # The destination for the encoded J2K codestream
+    dst = BytesIO()
+    p_out = <void *>dst
+
+    result = Encode(
+        p_in,
+        p_out,
+        codec,
+        bits_stored,
+        photometric_interpretation,
+        lossless,
+        use_mct,
+        compression_ratio,
+    )
+
+    # TODO: just return, let Python handle raises exceptions etc
+    if result != 0:
+        raise RuntimeError(
+            f"Error encoding the data: {ENCODING_ERRORS.get(result, result)}"
+        )
+
+    return result, dst.getvalue()

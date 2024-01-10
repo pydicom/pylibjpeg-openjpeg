@@ -63,6 +63,7 @@ def get_source_files() -> List[Path]:
     """Return a list of paths to the source files to be compiled."""
     source_files = [
         INTERFACE_SRC / "decode.c",
+        INTERFACE_SRC / "encode.c",
         INTERFACE_SRC / "color.c",
     ]
     for fname in OPENJPEG_SRC.glob("*"):

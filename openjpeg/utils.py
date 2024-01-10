@@ -319,3 +319,144 @@ def get_parameters(
         Dict[str, Union[str, int, bool]],
         _openjpeg.get_parameters(buffer, j2k_format),
     )
+
+
+def encode(
+    arr,
+    codec=0,
+    bits_stored=8,
+    photometric_interpretation=0,
+    lossless=1,
+    use_mct=1,
+    compression_ratio=0,
+):
+    return _openjpeg.encode(
+        arr,
+        codec,
+        bits_stored,
+        photometric_interpretation,
+        lossless,
+        use_mct,
+        compression_ratio
+    )
+
+"""
+Supported Encoding
+
+JPEG 2000 Lossless Only
+-----------------------
+
++----------------+-----------+----------------+-----------+--------+
+| Photometric    | Samples   | Pixel          | Bits      | Bits   |
+| Interpretation | per Pixel | Representation | Allocated | Stored |
++================+===========+================+===========+========+
+| PALETTE COLOR  | 1         | 0              | 8, 16     | 1-16   |
++----------------+-----------+----------------+-----------+--------+
+| MONOCHROME1    | 1         | 0 or 1         | 8, 16     | 1-16   |
+| MONOCHROME2    |           |                |           |        |
++----------------+-----------+----------------+-----------+--------+
+| YBR_RCT        | 3         | 0              | 8, 16     | 1-16   |
+| RGB            |           |                |           |        |
+| YBR_FULL       |           |                |           |        |
++----------------+-----------+----------------+-----------+--------+
+
+JPEG 2000
+---------
+
++----------------+-----------+----------------+-----------+--------+
+| Photometric    | Samples   | Pixel          | Bits      | Bits   |
+| Interpretation | per Pixel | Representation | Allocated | Stored |
++================+===========+================+===========+========+
+| MONOCHROME1    | 1         | 0 or 1         | 8, 16     | 1-16   |
+| MONOCHROME2    |           |                |           |        |
++----------------+-----------+----------------+-----------+--------+
+| YBR_ICT        | 3         | 0              | 8, 16     | 1-16   |
+| RGB            |           |                |           |        |
+| YBR_FULL       |           |                |           |        |
++----------------+-----------+----------------+-----------+--------+
+
+Notes:
+* Test with 24 and 32 bit (signed/unsigned integers) input
+* Only allow access to the encoding parameters that will be customised by pydicom
+
+Fixed Parameters
+----------------
+* 1 tile
+* Precinct 2**15 x 2**15
+* Code block 64 x 64
+* 6 resolutions
+* No SOP or EPH markers
+* No subsampling
+* Progression order LRCP
+* No index file
+* No ROI upshift
+* No image origin offset
+* No tile origin offset
+* No JPWL
+
+Configurable
+------------
+* Codec: 0 (J2C) or 2 (JP2) only
+* Colourspace: 0-5
+* Lossless or lossy
+  * (Lossless) Reversible DWT 5-3, MCT if photometric interpretation is RGB
+  * (Lossy) Irreversible DWT
+  * (Lossless) Allow MCT on or off, default on with RGB input
+  * (Lossy) compression ratio?
+
+"""
+# class J2KRProfile:
+#     def __init__(self):
+#         # opj_image_comp.data is INT32 so max 32 bits? But may not work
+#         #   test to 16 bits allocated/stored, disallow above that
+#         # 1 or 3 samples per pixel
+#         # 8, 16, 24 or 32 bits allocated
+#         # 1-32 bits stored
+#         # PALETTE COLOR, MONOCHROME1, MONOCHROME2, YBR_RCT, RGB, YBR_FULL
+#         # MCT 1 if RGB -> YBR_RCT
+#         # Lossless
+#
+# class J2KIProfile:
+#     def __init__(self):
+#         # 1 or 3 samples per pixel
+#         # 8, 16, 24, 32 or 40 bits allocated
+#         # 1-38 bits stored
+#         pass
+#
+# class EncodingOptions:
+#     def __init__(self):
+#         # opj_cparameters
+#         # opj_cparameters_t
+#
+#         # opj_set_default_encoder_parameters -> then customise
+#         #
+#
+#         self.nr_tiles = 1
+#         self.subsampling = (1, 1)
+#         self.progression_order = 0  # LRCP 0 | RLCP 1 | RPCL 2 | PCRL 3 | CPRL 4
+#         self.block_size = (64, 64)
+#         self.lossless = True
+#         # UNKNOWN -1 | J2K 0 | JPT 1 | JP2 2 | JPP 3 | JPX 4
+#         # J2K: JPEG2000 codestream
+#         # JPT J2K + JPIP - read only?
+#         # JP2
+#         # JPP - not coded?
+#         # JPX - not coded?
+#         self.codec = 0
+#           # if samples >= 3 UNKNOWN -1 | UNSPECIFIED 0 | SRGB 1 | GRAY 2 | SYCC 3 | EYCC 4 | CMYK 5
+#         self.colourspace = "YCC"
+#         self.nr_resolutions = 6
+#         self.sop_marker = False
+#         self.eph_marker = False
+#         self.thing = "Reversible DWT 5-3"
+#         self.compression_ratio = None
+#         # no ROI upshift
+#         # no origin offsets
+#         # no JPWL
+#
+#         # require input -> ndarray | buffer-like
+#         # require output -> bytes
+#         # require output format -> J2C?
+#         # width, height, samples, bit depth, {s, u}@<dx1>x<dy1>... (if RAW)
+#
+#         # Optional: compression ratio
