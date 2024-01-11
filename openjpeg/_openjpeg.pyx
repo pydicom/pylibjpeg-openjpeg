@@ -2,7 +2,8 @@
 # distutils: language=c
 from math import ceil
 from io import BytesIO
-from typing import Union, Dict, BinaryIO, Tuple
+import logging
+from typing import Union, Dict, BinaryIO, Tuple, List
 
 from libc.stdint cimport uint32_t
 
@@ -24,16 +25,17 @@ cdef extern int Decode(void* fp, unsigned char* out, int codec)
 cdef extern int GetParameters(void* fp, int codec, JPEG2000Parameters *param)
 cdef extern int Encode(
     cnp.PyArrayObject* arr,
-    void *dst,
-    int codec_format,
+    PyObject* dst,
     int bits_stored,
     int photometric_interpretation,
-    int lossless,
-    int use_mct,
-    int compression_ratio,
+    bint use_mct,
+    bint lossless,
+    PyObject* compression_ratios,
+    int codec_format
 )
 
 
+LOGGER = logging.getLogger(__name__)
 ERRORS = {
     1: "failed to create the input stream",
     2: "failed to setup the decoder",
@@ -43,19 +45,6 @@ ERRORS = {
     6: "failed to decode image",
     7: "support for more than 16-bits per component is not implemented",
     8: "failed to upscale subsampled components",
-}
-ENCODING_ERRORS = {
-    1: (
-        "the input array has an invalid shape, must be (rows, columns) or "
-        "(rows, columns, planes)"
-    ),
-    2: "the input array has an invalid number of samples per pixel, must be 1, 3 or 4",
-    3: "the input array has an invalid dtype, only bool, u1, u2, i1 and i2 are supported",
-    4: "the input array must use little endian byte ordering",
-    5: "the input array has an invalid shape, the number of rows must be in (1, 65535)",
-    6: "the input array has an invalid shape, the number of columns must be in (1, 65535)",
-    7: "the input array must be C-style, contiguous and aligned",
-    8: "the image precision given by bits stored must be in (1, itemsize of the input array's dtype)"
 }
 
 
@@ -113,13 +102,9 @@ def decode(
         out = bytearray(nr_bytes)
         p_out = <unsigned char *>out
 
-    result = Decode(p_in, p_out, codec)
-    if result != 0:
-        raise RuntimeError(
-            f"Error decoding the J2K data: {ERRORS.get(result, result)}"
-        )
+    return_code = Decode(p_in, p_out, codec)
 
-    return out
+    return return_code, out
 
 
 def get_parameters(fp: BinaryIO, codec: int = 0) -> Dict[str, Union[str, int, bool]]:
@@ -206,34 +191,98 @@ def get_parameters(fp: BinaryIO, codec: int = 0) -> Dict[str, Union[str, int, bo
 
 def encode(
     cnp.ndarray arr,
-    int codec,
     int bits_stored,
     int photometric_interpretation,
-    int lossless,
-    int use_mct,
-    int compression_ratio,
+    bint use_mct,
+    bint lossless,
+    List[float] compression_ratios,
+    int codec_format,
 ) -> Tuple[int, bytes]:
+    """Return the JPEG 2000 compressed `arr`.
+
+    Parameters
+    ----------
+    arr : numpy.ndarray
+        The array containing the image data to be encoded.
+    bits_stored : int, optional
+        The bit-depth of the image.
+    photometric_interpretation : int, optional
+        The colour space of the unencoded image data that will be set in the
+        JPEG 2000 metadata.
+    use_mct : bool, optional
+        If ``True`` then apply multi-component transformation (MCT) to RGB
+        images.
+    lossless : bool, optional
+        If ``True`` then use lossless encoding, otherwise use lossy encoding.
+    compression_ratios : list[float], optional
+        Required if using lossy encoding, this is the compression ratio to use
+        for each layer. Should be in decreasing order (such as ``[80, 30, 10]``)
+        and the final value may be ``1`` to indicate lossless encoding should
+        be used for that layer.
+    codec_format : int, optional
+        The codec to used when encoding:
+
+        * ``0``: JPEG 2000 codestream only (default) (J2K/J2C format)
+        * ``2``: A boxed JPEG 2000 codestream (JP2 format)
+
+    Returns
+    -------
+    bytes
+        The encoded JPEG 2000 image data.
+    """
     # The source for the image data
     cdef cnp.PyArrayObject* p_in = <cnp.PyArrayObject*>arr
     # The destination for the encoded J2K codestream
     dst = BytesIO()
-    p_out = <void *>dst
 
-    result = Encode(
-        p_in,
-        p_out,
-        codec,
-        bits_stored,
-        photometric_interpretation,
-        lossless,
-        use_mct,
-        compression_ratio,
-    )
-
-    # TODO: just return, let Python handle raises exceptions etc
-    if result != 0:
-        raise RuntimeError(
-            f"Error encoding the data: {ENCODING_ERRORS.get(result, result)}"
+    if not (1 <= bits_stored <= arr.dtype.itemsize * 8):
+        raise ValueError(
+            "Invalid value for the 'bits_stored' parameter, the value must be "
+            f"in the range (1, {arr.dtype.itemsize * 8})"
         )
 
-    return result, dst.getvalue()
+    # Check the array matches bits_stored
+    if arr.dtype.kind == "u":
+        minimum = 0
+        maximum = 2**bits_stored - 1
+    elif arr.dtype.kind == "i":
+        minimum = -2**(bits_stored - 1)
+        maximum = 2**(bits_stored - 1) - 1
+    elif arr.dtype.kind == "b":
+        minimum = 0
+        maximum = 1
+    else:
+        raise ValueError(
+            f"The input array has an unsupported dtype '{arr.dtype}', only bool, "
+            "u1, u2, i1 and i2 are supported"
+        )
+
+    if arr.min() < minimum or arr.max() > maximum:
+        raise ValueError(
+            "The 'bits_stored' value is incompatible with the range of "
+            f"pixel data in the input array ({arr.min()}, {arr.max()})"
+        )
+
+    use_mct = 1 if use_mct else 0
+    lossless = 1 if lossless else 0
+
+    compression_ratios = [float(x) for x in compression_ratios]
+    if not lossless and not compression_ratios:
+        raise ValueError(
+            "'compression_ratios' is required if performing lossy encoding"
+        )
+    if len(compression_ratios) > 10:
+        raise ValueError("More than 10 compression layers is not supported")
+
+    return_code = Encode(
+        p_in,
+        <PyObject *> dst,
+        bits_stored,
+        photometric_interpretation,
+        use_mct,
+        lossless,
+        <PyObject *> compression_ratios,
+        codec_format,
+    )
+
+    return return_code, dst.getvalue()

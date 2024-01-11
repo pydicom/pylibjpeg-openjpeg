@@ -1,9 +1,10 @@
 from enum import IntEnum
 from io import BytesIO
+import logging
 from math import ceil
 import os
 from pathlib import Path
-from typing import BinaryIO, Tuple, Union, TYPE_CHECKING, Any, Dict, cast
+from typing import BinaryIO, Tuple, Union, TYPE_CHECKING, Any, Dict, cast, List
 import warnings
 
 import numpy as np
@@ -15,9 +16,20 @@ if TYPE_CHECKING:  # pragma: no cover
     from pydicom.dataset import Dataset
 
 
+LOGGER = logging.getLogger(__name__)
+
+
 class Version(IntEnum):
     v1 = 1
     v2 = 2
+
+class PhotometricInterpretation(IntEnum):
+    MONOCHROME1 = 2
+    MONOCHROME2 = 2
+    PALETTE_COLOR = 2
+    RGB = 1
+    YBR_FULL = 3
+    YBR_FULL_422 = 3
 
 
 MAGIC_NUMBERS = {
@@ -27,6 +39,63 @@ MAGIC_NUMBERS = {
     b"\x0d\x0a\x87\x0a": 2,
     b"\x00\x00\x00\x0c\x6a\x50\x20\x20\x0d\x0a\x87\x0a": 2,
     # JPT, .jpt - shrug
+}
+DECODING_ERRORS = {
+    1: "failed to create the input stream",
+    2: "failed to setup the decoder",
+    3: "failed to read the header",
+    4: "failed to set the component indices",
+    5: "failed to set the decoded area",
+    6: "failed to decode image",
+    7: "support for more than 16-bits per component is not implemented",
+    8: "failed to upscale subsampled components",
+}
+ENCODING_ERRORS = {
+    # Validation errors
+    1: (
+        "the input array has an unsupported number of samples per pixel, "
+        "must be 1, 3 or 4"
+    ),
+    2: (
+        "the input array has an invalid shape, must be (rows, columns) or "
+        "(rows, columns, planes)"
+    ),
+    3: (
+        "the input array has an unsupported number of rows, must be "
+        "in (1, 65535)"
+    ),
+    4: (
+        "the input array has an unsupported number of columns, must be "
+        "in (1, 65535)"
+    ),
+    5: (
+        "the input array has an unsupported dtype, only bool, u1, u2, i1 and "
+        "i2 are supported"
+    ),
+    6: "the input array must use little endian byte ordering",
+
+    7: "the input array must be C-style, contiguous and aligned",
+    8: (
+        "the image precision given by bits stored must be in (1, itemsize of "
+        "the input array's dtype)"
+    ),
+    9: (
+        "the value of the 'photometric_interpretation' parameter is not valid "
+        "for the number of samples per pixel"
+    ),
+    10: "the valid of the 'codec_format' paramter is invalid",
+    11: "more than 100 'compression_ratios' is not supported",
+    12: "invalid item in the 'compression_ratios' value",
+    13: "invalid compression ratio, must in the range (1, 100)",
+    # Encoding errors
+    20: "failed to assign the image component parameters",
+    21: "failed to create an empty image object",
+    22: "failed to set the encoding handler",
+    23: "failed to set up the encoder",
+    24: "failed to create the output stream",
+    25: "failure result from 'opj_start_compress()'",
+    26: "failure result from 'opj_encode()'",
+    27: "failure result from 'opj_endt_compress()'",
 }
 
 
@@ -135,7 +204,12 @@ def decode(
     if j2k_format not in [0, 1, 2]:
         raise ValueError(f"Unsupported 'j2k_format' value: {j2k_format}")
 
-    arr = cast(np.ndarray, _openjpeg.decode(buffer, j2k_format, as_array=True))
+    return_code, arr = _openjpeg.decode(buffer, j2k_format, as_array=True)
+    if return_code != 0:
+        raise RuntimeError(
+            f"Error decoding the J2K data: {DECODING_ERRORS.get(return_code, return_code)}"
+        )
+    arr = cast(np.ndarray, arr)
     if not reshape:
         return arr
 
@@ -253,7 +327,13 @@ def decode_pixel_data(
         return cast(np.ndarray, arr)
 
     # Version 2
-    return cast(bytearray, _openjpeg.decode(buffer, j2k_format, as_array=False))
+    return_code, buffer = _openjpeg.decode(buffer, j2k_format, as_array=False)
+    if return_code != 0:
+        raise RuntimeError(
+            f"Error decoding the J2K data: {DECODING_ERRORS.get(return_code, return_code)}"
+        )
+
+    return cast(bytearray, buffer)
 
 
 def get_parameters(
@@ -321,142 +401,164 @@ def get_parameters(
     )
 
 
+def _get_bits_stored(arr: np.ndarray) -> int:
+    """Return a 'bits_stored' appropriate for `arr`."""
+    if arr.dtype.kind == "b":
+        return  1
+
+    maximum = arr.max()
+    minimum = arr.min()
+    for bit_depth in range(arr.dtype.itemsize * 8):
+        if arr.dtype.kind == "u" and maximum <= 2**bit_depth - 1:
+            return bit_depth
+
+        if (
+            arr.dtype.kind == "i"
+            and maximum <= 2**(bit_depth - 1) - 1
+            and minimum >= 2**(bit_depth - 1)
+        ):
+            return bit_depth
+
+    return arr.dtype.itemsize * 8
+
+
 def encode(
-    arr,
-    codec=0,
-    bits_stored=8,
-    photometric_interpretation=0,
-    lossless=1,
-    use_mct=1,
-    compression_ratio=0,
+    arr: np.ndarray,
+    bits_stored: Union[int, None] = None,
+    photometric_interpretation: int = 0,
+    use_mct: bool = True,
+    lossless: bool = True,
+    compression_ratios: Union[List[float], None] = None,
+    codec_format: int = 0,
+    **kwargs: Any,
 ):
-    return _openjpeg.encode(
+    """Return the JPEG 2000 compressed `arr`.
+
+    Parameters
+    ----------
+    arr : numpy.ndarray
+        The array containing the image data to be encoded.
+    bits_stored : int, optional
+        The bit-depth of the image, defaults to the minimum bit-depth required
+        to fully cover the range of pixel data in `arr`.
+    photometric_interpretation : int, optional
+        The colour space of the unencoded image data that will be set in the
+        JPEG 2000 metadata. If you are encoded RGB or YCbCr data then it's
+        strongly recommended that you select the correct colour space so
+        that anyone decoding your image data will know which colour space
+        transforms to apply. One of:
+
+        * ``0``: Unspecified
+        * ``1``: sRGB
+        * ``2``: Greyscale
+        * ``3``: sYCC (YCbCr)
+        * ``4``: eYCC
+        * ``5``: CMYK
+    use_mct : bool, optional
+        Apply multi-component transformation (MCT) prior to encoding the image
+        data. Defaults to ``True`` when the `photometric_interpretation` is
+        ``1`` as it is intended for use with RGB data and should result in
+        smaller file sizes. For all other values of `photometric_interpretation`
+        the value of `use_mct` will be ignored and MCT not applied.
+
+        If MCT is applied then the corresponding value of (0028,0004)
+        *Photometric Interpretation* is:
+
+        * ``"YBR_RCT"`` for lossless encoding
+        * ``"YBR_ICT"`` for lossy encoding
+
+        If MCT is not applied then *Photometric Intrepretation* should be the
+        value corresponding to the unencoded dataset.
+    lossless : bool, optional
+        If ``True`` then use lossless encoding, otherwise use lossy encoding.
+    compression_ratios : list[float], optional
+        Required if using lossy encoding, this is the compression ratio to use
+        for each layer. Should be in decreasing order (such as ``[80, 30, 10]``)
+        and the final value may be ``1`` to indicate lossless encoding should
+        be used for that layer.
+    codec_format : int, optional
+        The codec to used when encoding:
+
+        * ``0``: JPEG 2000 codestream only (default) (J2K/J2C format)
+        * ``2``: A boxed JPEG 2000 codestream (JP2 format)
+
+    Returns
+    -------
+    bytes
+        The encoded JPEG 2000 image data.
+    """
+    if compression_ratios is None:
+        compression_ratios = []
+
+    if arr.dtype.kind not in ("b", "i", "u"):
+        raise ValueError(
+            f"The input array has an unsupported dtype '{arr.dtype}', only "
+            "bool, u1, u2, i1 and i2 are supported"
+        )
+
+    if bits_stored is None:
+        bits_stored = _get_bits_stored(arr)
+
+    return_code, buffer = _openjpeg.encode(
         arr,
-        codec,
         bits_stored,
         photometric_interpretation,
-        lossless,
         use_mct,
-        compression_ratio
+        lossless,
+        compression_ratios,
+        codec_format,
     )
 
-"""
-Supported Encoding
+    if return_code != 0:
+        raise RuntimeError(
+            f"Error encoding the data: {ENCODING_ERRORS.get(return_code, return_code)}"
+        )
 
-JPEG 2000 Lossless Only
------------------------
+    return buffer
 
-+----------------+-----------+----------------+-----------+--------+
-| Photometric    | Samples   | Pixel          | Bits      | Bits   |
-| Interpretation | per Pixel | Representation | Allocated | Stored |
-+================+===========+================+===========+========+
-| PALETTE COLOR  | 1         | 0              | 8, 16     | 1-16   |
-+----------------+-----------+----------------+-----------+--------+
-| MONOCHROME1    | 1         | 0 or 1         | 8, 16     | 1-16   |
-| MONOCHROME2    |           |                |           |        |
-+----------------+-----------+----------------+-----------+--------+
-| YBR_RCT        | 3         | 0              | 8, 16     | 1-16   |
-| RGB            |           |                |           |        |
-| YBR_FULL       |           |                |           |        |
-+----------------+-----------+----------------+-----------+--------+
 
-JPEG 2000
----------
+def encode_pixel_data(arr: np.ndarray, **kwargs: Any) -> bytes:
+    """Return the JPEG 2000 compressed `arr`.
 
-+----------------+-----------+----------------+-----------+--------+
-| Photometric    | Samples   | Pixel          | Bits      | Bits   |
-| Interpretation | per Pixel | Representation | Allocated | Stored |
-+================+===========+================+===========+========+
-| MONOCHROME1    | 1         | 0 or 1         | 8, 16     | 1-16   |
-| MONOCHROME2    |           |                |           |        |
-+----------------+-----------+----------------+-----------+--------+
-| YBR_ICT        | 3         | 0              | 8, 16     | 1-16   |
-| RGB            |           |                |           |        |
-| YBR_FULL       |           |                |           |        |
-+----------------+-----------+----------------+-----------+--------+
+    .. versionadded:: 2.1
 
-Notes:
-* Test with 24 and 32 bit (signed/unsigned integers) input
-* Only allow access to the encoding parameters that will be customised by pydicom
+    Parameters
+    ----------
+    src : numpy.ndarray
+        An array containing a single frame of image data to be encoded.
+    **kwargs
+        The following keyword arguments are optional:
 
-Fixed Parameters
-----------------
-* 1 tile
-* Precinct 2**15 x 2**15
-* Code block 64 x 64
-* 6 resolutions
-* No SOP or EPH markers
-* No subsampling
-* Progression order LRCP
-* No index file
-* No ROI upshift
-* No image origin offset
-* No tile origin offset
-* No JPWL
+        * ``'photometric_interpretation'``: int - the colour space of the
+          unencoded image in `arr`, one of the following:
 
-Configurable
-------------
-* Codec: 0 (J2C) or 2 (JP2) only
-* Colourspace: 0-5
-* Lossless or lossy
-  * (Lossless) Reversible DWT 5-3, MCT if photometric interpretation is RGB
-  * (Lossy) Irreversible DWT
-  * (Lossless) Allow MCT on or off, default on with RGB input
-  * (Lossy) compression ratio?
+          * ``0``: Unspecified
+          * ``1``: sRGB
+          * ``2``: Greyscale
+          * ``3``: sYCC (YCbCr)
+          * ``4``: eYCC
+          * ``5``: CMYK
 
-"""
-# class J2KRProfile:
-#     def __init__(self):
-#         # opj_image_comp.data is INT32 so max 32 bits? But may not work
-#         #   test to 16 bits allocated/stored, disallow above that
-#         # 1 or 3 samples per pixel
-#         # 8, 16, 24 or 32 bits allocated
-#         # 1-32 bits stored
-#         # PALETTE COLOR, MONOCHROME1, MONOCHROME2, YBR_RCT, RGB, YBR_FULL
-#         # MCT 1 if RGB -> YBR_RCT
-#         # Lossless
-#
-# class J2KIProfile:
-#     def __init__(self):
-#         # 1 or 3 samples per pixel
-#         # 8, 16, 24, 32 or 40 bits allocated
-#         # 1-38 bits stored
-#         pass
-#
-# class EncodingOptions:
-#     def __init__(self):
-#         # opj_cparameters
-#         # opj_cparameters_t
-#
-#         # opj_set_default_encoder_parameters -> then customise
-#         #
-#
-#         self.nr_tiles = 1
-#         self.subsampling = (1, 1)
-#         self.progression_order = 0  # LRCP 0 | RLCP 1 | RPCL 2 | PCRL 3 | CPRL 4
-#         self.block_size = (64, 64)
-#         self.lossless = True
-#         # UNKNOWN -1 | J2K 0 | JPT 1 | JP2 2 | JPP 3 | JPX 4
-#         # J2K: JPEG2000 codestream
-#         # JPT J2K + JPIP - read only?
-#         # JP2
-#         # JPP - not coded?
-#         # JPX - not coded?
-#         self.codec = 0
-#           # if samples >= 3 UNKNOWN -1 | UNSPECIFIED 0 | SRGB 1 | GRAY 2 | SYCC 3 | EYCC 4 | CMYK 5
-#         self.colourspace = "YCC"
-#         self.nr_resolutions = 6
-#         self.sop_marker = False
-#         self.eph_marker = False
-#         self.thing = "Reversible DWT 5-3"
-#         self.compression_ratio = None
-#         # no ROI upshift
-#         # no origin offsets
-#         # no JPWL
-#
-#         # require input -> ndarray | buffer-like
-#         # require output -> bytes
-#         # require output format -> J2C?
-#         # width, height, samples, bit depth, {s, u}@<dx1>x<dy1>... (if RAW)
-#
-#         # Optional: compression ratio
+          It is strongly recommended you supply an appropriate
+          `photometric_interpretation`.
+        * ``'bits_stored'``: int - the bit-depth of the pixels in the image,
+          if not supplied then the smallest bit-depth that covers the full range
+          of pixel data in `arr` will be used.
+        * ``'lossless'``: bool: ``True`` to use lossless encoding (default),
+          ``False`` for lossy encoding. If using lossy encoding then
+          `compression_ratios` is required.
+        * ```use_mct': bool: ``True`` to use MCT with RGB images (default),
+          ``False`` otherwise.
+        * ``'codec_format'``: int - 0 for a JPEG2000 codestream (default),
+          1 for a JP2 codestream
+        * ''`compression_ratios'``: list[float] - required if `lossless` is
+          ``False``. Should be a list of the desired compression ratio per layer
+          in decreasing values. The final layer may be 1 for lossless
+          compression of that layer. Minimum value is 1 (for lossless).
+
+    Returns
+    -------
+    bytes
+        The JPEG 2000 encoded image data.
+    """
+    return encode(src, **kwargs)

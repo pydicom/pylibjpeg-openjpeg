@@ -2,11 +2,15 @@
 import numpy as np
 import pytest
 
-from openjpeg.utils import encode, decode
+from openjpeg.data import get_indexed_datasets, JPEG_DIRECTORY
+from openjpeg.utils import encode, decode, PhotometricInterpretation as PI
 
 
-class TestEncode:
-    """Tests for encode()"""
+DIR_15444 = JPEG_DIRECTORY / "15444"
+
+
+class TestCEncode:
+    """Tests for _openjpeg.Encode()"""
 
     def test_invalid_shape_raises(self):
         """Test invalid array shapes raise exceptions."""
@@ -15,41 +19,29 @@ class TestEncode:
             r"must be \(rows, columns\) or \(rows, columns, planes\)"
         )
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((1,)))
+            encode(np.ones((1,), dtype="u1"))
 
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((1, 2, 3, 4)))
+            encode(np.ones((1, 2, 3, 4), dtype="u1"))
 
     def test_invalid_samples_per_pixel_raises(self):
         """Test invalid samples per pixel raise exceptions."""
         msg = (
-            "Error encoding the data: the input array has an invalid number of "
-            "samples per pixel, must be 1, 3 or 4"
+            "Error encoding the data: the input array has an unsupported number "
+            "of samples per pixel, must be 1, 3 or 4"
         )
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((1, 2, 2)))
+            encode(np.ones((1, 2, 2), dtype="u1"))
 
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((1, 2, 5)))
+            encode(np.ones((1, 2, 5), dtype="u1"))
 
     def test_invalid_dtype_raises(self):
         """Test invalid array dtype raise exceptions."""
-        msg = (
-            "Error encoding the data: the input array has an invalid dtype, "
-            "only bool, u1, u2, i1 and i2 are supported"
-        )
+        msg = "input array has an unsupported dtype"
         for dtype in ("u4", "i4", "u8" ,"i8", "f", "d", "c", "U", "m", "M"):
-            with pytest.raises(RuntimeError, match=msg):
+            with pytest.raises((ValueError, RuntimeError), match=msg):
                 encode(np.ones((1, 2), dtype=dtype))
-
-    # def test_invalid_endianness_raises(self):
-    #     """Test invalid array endianness raise exceptions."""
-    #     msg = (
-    #         "Error encoding the data: the input array must use little endian "
-    #         "byte ordering"
-    #     )
-    #     with pytest.raises(RuntimeError, match=msg):
-    #         encode(np.ones((2, 2), dtype=">u2"))
 
     def test_invalid_contiguity_raises(self):
         """Test invalid array contiguity raise exceptions."""
@@ -63,123 +55,51 @@ class TestEncode:
     def test_invalid_dimensions_raises(self):
         """Test invalid array dimensions raise exceptions."""
         msg = (
-            "Error encoding the data: the input array has an invalid shape, "
-            r"the number of rows must be in \(1, 65535\)"
+            "Error encoding the data: the input array has an unsupported number "
+            r"of rows, must be in \(1, 65535\)"
         )
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((65536, 1)))
+            encode(np.ones((65536, 1), dtype="u1"))
 
         msg = (
-            "Error encoding the data: the input array has an invalid shape, "
-            r"the number of columns must be in \(1, 65535\)"
+            "Error encoding the data: the input array has an unsupported number "
+            r"of columns, must be in \(1, 65535\)"
         )
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((1, 65536)))
+            encode(np.ones((1, 65536), dtype="u1"))
 
 
-def test_encodes():
-    from pydicom.data import get_testdata_file
-    ds = get_testdata_file("CT_small.dcm", read=True)
-    arr = ds.pixel_array
-    print(arr.shape, arr.dtype)
-    result = encode(arr, bits_stored=16, photometric_interpretation=2, use_mct=0)
-    print(result[0], len(result[1]))
-    # with open("test.j2k", "wb") as f:
-    #     f.write(result[1])
+class TestEncode:
+    """Tests for openjpeg.encode()"""
+    def test_encode(self):
+        print("Raw length", 256 * 256 * 3)
 
-    out = decode(result[1])
-    print("Original", arr)
-    print("After encode + decode", out)
-    print("Equal?", np.array_equal(arr, out))
+        jpg = DIR_15444 / "2KLS" / "oj36.j2k"
+        with open(jpg, "rb") as f:
+            data = f.read()
+            print("Original compressed length", len(data))
 
-    import matplotlib.pyplot as plt
-    plot, (ax1, ax2) = plt.subplots(2)
-    ax1.imshow(arr)
-    ax2.imshow(out)
-    plt.show()
+        arr = decode(data)
+        assert "uint8" == arr.dtype
+        assert (256, 256, 3) == arr.shape
+        assert [235, 244, 245] == arr[0, 0, :].tolist()
 
+        # Test lossless
+        result = encode(arr, bits_stored=8, photometric_interpretation=PI.RGB)
+        print("Lossless length", len(result))
+        out = decode(result)
+        assert np.array_equal(arr, out)
 
-@pytest.mark.skip()
-def test_encode():
-    print("\nbool, 1, 0, 0, 1, 1, 0")
-    data = [[1, 0], [0, 1], [1, 0]]
-    arr = np.asarray(data, dtype="bool")
-    encode(arr)
-
-    print("\nu1: 1, 255, 3, 4, 5, 6")
-    data = [[1, 255], [3, 4], [5, 6]]
-    arr = np.asarray(data, dtype="u1")
-    encode(arr)
-
-    print("\nu2: 1012, 2, 3233, 4, 512, 6")
-    data = [[1012, 2], [3233, 4], [512, 6]]
-    arr = np.asarray(data, dtype="u2")
-    encode(arr)
-
-    print("\ni1: -1, 2, 3, -4, -5, 6")
-    data = [[-1, 2], [3, -4], [-5, 6]]
-    arr = np.asarray(data, dtype="i1")
-    encode(arr)
-
-    print("\ni1: ")
-    # print("i1, 3 samples per pixel")
-    data = (
-        [
-            [ # row 1
-                [-1, 2, 3],
-                [1, -2, -3],
-                [1, -2, -3],
-                [1, -2, -3],
-            ],
-            [ # row 2
-                [-1, 2, 3],
-                [1, -2, -3],
-                [1, -2, -3],
-                [1, -2, -3],
-            ],
-        ]
-    )
-    arr = np.asarray(data, dtype="i1")
-    encode(arr)
-
-    print("\ni2: -1012, 2, 3233, -4, -512, 6")
-    data = [[-1012, 2], [3233, -4], [-512, 6]]
-    arr = np.asarray(data, dtype="i2")
-    encode(arr)
-
-    # print("2 x 3, n1, 16-bit signed")
-    # arr = np.empty((2, 3), dtype="i2")
-    # encode(arr)
-    # print("2 x 3, n2, 8-bit signed")
-    # arr = np.empty((2, 3, 4), dtype="i1")
-    # encode(arr)
-    # print("2 x 3, n2, 16-bit signed")
-    # arr = np.empty((2, 3, 4), dtype="i2")
-    # encode(arr)
-    # print("2 x 3, n1, 8-bit unsigned")
-    # arr = np.empty((2, 3), dtype="u1")
-    # encode(arr)
-    # print("2 x 3, n1, 16-bit unsigned")
-    # arr = np.empty((2, 3), dtype="u2")
-    # encode(arr)
-    # print("2 x 3, n2, 8-bit unsigned")
-    # arr = np.empty((2, 3, 4), dtype="u1")
-    # encode(arr)
-    # print("2 x 3, n2, 16-bit unsigned")
-    # arr = np.empty((2, 3, 4), dtype="u2")
-    # encode(arr)
-    # print("2 x 3, n1, bool")
-    # arr = np.empty((2, 3), dtype="bool")
-    # encode(arr)
-    # print("2 x 3, n2, bool")
-    # arr = np.empty((2, 3, 4), dtype="bool")
-    # encode(arr)
-    # print("1, n1, u1")
-    # arr = np.empty((10,), dtype="u1")
-    # encode(arr)
-    # print("1 x 2, n5, n1, u1")
-    # arr = np.empty((1, 2, 5), dtype="u1")
-    # encode(arr)
-    # print("1 x 2 x 3 x 4, n1, u1")
-    # arr = np.empty((1, 2, 3, 4), dtype="u1")
-    # encode(arr)
+        # Test lossy
+        result = encode(
+            arr,
+            bits_stored=8,
+            photometric_interpretation=PI.RGB,
+            lossless=0,
+            compression_ratios = [6, 4, 2, 1]
+        )
+        print("Lossy length", len(result))
+        out = decode(result)
+        diff = arr.astype("float") - out.astype("float")
+        assert diff.max() == 2
+        assert diff.min() == -2
