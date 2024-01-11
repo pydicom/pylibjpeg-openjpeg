@@ -280,7 +280,11 @@ def decode_pixel_data(
                 "non-conformant to the DICOM Standard (Part 5, Annex A.4.4)"
             )
 
-        arr = _openjpeg.decode(buffer, j2k_format, as_array=True)
+        return_code, arr = _openjpeg.decode(buffer, j2k_format, as_array=True)
+        if return_code != 0:
+            raise RuntimeError(
+                f"Error decoding the J2K data: {DECODING_ERRORS.get(return_code, return_code)}"
+            )
 
         samples_per_pixel = kwargs.get("samples_per_pixel")
         bits_stored = kwargs.get("bits_stored")
