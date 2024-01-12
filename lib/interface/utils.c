@@ -26,8 +26,6 @@ void py_log(char *name, char *log_level, const char *log_msg)
     // import logging
     module = PyImport_ImportModuleNoBlock("logging");
     if (module == NULL) {
-        // raise ImportError(...)
-        PyErr_SetString(PyExc_ImportError, "Could not import module 'logging'");
         return;
     }
 

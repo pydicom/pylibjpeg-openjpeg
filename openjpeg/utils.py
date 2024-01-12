@@ -1,7 +1,7 @@
 from enum import IntEnum
 from io import BytesIO
 import logging
-from math import ceil
+from math import ceil, log
 import os
 from pathlib import Path
 from typing import BinaryIO, Tuple, Union, TYPE_CHECKING, Any, Dict, cast, List
@@ -81,12 +81,15 @@ ENCODING_ERRORS = {
     ),
     9: (
         "the value of the 'photometric_interpretation' parameter is not valid "
-        "for the number of samples per pixel"
+        "for the number of samples per pixel in the input array"
     ),
     10: "the valid of the 'codec_format' paramter is invalid",
     11: "more than 100 'compression_ratios' is not supported",
     12: "invalid item in the 'compression_ratios' value",
-    13: "invalid compression ratio, must in the range (1, 100)",
+    13: "invalid compression ratio, must be in the range (1, 1000)",
+    14: "more than 100 'signal_noise_ratios' is not supported",
+    15: "invalid item in the 'signal_noise_ratios' value",
+    16: "invalid signal-to-noise ratio, must be in the range (0, 1000)",
     # Encoding errors
     20: "failed to assign the image component parameters",
     21: "failed to create an empty image object",
@@ -221,6 +224,7 @@ def decode(
     pixel_representation = cast(bool, meta["is_signed"])
     bpp = ceil(precision / 8)
 
+    bpp = 4 if bpp == 3 else bpp
     dtype = f"u{bpp}" if not pixel_representation else f"i{bpp}"
     arr = arr.view(dtype)
 
@@ -411,16 +415,15 @@ def _get_bits_stored(arr: np.ndarray) -> int:
         return  1
 
     maximum = arr.max()
-    minimum = arr.min()
-    for bit_depth in range(arr.dtype.itemsize * 8):
-        if arr.dtype.kind == "u" and maximum <= 2**bit_depth - 1:
-            return bit_depth
+    if arr.dtype.kind == "u":
+        if maximum == 0:
+            return 1
 
-        if (
-            arr.dtype.kind == "i"
-            and maximum <= 2**(bit_depth - 1) - 1
-            and minimum >= 2**(bit_depth - 1)
-        ):
+        return int(log(maximum, 2) + 1)
+
+    minimum = arr.min()
+    for bit_depth in range(1, arr.dtype.itemsize * 8):
+        if maximum <= 2**(bit_depth - 1) - 1 and minimum >= -2**(bit_depth - 1):
             return bit_depth
 
     return arr.dtype.itemsize * 8
@@ -431,17 +434,22 @@ def encode(
     bits_stored: Union[int, None] = None,
     photometric_interpretation: int = 0,
     use_mct: bool = True,
-    lossless: bool = True,
     compression_ratios: Union[List[float], None] = None,
+    signal_noise_ratios: Union[List[float], None] = None,
     codec_format: int = 0,
     **kwargs: Any,
 ):
     """Return the JPEG 2000 compressed `arr`.
 
+    Encoding of the input array will use lossless compression by default, to
+    use lossy compression either `compression_ratios` or `signal_noise_ratios`
+    must be supplied.
+
     Parameters
     ----------
     arr : numpy.ndarray
-        The array containing the image data to be encoded.
+        The array containing the image data to be encoded. 1-bit data should be
+        unpacked (if packed) and stored as a bool or u1 dtype.
     bits_stored : int, optional
         The bit-depth of the image, defaults to the minimum bit-depth required
         to fully cover the range of pixel data in `arr`.
@@ -473,13 +481,17 @@ def encode(
 
         If MCT is not applied then *Photometric Intrepretation* should be the
         value corresponding to the unencoded dataset.
-    lossless : bool, optional
-        If ``True`` then use lossless encoding, otherwise use lossy encoding.
     compression_ratios : list[float], optional
         Required if using lossy encoding, this is the compression ratio to use
         for each layer. Should be in decreasing order (such as ``[80, 30, 10]``)
         and the final value may be ``1`` to indicate lossless encoding should
-        be used for that layer.
+        be used for that layer. Cannot be used with `signal_noise_ratios`.
+    signal_noise_ratios : list[float], optional
+        Required if using lossy encoding, this is the desired peak
+        signal-to-noise ratio to use for each layer. Should be in increasing
+        order (such as ``[30, 40, 50]``), except for the last layer which may
+        be ``0`` to indicate lossless encoding should be used for that layer.
+        Cannot be used with `compression_ratios`.
     codec_format : int, optional
         The codec to used when encoding:
 
@@ -494,6 +506,9 @@ def encode(
     if compression_ratios is None:
         compression_ratios = []
 
+    if signal_noise_ratios is None:
+        signal_noise_ratios = []
+
     if arr.dtype.kind not in ("b", "i", "u"):
         raise ValueError(
             f"The input array has an unsupported dtype '{arr.dtype}', only "
@@ -503,13 +518,14 @@ def encode(
     if bits_stored is None:
         bits_stored = _get_bits_stored(arr)
 
+    # The destination for the encoded data, must support BinaryIO
     return_code, buffer = _openjpeg.encode(
         arr,
         bits_stored,
         photometric_interpretation,
         use_mct,
-        lossless,
         compression_ratios,
+        signal_noise_ratios,
         codec_format,
     )
 

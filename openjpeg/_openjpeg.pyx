@@ -29,9 +29,10 @@ cdef extern int Encode(
     int bits_stored,
     int photometric_interpretation,
     bint use_mct,
-    bint lossless,
+    # bint lossless,
     PyObject* compression_ratios,
-    int codec_format
+    PyObject* signal_noise_ratios,
+    int codec_format,
 )
 
 
@@ -91,6 +92,8 @@ def decode(
     """
     param = get_parameters(fp, codec)
     bpp = ceil(param['precision'] / 8)
+    if bpp == 3:
+        bpp = 4
     nr_bytes = param['rows'] * param['columns'] * param['nr_components'] * bpp
 
     cdef PyObject* p_in = <PyObject*>fp
@@ -194,8 +197,8 @@ def encode(
     int bits_stored,
     int photometric_interpretation,
     bint use_mct,
-    bint lossless,
     List[float] compression_ratios,
+    List[float] signal_noise_ratios,
     int codec_format,
 ) -> Tuple[int, bytes]:
     """Return the JPEG 2000 compressed `arr`.
@@ -205,7 +208,7 @@ def encode(
     arr : numpy.ndarray
         The array containing the image data to be encoded.
     bits_stored : int, optional
-        The bit-depth of the image.
+        The number of bits used per pixel.
     photometric_interpretation : int, optional
         The colour space of the unencoded image data that will be set in the
         JPEG 2000 metadata.
@@ -227,62 +230,81 @@ def encode(
 
     Returns
     -------
-    bytes
-        The encoded JPEG 2000 image data.
+    int
+        The return code of the encoding, will be ``0`` for success, otherwise
+        encoding failed.
     """
-    # The source for the image data
-    cdef cnp.PyArrayObject* p_in = <cnp.PyArrayObject*>arr
-    # The destination for the encoded J2K codestream
-    dst = BytesIO()
-
     if not (1 <= bits_stored <= arr.dtype.itemsize * 8):
         raise ValueError(
             "Invalid value for the 'bits_stored' parameter, the value must be "
             f"in the range (1, {arr.dtype.itemsize * 8})"
         )
 
-    # Check the array matches bits_stored
-    if arr.dtype.kind == "u":
-        minimum = 0
-        maximum = 2**bits_stored - 1
-    elif arr.dtype.kind == "i":
-        minimum = -2**(bits_stored - 1)
-        maximum = 2**(bits_stored - 1) - 1
-    elif arr.dtype.kind == "b":
-        minimum = 0
-        maximum = 1
-    else:
+    allowed = (bool, np.uint8, np.int8, np.uint16, np.int16, np.uint32, np.int32)
+    if arr.dtype not in allowed:
         raise ValueError(
             f"The input array has an unsupported dtype '{arr.dtype}', only bool, "
-            "u1, u2, i1 and i2 are supported"
+            "u1, u2, u4, i1, i2 and i4 are supported"
         )
 
-    if arr.min() < minimum or arr.max() > maximum:
+    # It seems like OpenJPEG can only encode up to 24 bits, although theoretically
+    #   based on their use of OPJ_INT32 for pixel values, it should be 32-bit for
+    #   signed and 31 bit for unsigned. Maybe I've made a mistake somewhere?
+    arr_max = arr.max()
+    arr_min = arr.min()
+    if (
+        (arr.dtype == np.uint32 and arr_max > 2**24 - 1)
+        or (arr.dtype == np.int32 and (arr_max > 2**23 - 1 or arr_min < -2**23))
+    ):
         raise ValueError(
-            "The 'bits_stored' value is incompatible with the range of "
-            f"pixel data in the input array ({arr.min()}, {arr.max()})"
+            "The input array contains values outside the range of the maximum "
+            "supported bit-depth of 24"
         )
 
+    # Check the array matches bits_stored
+    if arr.dtype in (np.uint8, np.uint16, np.uint32) and arr_max > 2**bits_stored - 1:
+        raise ValueError(
+            f"A 'bits_stored' value of {bits_stored} is incompatible with "
+            f"the range of pixel data in the input array: ({arr_min}, {arr_max})"
+        )
+
+    if (
+        arr.dtype in (np.int8, np.int16, np.int32)
+        and (arr_max > 2**(bits_stored - 1) - 1 or arr_min < -2**(bits_stored - 1))
+    ):
+        raise ValueError(
+            f"A 'bits_stored' value of {bits_stored} is incompatible with "
+            f"the range of pixel data in the input array: ({arr_min}, {arr_max})"
+        )
+
+    # MCT may be used with RGB in both lossy and lossless modes
     use_mct = 1 if use_mct else 0
-    lossless = 1 if lossless else 0
+
+    if codec_format not in (0, 2):
+        raise ValueError(
+            "The value of the 'codec_format' parameter is invalid, must be 0 or 2"
+        )
 
     compression_ratios = [float(x) for x in compression_ratios]
-    if not lossless and not compression_ratios:
+    signal_noise_ratios = [float(x) for x in signal_noise_ratios]
+    if compression_ratios and signal_noise_ratios:
         raise ValueError(
-            "'compression_ratios' is required if performing lossy encoding"
+            "Only one of 'compression_ratios' or 'signal_noise_ratios' is "
+            "allowed when performing lossy compression"
         )
-    if len(compression_ratios) > 10:
+    if len(compression_ratios) > 10 or len(signal_noise_ratios) > 10:
         raise ValueError("More than 10 compression layers is not supported")
 
+    # The destination for the encoded J2K codestream, needs to support BinaryIO
+    dst = BytesIO()
     return_code = Encode(
-        p_in,
+        <cnp.PyArrayObject *> arr,
         <PyObject *> dst,
         bits_stored,
         photometric_interpretation,
         use_mct,
-        lossless,
         <PyObject *> compression_ratios,
+        <PyObject *> signal_noise_ratios,
         codec_format,
     )
-
     return return_code, dst.getvalue()

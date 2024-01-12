@@ -35,8 +35,8 @@ extern int Encode(
     int bits_stored,
     int photometric_interpretation,
     int use_mct,
-    int lossless,
     PyObject *compression_ratios,
+    PyObject *signal_noise_ratios,
     int codec_format
 )
 {
@@ -46,24 +46,26 @@ extern int Encode(
     ----------
     arr : PyArrayObject *
         The numpy ndarray containing the image data to be encoded.
-        TODO: can we get rows, columns, samples per pixel from it?
     dst : PyObject *
         The destination for the encoded codestream, should be a BinaryIO.
-    codec_format : int
-        The format of the encoded JPEG 2000 data, one of:
-        * ``0`` - OPJ_CODEC_J2K : JPEG-2000 codestream
-        * ``2`` - OPJ_CODEC_JP2 : JP2 file format
     bits_stored : int
         Supported values: 1-16
     photometric_interpretation : int
         Supported values: 0-5
-    lossless : int
-        Supported values 0-1
     use_mct : int
         Supported values 0-1, can't be used with subsampling
-    compression_ratios : list[int]
-        The compression ratio for each layer (only if lossless 0), should be
-        decreasing with increasing layer.
+    compression_ratios : list[float]
+        Encode lossy with the specified compression ratio for each layer. The
+        ratio should be decreasing with increasing layer, and may be 1 to signal
+        the use of lossless encoding for that layer.
+    signal_noise_ratios : list[float]
+        Encode lossy with the specified peak signal-to-noise ratio. The ratio
+        should be increasing with increasing layer, but may be 0 in the final
+        layer to signal the use of lossless encoding for that layer.
+    codec_format : int
+        The format of the encoded JPEG 2000 data, one of:
+        * ``0`` - OPJ_CODEC_J2K : JPEG-2000 codestream
+        * ``2`` - OPJ_CODEC_JP2 : JP2 file format
 
     Returns
     -------
@@ -93,8 +95,7 @@ extern int Encode(
             // Only allow 3 or 4 samples per pixel
             if ( shape[2] != 3 && shape[2] != 4 ) {
                 py_error(
-                    "The input array has an unsupported number of samples "
-                    "per pixel"
+                    "The input array has an unsupported number of samples per pixel"
                 );
                 return 1;
             }
@@ -128,27 +129,12 @@ extern int Encode(
         case 2:  // u1
         case 3:  // i2
         case 4:  // u2
+        case 5:  // i4
+        case 6:  // u4
             break;
         default:
             py_error("The input array has an unsupported dtype");
             return 5;
-    }
-
-    // Check array uses little endian byte order
-    const union {
-        npy_uint32 i;
-        char c[4];
-    } bint = {0x01020304};
-
-    char byteorder = dtype->byteorder;
-    if (bint.c[0] == 1 && (byteorder == '=' || byteorder == '=')) {
-        // Big endian system with big endian byte order
-        py_error("The input array uses big endian byte ordering");
-        return 6;
-    } else if (bint.c[0] == 4 && byteorder == '>') {
-        // Little endian system with big endian byte order
-        py_error("The input array uses big endian byte ordering");
-        return 6;
     }
 
     // Check array is C-style, contiguous and aligned
@@ -160,8 +146,10 @@ extern int Encode(
     int bits_allocated;
     if (type_enum == 0 || type_enum == 1 || type_enum == 2) {
         bits_allocated = 8;  // bool, i1, u1
-    } else {
+    } else if (type_enum == 3 || type_enum == 4)  {
         bits_allocated = 16;  // i2, u2
+    } else {
+        bits_allocated = 32;  // i4, u4
     }
 
     // Check `photometric_interpretation` is valid
@@ -221,7 +209,7 @@ extern int Encode(
     }
 
     unsigned int is_signed;
-    if (type_enum == 1 || type_enum == 3) {
+    if (type_enum == 1 || type_enum == 3 || type_enum == 5) {
       is_signed = 1;
     } else {
       is_signed = 0;
@@ -249,28 +237,62 @@ extern int Encode(
     parameters.cod_format = codec_format;
 
     // Set up for lossy (if applicable)
-    if (lossless == 0) {
-        int nr_layers = PyObject_Length(compression_ratios);
-        if (nr_layers > 100) {
-            return_code = 11;
-        }
+    Py_ssize_t nr_cr_layers = PyObject_Length(compression_ratios);
+    Py_ssize_t nr_snr_layers = PyObject_Length(signal_noise_ratios);
+    if (nr_cr_layers > 0 || nr_snr_layers > 0) {
+        // Lossy compression using compression ratios
         parameters.irreversible = 1;  // use DWT 9-7
-        parameters.tcp_numlayers = nr_layers;
-        for (int idx = 0; idx < nr_layers; idx++) {
-            PyObject *item;
-            item = PyList_GetItem(compression_ratios, idx);
-            if (item == NULL || !PyFloat_Check(item)) {
-                return_code = 12;
+        if (nr_cr_layers > 0) {
+            if (nr_cr_layers > 100) {
+                return_code = 11;
                 goto failure;
             }
-            double value = PyFloat_AsDouble(item);
-            if (value < 1 || value > 100) {
-                return_code = 13;
+
+            parameters.cp_disto_alloc = 1;  // Allocation by rate/distortion
+            parameters.tcp_numlayers = nr_cr_layers;
+            for (int idx = 0; idx < nr_cr_layers; idx++) {
+                PyObject *item = PyList_GetItem(compression_ratios, idx);
+                if (item == NULL || !PyFloat_Check(item)) {
+                    return_code = 12;
+                    goto failure;
+                }
+                double value = PyFloat_AsDouble(item);
+                if (value < 1 || value > 1000) {
+                    return_code = 13;
+                    goto failure;
+                }
+                // Maximum 100 rates
+                parameters.tcp_rates[idx] = value;
+            }
+            py_debug("Encoding using lossy compression based on compression ratios");
+
+        } else {
+            // Lossy compression using peak signal-to-noise ratios
+            if (nr_snr_layers > 100) {
+                return_code = 14;
                 goto failure;
             }
-            parameters.tcp_rates[idx] = value;
+
+            parameters.cp_fixed_quality = 1;
+            parameters.tcp_numlayers = nr_snr_layers;
+            for (int idx = 0; idx < nr_snr_layers; idx++) {
+                PyObject *item = PyList_GetItem(signal_noise_ratios, idx);
+                if (item == NULL || !PyFloat_Check(item)) {
+                    return_code = 15;
+                    goto failure;
+                }
+                double value = PyFloat_AsDouble(item);
+                if (value < 0 || value > 1000) {
+                    return_code = 16;
+                    goto failure;
+                }
+                // Maximum 100 ratios
+                parameters.tcp_distoratio[idx] = value;
+            }
+            py_debug(
+                "Encoding using lossy compression based on peak signal-to-noise ratios"
+            );
         }
-        parameters.cp_disto_alloc = 1;  // Allocation by rate/distortion
     }
 
     py_debug("Input validation complete, setting up for encoding");
@@ -292,8 +314,8 @@ extern int Encode(
         cmptparm[i].prec = (OPJ_UINT32) bits_stored;
         cmptparm[i].sgnd = (OPJ_UINT32) is_signed;
         // Sub-sampling: none
-        cmptparm[i].dx = (OPJ_UINT32) 1;
-        cmptparm[i].dy = (OPJ_UINT32) 1;
+        cmptparm[i].dx = 1;
+        cmptparm[i].dy = 1;
         cmptparm[i].w = columns;
         cmptparm[i].h = rows;
     }
@@ -315,41 +337,46 @@ extern int Encode(
     /* set image offset and reference grid */
     image->x0 = (OPJ_UINT32)parameters.image_offset_x0;
     image->y0 = (OPJ_UINT32)parameters.image_offset_y0;
-    image->x1 = (OPJ_UINT32)parameters.image_offset_x0 + (OPJ_UINT32)(columns - 1) + 1;
-    image->y1 = (OPJ_UINT32)parameters.image_offset_y0 + (OPJ_UINT32)(rows - 1) + 1;
+    image->x1 = (OPJ_UINT32)parameters.image_offset_x0 + (OPJ_UINT32)columns;
+    image->y1 = (OPJ_UINT32)parameters.image_offset_y0 + (OPJ_UINT32)rows;
 
     // Add the image data
     void *ptr;
     unsigned int p, r, c;
-    if (bits_allocated == 8) {
-      // bool, u1, i1
-      // Planes
-      for (p = 0; p < samples_per_pixel; p++)
-      {
-          // Rows
-          for (r = 0; r < rows; r++)
-          {
-              // Columns
-              for (c = 0; c < columns; c++)
-              {
-                  ptr = PyArray_GETPTR3(arr, r, c, p);
-                  image->comps[p].data[c + columns * r] = is_signed ? *(npy_int8 *) ptr : *(npy_uint8 *) ptr;
-              }
-          }
-      }
-    } else {
-        // u2, i2
-        // Planes
+    if (bits_allocated == 8) {  // bool, u1, i1
         for (p = 0; p < samples_per_pixel; p++)
         {
-            // Rows
             for (r = 0; r < rows; r++)
             {
-                // Columns
+                for (c = 0; c < columns; c++)
+                {
+                    ptr = PyArray_GETPTR3(arr, r, c, p);
+                    image->comps[p].data[c + columns * r] = is_signed ? *(npy_int8 *) ptr : *(npy_uint8 *) ptr;
+                }
+            }
+        }
+    } else if (bits_allocated == 16) {  // u2, i2
+        for (p = 0; p < samples_per_pixel; p++)
+        {
+            for (r = 0; r < rows; r++)
+            {
                 for (c = 0; c < columns; c++)
                 {
                     ptr = PyArray_GETPTR3(arr, r, c, p);
                     image->comps[p].data[c + columns * r] = is_signed ? *(npy_int16 *) ptr : *(npy_uint16 *) ptr;
+                }
+            }
+        }
+    } else if (bits_allocated == 32) {  // u4, i4
+        for (p = 0; p < samples_per_pixel; p++)
+        {
+            for (r = 0; r < rows; r++)
+            {
+                for (c = 0; c < columns; c++)
+                {
+                    ptr = PyArray_GETPTR3(arr, r, c, p);
+                    // `data[...]` is OPJ_INT32, so *may* support range i (1, 32), u (1, 31)
+                    image->comps[p].data[c + columns * r] = is_signed ? *(npy_int32 *) ptr : *(npy_uint32 *) ptr;
                 }
             }
         }

@@ -50,8 +50,21 @@ BSD license (see the main LICENSE file).
 #include "utils.h"
 
 
-// Size of the buffer for the input stream
-// #define BUFFER_SIZE OPJ_J2K_STREAM_CHUNK_SIZE
+static void py_error(const char *msg) {
+    py_log("openjpeg.decode", "ERROR", msg);
+}
+
+static void info_callback(const char *msg, void *callback) {
+    py_log("openjpeg.decode", "INFO", msg);
+}
+
+static void warning_callback(const char *msg, void *callback) {
+    py_log("openjpeg.decode", "WARNING", msg);
+}
+
+static void error_callback(const char *msg, void *callback) {
+    py_error(msg);
+}
 
 
 const char * OpenJpegVersion(void)
@@ -171,7 +184,7 @@ extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *outpu
     opj_decompress_parameters parameters;
     set_default_parameters(&parameters);
 
-    int error_code = EXIT_FAILURE;
+    int return_code = EXIT_FAILURE;
 
     // Creates an abstract input stream; allocates memory
     stream = opj_stream_create(BUFFER_SIZE, OPJ_TRUE);
@@ -179,7 +192,7 @@ extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *outpu
     if (!stream)
     {
         // Failed to create the input stream
-        error_code = 1;
+        return_code = 1;
         goto failure;
     }
 
@@ -196,7 +209,7 @@ extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *outpu
     if (!opj_setup_decoder(codec, &(parameters.core)))
     {
         // failed to setup the decoder
-        error_code = 2;
+        return_code = 2;
         goto failure;
     }
 
@@ -204,7 +217,7 @@ extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *outpu
     if (!opj_read_header(stream, codec, &image))
     {
         // failed to read the header
-        error_code = 3;
+        return_code = 3;
         goto failure;
     }
 
@@ -232,7 +245,7 @@ extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *outpu
         if (stream)
             opj_stream_destroy(stream);
 
-        return error_code;
+        return return_code;
 }
 
 
@@ -469,15 +482,19 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     // Array of pointers to the first element of each component
     int **p_component = NULL;
 
-    int error_code = EXIT_FAILURE;
+    int return_code = EXIT_FAILURE;
+
+    /* Send info, warning, error message to Python logging */
+    opj_set_info_handler(codec, info_callback, NULL);
+    opj_set_warning_handler(codec, warning_callback, NULL);
+    opj_set_error_handler(codec, error_callback, NULL);
 
     // Creates an abstract input stream; allocates memory
     stream = opj_stream_create(BUFFER_SIZE, OPJ_TRUE);
-
     if (!stream)
     {
         // Failed to create the input stream
-        error_code = 1;
+        return_code = 1;
         goto failure;
     }
 
@@ -496,7 +513,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     if (!opj_setup_decoder(codec, &(parameters.core)))
     {
         // failed to setup the decoder
-        error_code = 2;
+        return_code = 2;
         goto failure;
     }
 
@@ -504,7 +521,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     if (! opj_read_header(stream, codec, &image))
     {
         // failed to read the header
-        error_code = 3;
+        return_code = 3;
         goto failure;
     }
 
@@ -518,7 +535,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
             )
         {
             // failed to set the component indices
-            error_code = 4;
+            return_code = 4;
             goto failure;
         }
     }
@@ -532,7 +549,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
         )
     {
         // failed to set the decoded area
-        error_code = 5;
+        return_code = 5;
         goto failure;
     }
 
@@ -540,7 +557,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     if (!(opj_decode(codec, stream, image) && opj_end_decompress(codec, stream)))
     {
         // failed to decode image
-        error_code = 6;
+        return_code = 6;
         goto failure;
     }
 
@@ -563,7 +580,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     image = upsample_image_components(image);
     if (image == NULL) {
         // failed to upsample image
-        error_code = 8;
+        return_code = 8;
         goto failure;
     }
 
@@ -586,8 +603,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     // See DICOM Standard, Part 3, Annex C.7.6.3.1.3
     int row, col;
     unsigned int ii;
-    if (precision <= 8)
-    {
+    if (precision <= 8) {
         // 8-bit signed/unsigned
         for (row = 0; row < height; row++)
         {
@@ -601,9 +617,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
                 }
             }
         }
-    }
-    else if (precision <= 16)
-    {
+    } else if (precision <= 16) {
         union {
             unsigned short val;
             unsigned char vals[2];
@@ -626,11 +640,36 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
                 }
             }
         }
-    }
-    else
-    {
+    } else if (precision <= 32) {
+        union {
+            unsigned long val;
+            unsigned char vals[4];
+        } u32;
+
+        // 32-bit signed/unsigned
+        for (row = 0; row < height; row++)
+        {
+            for (col = 0; col < width; col++)
+            {
+                for (ii = 0; ii < NR_COMPONENTS; ii++)
+                {
+                    u32.val = (unsigned long)(*p_component[ii]);
+                    // Little endian output
+                    *out = u32.vals[0];
+                    out++;
+                    *out = u32.vals[1];
+                    out++;
+                    *out = u32.vals[2];
+                    out++;
+                    *out = u32.vals[3];
+                    out++;
+                    p_component[ii]++;
+                }
+            }
+        }
+    } else {
         // Support for more than 16-bits per component is not implemented
-        error_code = 7;
+        return_code = 7;
         goto failure;
     }
 
@@ -660,5 +699,5 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
         if (stream)
             opj_stream_destroy(stream);
 
-        return error_code;
+        return return_code;
 }
