@@ -133,6 +133,7 @@ extern int Encode(
         case 6:  // u4
             break;
         default:
+            printf("Unsupported dtype enum %d\n", type_enum);
             py_error("The input array has an unsupported dtype");
             return 5;
     }

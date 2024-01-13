@@ -66,8 +66,8 @@ ENCODING_ERRORS = {
         "the input array has an unsupported number of columns, must be " "in (1, 65535)"
     ),
     5: (
-        "the input array has an unsupported dtype, only bool, u1, u2, i1 and "
-        "i2 are supported"
+        "the input array has an unsupported dtype, only bool, u1, u2, u4, i1, i2"
+        " and i4 are supported"
     ),
     6: "the input array must use little endian byte ordering",
     7: "the input array must be C-style, contiguous and aligned",
