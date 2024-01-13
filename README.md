@@ -127,6 +127,6 @@ arr = np.random.randint(low=-2**15, high=2**15 - 1, size=(100, 100), dtype="int8
 encode(arr, signal_noise_ratios=[50, 80, 100])
 ```
 
-See the docstring for the [encode() function][2] for full details.
+See the docstring for the [encode() function][2]: for full details.
 
-[1]: https://github.com/pydicom/pylibjpeg-openjpeg/blob/main/openjpeg/utils.py#L428
+[2]: https://github.com/pydicom/pylibjpeg-openjpeg/blob/main/openjpeg/utils.py#L428
