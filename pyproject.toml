@@ -64,6 +64,9 @@ openjpeg = "openjpeg:decode"
 "1.2.840.10008.1.2.4.202" = "openjpeg:decode_pixel_data"
 "1.2.840.10008.1.2.4.203" = "openjpeg:decode_pixel_data"
 
+[tool.poetry.plugins."pylibjpeg.pixel_data_encoders"]
+"1.2.840.10008.1.2.4.90" = "openjpeg:encode_pixel_data"
+"1.2.840.10008.1.2.4.91" = "openjpeg:encode_pixel_data"
 
 [tool.coverage.run]
 omit = [

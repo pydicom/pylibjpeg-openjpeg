@@ -7,6 +7,7 @@ from .utils import (
     decode,  # noqa: F401
     decode_pixel_data,  # noqa: F401
     encode,  # noqa: F401
+    encode_pixel_data,  # noqa: F401
     get_parameters,  # noqa: F401
 )
 
