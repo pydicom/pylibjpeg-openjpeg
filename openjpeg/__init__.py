@@ -12,7 +12,6 @@ from .utils import (
 )
 
 
-
 # Setup default logging
 _logger = logging.getLogger(__name__)
 _logger.addHandler(logging.NullHandler())

@@ -7,6 +7,7 @@ import pytest
 from openjpeg.data import JPEG_DIRECTORY
 from openjpeg.utils import (
     encode,
+    encode_pixel_data,
     decode,
     PhotometricInterpretation as PI,
     _get_bits_stored,
@@ -672,6 +673,16 @@ class TestEncode:
         )
         out = decode(result)
         assert np.allclose(out, arr, atol=2)
+
+
+class TestEncodePixelData:
+    """Tests for encode_pixel_data()"""
+
+    def test_nominal(self):
+        """Test the function works OK"""
+        arr = np.random.randint(0, high=65535, size=(100, 100), dtype="u2")
+        buffer = encode_pixel_data(arr)
+        assert np.array_equal(arr, decode(buffer))
 
 
 class TestGetBitsStored:
