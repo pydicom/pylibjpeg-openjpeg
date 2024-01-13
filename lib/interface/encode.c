@@ -124,16 +124,15 @@ extern int Encode(
     PyArray_Descr *dtype = PyArray_DTYPE(arr);
     int type_enum = dtype->type_num;
     switch (type_enum) {
-        case 0:  // bool
-        case 1:  // i1
-        case 2:  // u1
-        case 3:  // i2
-        case 4:  // u2
-        case 5:  // i4
-        case 6:  // u4
+        case NPY_BOOL:  // bool
+        case NPY_INT8:  // i1
+        case NPY_UINT8:  // u1
+        case NPY_INT16:  // i2
+        case NPY_UINT16:  // u2
+        case NPY_INT32:  // i4
+        case NPY_UINT32:  // u4
             break;
         default:
-            printf("Unsupported dtype enum %d\n", type_enum);
             py_error("The input array has an unsupported dtype");
             return 5;
     }

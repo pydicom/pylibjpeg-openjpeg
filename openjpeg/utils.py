@@ -508,7 +508,7 @@ def encode(
     if arr.dtype.kind not in ("b", "i", "u"):
         raise ValueError(
             f"The input array has an unsupported dtype '{arr.dtype}', only "
-            "bool, u1, u2, i1 and i2 are supported"
+            "bool, u1, u2, u4, i1, i2 and i4 are supported"
         )
 
     if bits_stored is None:
