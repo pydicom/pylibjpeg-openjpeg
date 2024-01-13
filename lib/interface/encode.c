@@ -209,7 +209,7 @@ extern int Encode(
     }
 
     unsigned int is_signed;
-    if (type_enum == NP_INT8 || type_enum == NPY_INT16 || type_enum == NPY_INT32) {
+    if (type_enum == NPY_INT8 || type_enum == NPY_INT16 || type_enum == NPY_INT32) {
       is_signed = 1;
     } else {
       is_signed = 0;
