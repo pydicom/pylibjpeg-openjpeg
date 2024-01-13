@@ -45,7 +45,7 @@ python -m pip install pylibjpeg-openjpeg
 Encoding of NumPy ndarrays is supported for the following:
 
 * Array dtype: bool, uint8, int8, uint16, int16, uint32 and int32 (1-24 bit-depth only)
-* Array shape: (rows, columns) and (rows, columns planes)
+* Array shape: (rows, columns) and (rows, columns, planes)
 * Number of rows/columns: up to 65535
 * Number of planes: 1, 3 or 4
 
