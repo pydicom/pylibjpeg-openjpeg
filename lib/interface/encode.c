@@ -144,9 +144,9 @@ extern int Encode(
     };
 
     int bits_allocated;
-    if (type_enum == 0 || type_enum == 1 || type_enum == 2) {
+    if (type_enum == NPY_BOOL || type_enum == NPY_INT8 || type_enum == NPY_UINT8) {
         bits_allocated = 8;  // bool, i1, u1
-    } else if (type_enum == 3 || type_enum == 4)  {
+    } else if (type_enum == NPY_INT16 || type_enum == NPY_UINT16 )  {
         bits_allocated = 16;  // i2, u2
     } else {
         bits_allocated = 32;  // i4, u4
@@ -209,7 +209,7 @@ extern int Encode(
     }
 
     unsigned int is_signed;
-    if (type_enum == 1 || type_enum == 3 || type_enum == 5) {
+    if (type_enum == NP_INT8 || type_enum == NPY_INT16 || type_enum == NPY_INT32) {
       is_signed = 1;
     } else {
       is_signed = 0;
