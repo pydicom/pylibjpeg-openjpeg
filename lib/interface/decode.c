@@ -47,10 +47,24 @@ BSD license (see the main LICENSE file).
 #include <stdio.h>
 #include <../openjpeg/src/lib/openjp2/openjpeg.h>
 #include "color.h"
+#include "utils.h"
 
 
-// Size of the buffer for the input stream
-#define BUFFER_SIZE OPJ_J2K_STREAM_CHUNK_SIZE
+static void py_error(const char *msg) {
+    py_log("openjpeg.decode", "ERROR", msg);
+}
+
+static void info_callback(const char *msg, void *callback) {
+    py_log("openjpeg.decode", "INFO", msg);
+}
+
+static void warning_callback(const char *msg, void *callback) {
+    py_log("openjpeg.decode", "WARNING", msg);
+}
+
+static void error_callback(const char *msg, void *callback) {
+    py_error(msg);
+}
 
 
 const char * OpenJpegVersion(void)
@@ -101,196 +115,6 @@ typedef struct opj_decompress_params {
     /** indices of components to decode */
     OPJ_UINT32* comps_indices;
 } opj_decompress_parameters;
-
-
-// Python stream methods
-static Py_ssize_t py_tell(PyObject *stream)
-{
-    /* Return the current position of the `stream`.
-
-    Parameters
-    ----------
-    stream : PyObject *
-        The Python stream object to use (must have a ``tell()`` method).
-
-    Returns
-    -------
-    Py_ssize_t
-        The new position in the `stream`.
-    */
-    PyObject *result;
-    Py_ssize_t location;
-
-    result = PyObject_CallMethod(stream, "tell", NULL);
-    location = PyLong_AsSsize_t(result);
-
-    Py_DECREF(result);
-
-    //printf("py_tell(): %u\n", location);
-    return location;
-}
-
-
-static OPJ_SIZE_T py_read(void *destination, OPJ_SIZE_T nr_bytes, void *fd)
-{
-    /* Read `nr_bytes` from Python object `fd` and copy it to `destination`.
-
-    Parameters
-    ----------
-    destination : void *
-        The object where the read data will be copied.
-    nr_bytes : OPJ_SIZE_T
-        The number of bytes to be read.
-    fd : PyObject *
-        The Python file-like to read the data from (must have a ``read()``
-        method).
-
-    Returns
-    -------
-    OPJ_SIZE_T
-        The number of bytes read or -1 if reading failed or if trying to read
-        while at the end of the data.
-    */
-    PyObject* result;
-    char* buffer;
-    Py_ssize_t length;
-    int bytes_result;
-
-    // Py_ssize_t: signed int samed size as size_t
-    // fd.read(nr_bytes), "k" => C unsigned long int to Python int
-    result = PyObject_CallMethod(fd, "read", "n", nr_bytes);
-    // Returns the null-terminated contents of `result`
-    // `length` is Py_ssize_t *
-    // `buffer` is char **
-    // If `length` is NULL, returns -1
-    bytes_result = PyBytes_AsStringAndSize(result, &buffer, &length);
-
-    // `length` is NULL
-    if (bytes_result == -1)
-        goto error;
-
-    // More bytes read then asked for
-    if (length > (long)(nr_bytes))
-        goto error;
-
-    // Convert `length` to OPJ_SIZE_T - shouldn't have negative lengths
-    if (length < 0)
-        goto error;
-
-    OPJ_SIZE_T len_size_t = (OPJ_SIZE_T)(length);
-
-    // memcpy(void *dest, const void *src, size_t n)
-    memcpy(destination, buffer, len_size_t);
-
-    //printf("py_read(): %u bytes asked, %u bytes read\n", nr_bytes, len_size_t);
-
-    Py_DECREF(result);
-    return len_size_t ? len_size_t: (OPJ_SIZE_T)-1;
-
-error:
-    Py_DECREF(result);
-    return -1;
-}
-
-
-static OPJ_BOOL py_seek(Py_ssize_t offset, void *stream, int whence)
-{
-    /* Change the `stream` position to the given `offset` from `whence`.
-
-    Parameters
-    ----------
-    offset : OPJ_OFF_T
-        The offset relative to `whence`.
-    stream : PyObject *
-        The Python stream object to seek (must have a ``seek()`` method).
-    whence : int
-        0 for SEEK_SET, 1 for SEEK_CUR, 2 for SEEK_END
-
-    Returns
-    -------
-    OPJ_TRUE : OBJ_BOOL
-    */
-    // Python and C; SEEK_SET is 0, SEEK_CUR is 1 and SEEK_END is 2
-    // fd.seek(nr_bytes),
-    // k: convert C unsigned long int to Python int
-    // i: convert C int to a Python integer
-    PyObject *result;
-    result = PyObject_CallMethod(stream, "seek", "ni", offset, whence);
-    Py_DECREF(result);
-
-    //printf("py_seek(): offset %u bytes from %u\n", offset, whence);
-
-    return OPJ_TRUE;
-}
-
-
-static OPJ_BOOL py_seek_set(OPJ_OFF_T offset, void *stream)
-{
-    /* Change the `stream` position to the given `offset` from SEEK_SET.
-
-    Parameters
-    ----------
-    offset : OPJ_OFF_T
-        The offset relative to SEEK_SET.
-    stream : PyObject *
-        The Python stream object to seek (must have a ``seek()`` method).
-
-    Returns
-    -------
-    OPJ_TRUE : OBJ_BOOL
-    */
-    return py_seek(offset, stream, SEEK_SET);
-}
-
-
-static OPJ_OFF_T py_skip(OPJ_OFF_T offset, void *stream)
-{
-    /* Change the `stream` position by `offset` from SEEK_CUR and return the
-    new position.
-
-    Parameters
-    ----------
-    offset : OPJ_OFF_T
-        The offset relative to SEEK_CUR.
-    stream : PyObject *
-        The Python stream object to seek (must have a ``seek()`` method).
-
-    Returns
-    -------
-    off_t
-        The new position in the `stream`.
-    */
-    py_seek(offset, stream, SEEK_CUR);
-
-    off_t pos;
-    pos = py_tell(stream);
-
-    return pos ? pos : (OPJ_OFF_T) -1;
-}
-
-
-static OPJ_UINT64 py_length(PyObject * stream)
-{
-    /* Return the total length of the `stream`.
-
-    Parameters
-    ----------
-    stream : PyObject *
-        The Python stream object (must have ``seek()`` and ``tell()`` methods).
-
-    Returns
-    -------
-    OPJ_UINT64
-        The total length of the `stream`.
-    */
-    OPJ_OFF_T input_length = 0;
-
-    py_seek(0, stream, SEEK_END);
-    input_length = (OPJ_OFF_T)py_tell(stream);
-    py_seek(0, stream, SEEK_SET);
-
-    return (OPJ_UINT64)input_length;
-}
 
 
 // Decoding stuff
@@ -360,7 +184,7 @@ extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *outpu
     opj_decompress_parameters parameters;
     set_default_parameters(&parameters);
 
-    int error_code = EXIT_FAILURE;
+    int return_code = EXIT_FAILURE;
 
     // Creates an abstract input stream; allocates memory
     stream = opj_stream_create(BUFFER_SIZE, OPJ_TRUE);
@@ -368,7 +192,7 @@ extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *outpu
     if (!stream)
     {
         // Failed to create the input stream
-        error_code = 1;
+        return_code = 1;
         goto failure;
     }
 
@@ -385,7 +209,7 @@ extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *outpu
     if (!opj_setup_decoder(codec, &(parameters.core)))
     {
         // failed to setup the decoder
-        error_code = 2;
+        return_code = 2;
         goto failure;
     }
 
@@ -393,7 +217,7 @@ extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *outpu
     if (!opj_read_header(stream, codec, &image))
     {
         // failed to read the header
-        error_code = 3;
+        return_code = 3;
         goto failure;
     }
 
@@ -421,7 +245,7 @@ extern int GetParameters(PyObject* fd, int codec_format, j2k_parameters_t *outpu
         if (stream)
             opj_stream_destroy(stream);
 
-        return error_code;
+        return return_code;
 }
 
 
@@ -462,7 +286,6 @@ static opj_image_t* upsample_image_components(opj_image_t* original)
         opj_image_cmptparm_t* l_new_cmp = &(l_new_components[ii]);
         opj_image_comp_t* l_org_cmp = &(original->comps[ii]);
 
-        l_new_cmp->bpp = l_org_cmp->bpp;
         l_new_cmp->prec = l_org_cmp->prec;
         l_new_cmp->sgnd = l_org_cmp->sgnd;
         l_new_cmp->x0 = original->x0;
@@ -659,15 +482,19 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     // Array of pointers to the first element of each component
     int **p_component = NULL;
 
-    int error_code = EXIT_FAILURE;
+    int return_code = EXIT_FAILURE;
+
+    /* Send info, warning, error message to Python logging */
+    opj_set_info_handler(codec, info_callback, NULL);
+    opj_set_warning_handler(codec, warning_callback, NULL);
+    opj_set_error_handler(codec, error_callback, NULL);
 
     // Creates an abstract input stream; allocates memory
     stream = opj_stream_create(BUFFER_SIZE, OPJ_TRUE);
-
     if (!stream)
     {
         // Failed to create the input stream
-        error_code = 1;
+        return_code = 1;
         goto failure;
     }
 
@@ -686,7 +513,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     if (!opj_setup_decoder(codec, &(parameters.core)))
     {
         // failed to setup the decoder
-        error_code = 2;
+        return_code = 2;
         goto failure;
     }
 
@@ -694,7 +521,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     if (! opj_read_header(stream, codec, &image))
     {
         // failed to read the header
-        error_code = 3;
+        return_code = 3;
         goto failure;
     }
 
@@ -708,7 +535,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
             )
         {
             // failed to set the component indices
-            error_code = 4;
+            return_code = 4;
             goto failure;
         }
     }
@@ -722,7 +549,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
         )
     {
         // failed to set the decoded area
-        error_code = 5;
+        return_code = 5;
         goto failure;
     }
 
@@ -730,7 +557,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     if (!(opj_decode(codec, stream, image) && opj_end_decompress(codec, stream)))
     {
         // failed to decode image
-        error_code = 6;
+        return_code = 6;
         goto failure;
     }
 
@@ -753,7 +580,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     image = upsample_image_components(image);
     if (image == NULL) {
         // failed to upsample image
-        error_code = 8;
+        return_code = 8;
         goto failure;
     }
 
@@ -774,9 +601,9 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     //  we have R1, B1, G1 | R2, G2, B2 | ..., where 1 is the first pixel,
     //  2 the second, etc
     // See DICOM Standard, Part 3, Annex C.7.6.3.1.3
-    unsigned int row, col, ii;
-    if (precision <= 8)
-    {
+    int row, col;
+    unsigned int ii;
+    if (precision <= 8) {
         // 8-bit signed/unsigned
         for (row = 0; row < height; row++)
         {
@@ -790,9 +617,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
                 }
             }
         }
-    }
-    else if (precision <= 16)
-    {
+    } else if (precision <= 16) {
         union {
             unsigned short val;
             unsigned char vals[2];
@@ -815,11 +640,36 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
                 }
             }
         }
-    }
-    else
-    {
+    } else if (precision <= 32) {
+        union {
+            unsigned long val;
+            unsigned char vals[4];
+        } u32;
+
+        // 32-bit signed/unsigned
+        for (row = 0; row < height; row++)
+        {
+            for (col = 0; col < width; col++)
+            {
+                for (ii = 0; ii < NR_COMPONENTS; ii++)
+                {
+                    u32.val = (unsigned long)(*p_component[ii]);
+                    // Little endian output
+                    *out = u32.vals[0];
+                    out++;
+                    *out = u32.vals[1];
+                    out++;
+                    *out = u32.vals[2];
+                    out++;
+                    *out = u32.vals[3];
+                    out++;
+                    p_component[ii]++;
+                }
+            }
+        }
+    } else {
         // Support for more than 16-bits per component is not implemented
-        error_code = 7;
+        return_code = 7;
         goto failure;
     }
 
@@ -849,5 +699,5 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
         if (stream)
             opj_stream_destroy(stream);
 
-        return error_code;
+        return return_code;
 }
