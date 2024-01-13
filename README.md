@@ -41,7 +41,13 @@ python -m pip install pylibjpeg-openjpeg
 | [15444-1](https://www.iso.org/standard/78321.html) | [T.800](https://www.itu.int/rec/T-REC-T.800/en) | [JPEG 2000](https://jpeg.org/jpeg2000/) |
 
 #### Encoding
-Encoding of JPEG 2000 images is not currently supported
+
+Encoding of NumPy ndarrays is supported for the following:
+
+* Array dtype: bool, uint8, int8, uint16, int16, uint32 and int32 (1-24 bit-depth only)
+* Array shape: (rows, columns) and (rows, columns planes)
+* Number of rows/columns: up to 65535
+* Number of planes: 1, 3 or 4
 
 
 ### Transfer Syntaxes
@@ -81,3 +87,46 @@ with open('filename.j2k', 'rb') as f:
 # Or simply...
 arr = decode('filename.j2k')
 ```
+
+#### Standalone JPEG encoding
+
+Lossless encoding of RGB with multiple-component transformation:
+
+```python
+
+import numpy as np
+from openjpeg import encode
+
+arr = np.random.randint(low=0, high=65535, size=(100, 100, 3), dtype="uint8")
+encode(arr, photometric_interpretation=1)  # 1: sRGB
+```
+
+Lossy encoding of a monochrome image using compression ratios:
+
+```python
+
+import numpy as np
+from openjpeg import encode
+
+arr = np.random.randint(low=-2**15, high=2**15 - 1, size=(100, 100), dtype="int8")
+# You must determine your own values for `compression_ratios`
+#   as these are for illustration purposes only
+encode(arr, compression_ratios=[2, 4, 6])
+```
+
+Lossy encoding of a monochrome image using peak signal-to-noise ratios:
+
+```python
+
+import numpy as np
+from openjpeg import encode
+
+arr = np.random.randint(low=-2**15, high=2**15 - 1, size=(100, 100), dtype="int8")
+# You must determine your own values for `signal_noise_ratios`
+#   as these are for illustration purposes only
+encode(arr, signal_noise_ratios=[50, 80, 100])
+```
+
+See the docstring for the [encode() function][2] for full details.
+
+[1]: https://github.com/pydicom/pylibjpeg-openjpeg/blob/main/openjpeg/utils.py#L428

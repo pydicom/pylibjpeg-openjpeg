@@ -3,7 +3,13 @@
 import logging
 
 from ._version import __version__  # noqa: F401
-from .utils import decode, decode_pixel_data, get_parameters  # noqa: F401
+from .utils import (
+    decode,  # noqa: F401
+    decode_pixel_data,  # noqa: F401
+    encode,  # noqa: F401
+    get_parameters,  # noqa: F401
+)
+
 
 
 # Setup default logging

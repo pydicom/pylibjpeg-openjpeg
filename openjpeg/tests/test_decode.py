@@ -96,6 +96,9 @@ def test_bad_decode():
     with pytest.raises(RuntimeError, match=msg):
         decode(frame)
 
+    with pytest.raises(RuntimeError, match=msg):
+        decode_pixel_data(frame, version=2)
+
 
 class TestDecode:
     """General tests for decode."""
@@ -319,6 +322,26 @@ class TestDecode:
         ]
 
     def test_decode_pixel_data(self):
+        """Test decode_pixel_data"""
+        d = DIR_15444 / "2KLS"
+        with (d / "693.j2k").open("rb") as f:
+            buffer = decode_pixel_data(f.read(), version=2)
+            assert isinstance(buffer, bytearray)
+            arr = np.frombuffer(buffer, dtype="i2").reshape((512, 512))
+            assert arr[270, 55:65].tolist() == [
+                340,
+                815,
+                1229,
+                1358,
+                1351,
+                1302,
+                1069,
+                618,
+                215,
+                71,
+            ]
+
+    def test_decode_pixel_data_raises(self):
         """Test decode_pixel_data"""
         d = DIR_15444 / "2KLS"
         with (d / "693.j2k").open("rb") as f:
