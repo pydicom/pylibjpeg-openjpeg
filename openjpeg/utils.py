@@ -23,6 +23,7 @@ class Version(IntEnum):
     v1 = 1
     v2 = 2
 
+
 class PhotometricInterpretation(IntEnum):
     MONOCHROME1 = 2
     MONOCHROME2 = 2
@@ -60,20 +61,15 @@ ENCODING_ERRORS = {
         "the input array has an invalid shape, must be (rows, columns) or "
         "(rows, columns, planes)"
     ),
-    3: (
-        "the input array has an unsupported number of rows, must be "
-        "in (1, 65535)"
-    ),
+    3: ("the input array has an unsupported number of rows, must be " "in (1, 65535)"),
     4: (
-        "the input array has an unsupported number of columns, must be "
-        "in (1, 65535)"
+        "the input array has an unsupported number of columns, must be " "in (1, 65535)"
     ),
     5: (
         "the input array has an unsupported dtype, only bool, u1, u2, i1 and "
         "i2 are supported"
     ),
     6: "the input array must use little endian byte ordering",
-
     7: "the input array must be C-style, contiguous and aligned",
     8: (
         "the image precision given by bits stored must be in (1, itemsize of "
@@ -212,9 +208,9 @@ def decode(
         raise RuntimeError(
             f"Error decoding the J2K data: {DECODING_ERRORS.get(return_code, return_code)}"
         )
-    arr = cast(np.ndarray, arr)
+
     if not reshape:
-        return arr
+        return cast(np.ndarray, arr)
 
     meta = get_parameters(buffer, j2k_format)
     precision = cast(int, meta["precision"])
@@ -232,7 +228,7 @@ def decode(
     if pixels_per_sample > 1:
         shape.append(pixels_per_sample)
 
-    return arr.reshape(*shape)
+    return cast(np.ndarray, arr.reshape(*shape))
 
 
 def decode_pixel_data(
@@ -412,7 +408,7 @@ def get_parameters(
 def _get_bits_stored(arr: np.ndarray) -> int:
     """Return a 'bits_stored' appropriate for `arr`."""
     if arr.dtype.kind == "b":
-        return  1
+        return 1
 
     maximum = arr.max()
     if arr.dtype.kind == "u":
@@ -423,10 +419,10 @@ def _get_bits_stored(arr: np.ndarray) -> int:
 
     minimum = arr.min()
     for bit_depth in range(1, arr.dtype.itemsize * 8):
-        if maximum <= 2**(bit_depth - 1) - 1 and minimum >= -2**(bit_depth - 1):
+        if maximum <= 2 ** (bit_depth - 1) - 1 and minimum >= -(2 ** (bit_depth - 1)):
             return bit_depth
 
-    return arr.dtype.itemsize * 8
+    return cast(int, arr.dtype.itemsize * 8)
 
 
 def encode(
@@ -438,7 +434,7 @@ def encode(
     signal_noise_ratios: Union[List[float], None] = None,
     codec_format: int = 0,
     **kwargs: Any,
-):
+) -> bytes:
     """Return the JPEG 2000 compressed `arr`.
 
     Encoding of the input array will use lossless compression by default, to
@@ -534,7 +530,7 @@ def encode(
             f"Error encoding the data: {ENCODING_ERRORS.get(return_code, return_code)}"
         )
 
-    return buffer
+    return cast(bytes, buffer)
 
 
 def encode_pixel_data(arr: np.ndarray, **kwargs: Any) -> bytes:
@@ -581,4 +577,4 @@ def encode_pixel_data(arr: np.ndarray, **kwargs: Any) -> bytes:
     bytes
         The JPEG 2000 encoded image data.
     """
-    return encode(src, **kwargs)
+    return encode(arr, **kwargs)
