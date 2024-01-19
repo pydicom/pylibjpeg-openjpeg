@@ -3,9 +3,9 @@ name: release-deploy
 on:
   release:
     types: [ published ]
-  # push:
-  #   branches: [ main ]
-  # pull_request:
+  push:
+    branches: [ main ]
+  pull_request:
 
 jobs:
   build-sdist:
@@ -41,78 +41,78 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Windows 32 bit
-          - os: windows-latest
-            python: 38
-            platform_id: win32
-          - os: windows-latest
-            python: 39
-            platform_id: win32
-          - os: windows-latest
-            python: 310
-            platform_id: win32
-          - os: windows-latest
-            python: 311
-            platform_id: win32
-          - os: windows-latest
-            python: 312
-            platform_id: win32
-
-          # Windows 64 bit
-          - os: windows-latest
-            python: 38
-            platform_id: win_amd64
-          - os: windows-latest
-            python: 39
-            platform_id: win_amd64
-          - os: windows-latest
-            python: 310
-            platform_id: win_amd64
-          - os: windows-latest
-            python: 311
-            platform_id: win_amd64
-          - os: windows-latest
-            python: 312
-            platform_id: win_amd64
-
-          # Linux 64 bit manylinux2014
-          - os: ubuntu-latest
-            python: 38
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
-          - os: ubuntu-latest
-            python: 39
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
-          - os: ubuntu-latest
-            python: 310
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
-          - os: ubuntu-latest
-            python: 311
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
-          - os: ubuntu-latest
-            python: 312
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
-
-          # Linux aarch64
-          - os: ubuntu-latest
-            python: 38
-            platform_id: manylinux_aarch64
-          - os: ubuntu-latest
-            python: 39
-            platform_id: manylinux_aarch64
-          - os: ubuntu-latest
-            python: 310
-            platform_id: manylinux_aarch64
-          - os: ubuntu-latest
-            python: 311
-            platform_id: manylinux_aarch64
-          - os: ubuntu-latest
-            python: 312
-            platform_id: manylinux_aarch64
+          # # Windows 32 bit
+          # - os: windows-latest
+          #   python: 38
+          #   platform_id: win32
+          # - os: windows-latest
+          #   python: 39
+          #   platform_id: win32
+          # - os: windows-latest
+          #   python: 310
+          #   platform_id: win32
+          # - os: windows-latest
+          #   python: 311
+          #   platform_id: win32
+          # - os: windows-latest
+          #   python: 312
+          #   platform_id: win32
+          #
+          # # Windows 64 bit
+          # - os: windows-latest
+          #   python: 38
+          #   platform_id: win_amd64
+          # - os: windows-latest
+          #   python: 39
+          #   platform_id: win_amd64
+          # - os: windows-latest
+          #   python: 310
+          #   platform_id: win_amd64
+          # - os: windows-latest
+          #   python: 311
+          #   platform_id: win_amd64
+          # - os: windows-latest
+          #   python: 312
+          #   platform_id: win_amd64
+          #
+          # # Linux 64 bit manylinux2014
+          # - os: ubuntu-latest
+          #   python: 38
+          #   platform_id: manylinux_x86_64
+          #   manylinux_image: manylinux2014
+          # - os: ubuntu-latest
+          #   python: 39
+          #   platform_id: manylinux_x86_64
+          #   manylinux_image: manylinux2014
+          # - os: ubuntu-latest
+          #   python: 310
+          #   platform_id: manylinux_x86_64
+          #   manylinux_image: manylinux2014
+          # - os: ubuntu-latest
+          #   python: 311
+          #   platform_id: manylinux_x86_64
+          #   manylinux_image: manylinux2014
+          # - os: ubuntu-latest
+          #   python: 312
+          #   platform_id: manylinux_x86_64
+          #   manylinux_image: manylinux2014
+          #
+          # # Linux aarch64
+          # - os: ubuntu-latest
+          #   python: 38
+          #   platform_id: manylinux_aarch64
+          # - os: ubuntu-latest
+          #   python: 39
+          #   platform_id: manylinux_aarch64
+          # - os: ubuntu-latest
+          #   python: 310
+          #   platform_id: manylinux_aarch64
+          # - os: ubuntu-latest
+          #   python: 311
+          #   platform_id: manylinux_aarch64
+          # - os: ubuntu-latest
+          #   python: 312
+          #   platform_id: manylinux_aarch64
 
           # MacOS x86_64
           - os: macos-latest
@@ -130,23 +130,6 @@ jobs:
           - os: macos-latest
             python: 312
             platform_id: macosx_x86_64
-
-          # MacOS arm64
-          - os: macos-latest
-            python: 38
-            platform_id: macosx_arm64
-          - os: macos-latest
-            python: 39
-            platform_id: macosx_arm64
-          - os: macos-latest
-            python: 310
-            platform_id: macosx_arm64
-          - os: macos-latest
-            python: 311
-            platform_id: macosx_arm64
-          - os: macos-latest
-            python: 312
-            platform_id: macosx_arm64
 
     steps:
     - uses: actions/checkout@v4
@@ -169,13 +152,14 @@ jobs:
         python -m pip install -U pip
         python -m pip install cibuildwheel>=2.16
 
-    - name: Build wheels
+    - name: Build wheels (non-MacOS arm64)
       env:
         CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.platform_id }}
         CIBW_ARCHS: all
         CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux_image }}
         CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.manylinux_image }}
         CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.manylinux_image }}
+        CIBW_ARCHS_MACOS: x86_64
         CIBW_BUILD_VERBOSITY: 1
       run: |
         python --version
@@ -187,9 +171,63 @@ jobs:
         name: wheel-${{ matrix.python }}-${{ matrix.platform_id }}
         path: ./dist
 
+  build-wheels-macos-arm64:
+    name: Build wheel for cp${{ matrix.python }}-${{ matrix.platform_id }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        # MacOS arm64
+        - os: macos-latest
+          python: 38
+          platform_id: macosx_arm64
+        - os: macos-latest
+          python: 39
+          platform_id: macosx_arm64
+        - os: macos-latest
+          python: 310
+          platform_id: macosx_arm64
+        - os: macos-latest
+          python: 311
+          platform_id: macosx_arm64
+        - os: macos-latest
+          python: 312
+          platform_id: macosx_arm64
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - uses: actions/setup-python@v5
+      name: Install Python
+      with:
+        python-version: '3.9'
+
+    - name: Build wheels
+      uses: pypa/cibuildwheel@v2.16.2
+      env:
+        CIBW_BUILD: cp${{ matrix.python }}-*
+        CIBW_ARCHS_MACOS: arm64
+        CIBW_BUILD_VERBOSITY: 1
+
+      # Cross compiling wheels for arm64 with poetry creates wheels with wrong tag
+      - run: pip install wheel>=0.42
+      # Update the tag with the correct label
+      - run: wheel tags --platform-tag macosx_12_0_arm64 ./dist/*-macosx_12_0_x86_64.whl
+      # Remove the incorrectly tagged arm64 wheel
+      - run: rm ./dist/*-macosx_12_0_x86_64.whl
+
+    - name: Store artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: wheel-${{ matrix.python }}-${{ matrix.platform_id }}
+        path: ./dist/*.whl
+
   test-package:
     name: Test built package
-    needs: [ build-wheels, build-sdist ]
+    needs: [ build-wheels, build-sdist, build-wheels-macos-arm64 ]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -237,22 +275,22 @@ jobs:
   # The pypi upload fails with non-linux containers, so grab the uploaded
   #     artifacts and run using those
   # See: https://github.com/pypa/gh-action-pypi-publish/discussions/15
-  deploy:
-    name: Upload wheels to PyPI
-    needs: [ test-package ]
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/project/pylibjpeg-openjpeg/
-    permissions:
-      id-token: write
-
-    steps:
-    - name: Download the wheels
-      uses: actions/download-artifact@v4
-      with:
-        path: dist/
-        merge-multiple: true
-
-    - name: Publish package to PyPi
-      uses: pypa/gh-action-pypi-publish@release/v1
+  # deploy:
+  #   name: Upload wheels to PyPI
+  #   needs: [ test-package ]
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: pypi
+  #     url: https://pypi.org/project/pylibjpeg-openjpeg/
+  #   permissions:
+  #     id-token: write
+  #
+  #   steps:
+  #   - name: Download the wheels
+  #     uses: actions/download-artifact@v4
+  #     with:
+  #       path: dist/
+  #       merge-multiple: true
+  #
+  #   - name: Publish package to PyPi
+  #     uses: pypa/gh-action-pypi-publish@release/v1
