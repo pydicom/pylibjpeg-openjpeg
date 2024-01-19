@@ -214,12 +214,13 @@ jobs:
         CIBW_ARCHS_MACOS: arm64
         CIBW_BUILD_VERBOSITY: 1
 
-      # Cross compiling wheels for arm64 with poetry creates wheels with wrong tag
-      - run: pip install wheel>=0.42
-      # Update the tag with the correct label
-      - run: wheel tags --platform-tag macosx_12_0_arm64 ./dist/*-macosx_12_0_x86_64.whl
-      # Remove the incorrectly tagged arm64 wheel
-      - run: rm ./dist/*-macosx_12_0_x86_64.whl
+    - run: python -m cibuildwheel --output-dir dist
+    # Cross compiling wheels for arm64 with poetry creates wheels with wrong tag
+    - run: pip install wheel>=0.42
+    # Update the tag with the correct label
+    - run: wheel tags --platform-tag macosx_12_0_arm64 ./dist/*-macosx_12_0_x86_64.whl
+    # Remove the incorrectly tagged arm64 wheel
+    - run: rm ./dist/*-macosx_12_0_x86_64.whl
 
     - uses: actions/upload-artifact@v4
       name: Store artifacts
