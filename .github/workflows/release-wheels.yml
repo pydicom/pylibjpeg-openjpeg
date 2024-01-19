@@ -205,8 +205,8 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Build wheels
-      uses: pypa/cibuildwheel@v2.16.2
+    - uses: pypa/cibuildwheel@v2.16.2
+      name: Build wheels
       env:
         CIBW_BUILD: cp${{ matrix.python }}-*
         CIBW_ARCHS_MACOS: arm64
@@ -219,8 +219,8 @@ jobs:
       # Remove the incorrectly tagged arm64 wheel
       - run: rm ./dist/*-macosx_12_0_x86_64.whl
 
-    - name: Store artifacts
-      uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v4
+      name: Store artifacts
       with:
         name: wheel-${{ matrix.python }}-${{ matrix.platform_id }}
         path: ./dist/*.whl
