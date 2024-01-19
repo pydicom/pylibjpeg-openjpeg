@@ -75,27 +75,27 @@ jobs:
           #   python: 312
           #   platform_id: win_amd64
           #
-          # # Linux 64 bit manylinux2014
-          # - os: ubuntu-latest
-          #   python: 38
-          #   platform_id: manylinux_x86_64
-          #   manylinux_image: manylinux2014
-          # - os: ubuntu-latest
-          #   python: 39
-          #   platform_id: manylinux_x86_64
-          #   manylinux_image: manylinux2014
-          # - os: ubuntu-latest
-          #   python: 310
-          #   platform_id: manylinux_x86_64
-          #   manylinux_image: manylinux2014
-          # - os: ubuntu-latest
-          #   python: 311
-          #   platform_id: manylinux_x86_64
-          #   manylinux_image: manylinux2014
-          # - os: ubuntu-latest
-          #   python: 312
-          #   platform_id: manylinux_x86_64
-          #   manylinux_image: manylinux2014
+          # Linux 64 bit manylinux2014
+          - os: ubuntu-latest
+            python: 38
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2014
+          - os: ubuntu-latest
+            python: 39
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2014
+          - os: ubuntu-latest
+            python: 310
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2014
+          - os: ubuntu-latest
+            python: 311
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2014
+          - os: ubuntu-latest
+            python: 312
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2014
           #
           # # Linux aarch64
           # - os: ubuntu-latest
