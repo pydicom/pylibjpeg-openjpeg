@@ -286,7 +286,6 @@ jobs:
       url: https://pypi.org/project/pylibjpeg-openjpeg/
     permissions:
       id-token: write
-      contents: read
 
     steps:
     - name: Download the wheels
