@@ -434,7 +434,7 @@ def encode(
     signal_noise_ratios: Union[List[float], None] = None,
     codec_format: int = 0,
     **kwargs: Any,
-) -> bytes:
+) -> Union[bytes, bytearray]:
     """Return the JPEG 2000 compressed `arr`.
 
     Encoding of the input array will use lossless compression by default, to
@@ -515,7 +515,7 @@ def encode(
         bits_stored = _get_bits_stored(arr)
 
     # The destination for the encoded data, must support BinaryIO
-    return_code, buffer = _openjpeg.encode(
+    return_code, buffer = _openjpeg.encode_array(
         arr,
         bits_stored,
         photometric_interpretation,
@@ -533,14 +533,39 @@ def encode(
     return cast(bytes, buffer)
 
 
-def encode_pixel_data(arr: np.ndarray, **kwargs: Any) -> bytes:
-    """Return the JPEG 2000 compressed `arr`.
+encode_array = encode
 
-    .. versionadded:: 2.1
+
+def encode_buffer(
+    src: Union[bytes, bytearray],
+    width: int,
+    height: int,
+    nr_components,
+    bits_allocated: int,
+    bits_stored: int,
+    *,
+    photometric_interpretation: int = 0,
+    use_mct: bool = True,
+    compression_ratios: Union[List[float], None] = None,
+    signal_noise_ratios: Union[List[float], None] = None,
+    codec_format: int = 0,
+    **kwargs,
+) -> Union[bytes, bytearray]:
+    """Return the JPEG 2000 compressed `src`.
+
+    .. versionadded:: 2.2
+    """
+    pass
+
+
+def encode_pixel_data(src: bytes, **kwargs: Any) -> bytes:
+    """Return the JPEG 2000 compressed `src`.
+
+    .. versionadded:: 2.2
 
     Parameters
     ----------
-    src : numpy.ndarray
+    src : bytes
         An array containing a single frame of image data to be encoded.
     **kwargs
         The following keyword arguments are optional:
@@ -577,4 +602,4 @@ def encode_pixel_data(arr: np.ndarray, **kwargs: Any) -> bytes:
     bytes
         The JPEG 2000 encoded image data.
     """
-    return encode(arr, **kwargs)
+    return encode_buffer(src, **kwargs)

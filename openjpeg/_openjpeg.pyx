@@ -23,7 +23,7 @@ cdef extern struct JPEG2000Parameters:
 cdef extern char* OpenJpegVersion()
 cdef extern int Decode(void* fp, unsigned char* out, int codec)
 cdef extern int GetParameters(void* fp, int codec, JPEG2000Parameters *param)
-cdef extern int Encode(
+cdef extern int EncodeArray(
     cnp.PyArrayObject* arr,
     PyObject* dst,
     int bits_stored,
@@ -34,6 +34,17 @@ cdef extern int Encode(
     PyObject* signal_noise_ratios,
     int codec_format,
 )
+# cdef extern int EncodeBuffer(
+#     cnp.PyArrayObject* arr,
+#     PyObject* dst,
+#     int bits_stored,
+#     int photometric_interpretation,
+#     bint use_mct,
+#     # bint lossless,
+#     PyObject* compression_ratios,
+#     PyObject* signal_noise_ratios,
+#     int codec_format,
+# )
 
 
 LOGGER = logging.getLogger(__name__)
@@ -192,7 +203,7 @@ def get_parameters(fp: BinaryIO, codec: int = 0) -> Dict[str, Union[str, int, bo
     return parameters
 
 
-def encode(
+def encode_array(
     cnp.ndarray arr,
     int bits_stored,
     int photometric_interpretation,
@@ -297,7 +308,7 @@ def encode(
 
     # The destination for the encoded J2K codestream, needs to support BinaryIO
     dst = BytesIO()
-    return_code = Encode(
+    return_code = EncodeArray(
         <cnp.PyArrayObject *> arr,
         <PyObject *> dst,
         bits_stored,
@@ -308,3 +319,20 @@ def encode(
         codec_format,
     )
     return return_code, dst.getvalue()
+
+
+def encode_buffer(
+    src,
+    int width,
+    int height,
+    int nr_components,
+    int bits_stored,
+    int bits_allocated,
+    bint is_signed,
+    int photometric_interpretation,
+    bint use_mct,
+    List[float] compression_ratios,
+    List[float] signal_noise_ratios,
+    int codec_format,
+) -> bytearray:
+    pass
