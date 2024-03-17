@@ -215,11 +215,6 @@ extern int EncodeArray(
       is_signed = 0;
     }
 
-    // ^ ndarray
-
-
-    // v Common - not really, data transferral to `image`
-
     // Encoding parameters
     unsigned int return_code;
     opj_cparameters_t parameters;
@@ -474,34 +469,32 @@ extern int EncodeArray(
 
 extern int EncodeBuffer(
     PyObject *src,
-    int columns,
-    int rows,
-    int samples_per_pixel,
-    int bits_stored,
-    int bits_allocated,
-    int is_signed,
-    int photometric_interpretation,
-    int use_mct,
+    unsigned int columns,
+    unsigned int rows,
+    unsigned int samples_per_pixel,
+    unsigned int bits_stored,
+    unsigned int is_signed,
+    unsigned int photometric_interpretation,
+    PyObject *dst,
+    unsigned int use_mct,
     PyObject *compression_ratios,
     PyObject *signal_noise_ratios,
-    int codec_format,
-    PyObject *dst
+    unsigned int codec_format
 )
 {
-    /* Encode a numpy ndarray using JPEG 2000.
+    /* Encode image data using JPEG 2000.
 
     Parameters
     ----------
     src : PyObject *
-        The numpy ndarray containing the image data to be encoded.
+        The image data to be encoded, as a little endian and colour-by-pixel
+        ordered bytes or bytearray.
     columns : int
-        Supported values: 1-2^32 - 1
+        Supported values: 1-2^24 - 1
     rows : int
-        Supported values: 1-2^32 - 1
+        Supported values: 1-2^24 - 1
     samples_per_pixel : int
         Supported values: 1, 3, 4
-    bits_allocated : int
-        Supported values: 8, 16 or 32
     bits_stored : int
         Supported values: 1-24
     is_signed : int
@@ -523,7 +516,8 @@ extern int EncodeBuffer(
         * ``0`` - OPJ_CODEC_J2K : JPEG-2000 codestream
         * ``2`` - OPJ_CODEC_JP2 : JP2 file format
     dst : PyObject *
-        The destination for the encoded codestream, should be a BinaryIO.
+        The destination for the encoded codestream, should be a BinaryIO or
+        an object with write(), tell() and seek().
 
     Returns
     -------
@@ -532,26 +526,21 @@ extern int EncodeBuffer(
     */
 
     // Check input
-    // Check bits_allocated is 1, 2 or 4
+    // Check bits_stored is in (1, 24)
     unsigned int bytes_per_pixel;
-    switch (bits_allocated) {
-        case 8: {
-            bytes_per_pixel = 1;
-            break;
-        }
-        case 16: {
-            bytes_per_pixel = 2;
-            break
-        }
-        case 32: {
-            bytes_per_pixel = 2;
-            break
-        }
-        default: {
-            py_error("The value of the 'bits_allocated' parameter is invalid");
-            return 50;
-        }
+    if (bits_stored > 0 && bits_stored <= 8) {
+        bytes_per_pixel = 1;
+    } else if (bits_stored > 8 && bits_stored <= 16) {
+        bytes_per_pixel = 2;
+    } else if (bits_stored > 16 && bits_stored <= 24) {
+        bytes_per_pixel = 4;
+    } else {
+        py_error("The value of the 'bits_stored' parameter is invalid");
+        return 50;
     }
+
+    printf("bytes_per_pixel: %d\n", bytes_per_pixel);
+    printf("precision: %d\n", bits_stored);
 
     // Check samples_per_pixel is 1, 3 or 4
     switch (samples_per_pixel) {
@@ -564,34 +553,31 @@ extern int EncodeBuffer(
         }
     }
 
-    // Check number of rows and columns is in (1, 2^32 - 1)
-    if (rows < 1 || rows > 0xFFFFFFFF) {
+    // Check number of rows and columns is in (1, 2^24 - 1)
+    // The J2K standard supports up to 32-bit rows and columns
+    if (rows < 1 || rows > 0xFFFFFF) {
         py_error("The number of rows is invalid");
         return 52;
     }
-    if (columns < 1 || columns > 0xFFFFFFFF) {
+    if (columns < 1 || columns > 0xFFFFFF) {
         py_error("The number of columns is invalid");
         return 53;
     }
 
     // Check is_signed is 0 or 1
-    if (is_signed != 0 || is_signed != 1) {
+    if (is_signed != 0 && is_signed != 1) {
         py_error("The value of the 'is_signed' parameter is invalid");
         return 54;
     }
 
-    // Check bits_stored is in (1, 24)
-    if (bits_stored < 1 || bits_stored > 24) {
-        py_error("The value of the 'bits_stored' parameter is invalid");
-        return 55;
-    }
-
     // Check length of `src` matches expected dimensions
-    OPJ_UINT32 actual_length = py_length(src);
-    OPJ_UINT32 expected_length = rows * columns * samples_per_pixel * bytes_per_pixel;
+    Py_ssize_t actual_length = PyObject_Length(src);
+    // (2**24 - 1) x (2**24 - 1) * 4 * 4 -> requires 52-bits
+    // OPJ_INT64 covers from (-2**63, 2**63 - 1) which is sufficient
+    OPJ_INT64 expected_length = rows * columns * samples_per_pixel * bytes_per_pixel;
     if (actual_length != expected_length) {
         py_error("The length of `src` does not match the expected length");
-        return 56;
+        return 55;
     }
 
     // Check `photometric_interpretation` is valid
@@ -674,6 +660,8 @@ extern int EncodeBuffer(
     // Set up for lossy (if applicable)
     Py_ssize_t nr_cr_layers = PyObject_Length(compression_ratios);
     Py_ssize_t nr_snr_layers = PyObject_Length(signal_noise_ratios);
+    printf("cr: %d\n", nr_cr_layers);
+    printf("snr: %d\n", nr_snr_layers);
     if (nr_cr_layers > 0 || nr_snr_layers > 0) {
         // Lossy compression using compression ratios
         parameters.irreversible = 1;  // use DWT 9-7
@@ -749,10 +737,11 @@ extern int EncodeBuffer(
         cmptparm[i].prec = (OPJ_UINT32) bits_stored;
         cmptparm[i].sgnd = (OPJ_UINT32) is_signed;
         // Sub-sampling: none
-        cmptparm[i].dx = 1;
-        cmptparm[i].dy = 1;
-        cmptparm[i].w = columns;
-        cmptparm[i].h = rows;
+        cmptparm[i].dx = (OPJ_UINT32) 1;
+        cmptparm[i].dy = (OPJ_UINT32) 1;
+        cmptparm[i].w = (OPJ_UINT32) columns;
+        cmptparm[i].h = (OPJ_UINT32) rows;
+        printf("prec %d : %d\n", i, cmptparm[i].prec);
     }
 
     // Create the input image object
@@ -772,26 +761,23 @@ extern int EncodeBuffer(
     /* set image offset and reference grid */
     image->x0 = (OPJ_UINT32)parameters.image_offset_x0;
     image->y0 = (OPJ_UINT32)parameters.image_offset_y0;
-    image->x1 = (OPJ_UINT32)parameters.image_offset_x0 + (OPJ_UINT32)columns;
-    image->y1 = (OPJ_UINT32)parameters.image_offset_y0 + (OPJ_UINT32)rows;
+    image->x1 = (OPJ_UINT32)parameters.image_offset_x0 + (OPJ_UINT32) columns;
+    image->y1 = (OPJ_UINT32)parameters.image_offset_y0 + (OPJ_UINT32) rows;
 
     // Add the image data
-    p_component = malloc(samples_per_pixel * sizeof(int *));
-    for (unsigned int ii = 0; ii < samples_per_pixel; ii++)
-    {
-        p_component[ii] = image->comps[ii].data;
-    }
-
+    // src is ordered as colour-by-pixel
     unsigned int p;
     OPJ_UINT64 nr_pixels = rows * columns;
+    printf("nr pixels: %d\n", nr_pixels);
+    char *data = PyBytes_AsString(src);
     if (bytes_per_pixel == 1) {
-        for (OPJ_UINT64 i = 0; i < nr_pixels; i++)
+        for (OPJ_UINT64 ii = 0; ii < nr_pixels; ii++)
         {
             for (p = 0; p < samples_per_pixel; p++)
             {
-                *p_component[ii] = (unsigned char)(*src);
-                p_component[ii]++;
-                src++;
+                printf("%d\n", *data);
+                image->comps[p].data[ii] = is_signed ? *data : (unsigned char) *data;
+                data++;
             }
         }
     } else if (bytes_per_pixel == 2) {
@@ -800,16 +786,15 @@ extern int EncodeBuffer(
             unsigned char vals[2];
         } u16;
 
-        for (OPJ_UINT64 i = 0; i < nr_pixels; i++)
+        for (OPJ_UINT64 ii = 0; ii < nr_pixels; ii++)
         {
             for (p = 0; p < samples_per_pixel; p++)
             {
-                u16.vals[0] = (unsigned char)(*src);
-                src++;
-                u16.vals[1] = (unsigned char)(*src);
-                src++;
-                *p_component[ii] = u16.val;
-                p_component[ii]++;
+                u16.vals[0] = (unsigned char) *data;
+                data++;
+                u16.vals[1] = (unsigned char) *data;
+                data++;
+                image->comps[p].data[ii] = u16.val;
             }
         }
     } else if (bytes_per_pixel == 4) {
@@ -818,30 +803,23 @@ extern int EncodeBuffer(
             unsigned char vals[4];
         } u32;
 
-        for (OPJ_UINT64 i = 0; i < nr_pixels; i++)
+        for (OPJ_UINT64 ii = 0; ii < nr_pixels; ii++)
         {
             for (p = 0; p < samples_per_pixel; p++)
             {
-                u32.vals[0] = (unsigned char)(*src);
-                src++;
-                u32.vals[1] = (unsigned char)(*src);
-                src++;
-                u32.vals[2] = (unsigned char)(*src);
-                src++;
-                u32.vals[3] = (unsigned char)(*src);
-                src++;
-                *p_component[ii] = u32.val;
-                p_component[ii]++;
+                u32.vals[0] = (unsigned char) *data;
+                data++;
+                u32.vals[1] = (unsigned char) *data;
+                data++;
+                u32.vals[2] = (unsigned char) *data;
+                data++;
+                u32.vals[3] = (unsigned char) *data;
+                data++;
+                image->comps[p].data[ii] = u32.val;
             }
         }
     }
     py_debug("Input image configured and populated with data");
-
-    if (p_component)
-    {
-        free(p_component);
-        p_component = NULL;
-    }
 
     /* Get an encoder handle */
     switch (parameters.cod_format) {
@@ -873,6 +851,8 @@ extern int EncodeBuffer(
     // Creates an abstract output stream; allocates memory
     stream = opj_stream_create(BUFFER_SIZE, OPJ_FALSE);
 
+    printf("A\n");
+
     if (!stream) {
         py_error("Failed to create the output stream");
         return_code = 24;
@@ -896,12 +876,16 @@ extern int EncodeBuffer(
         goto failure;
     }
 
+    printf("B\n");
+
     result = result && opj_encode(codec, stream);
     if (!result)  {
         py_error("Failure result from 'opj_encode()'");
         return_code = 26;
         goto failure;
     }
+
+    printf("C\n");
 
     result = result && opj_end_compress(codec, stream);
     if (!result)  {
@@ -919,12 +903,6 @@ extern int EncodeBuffer(
     return 0;
 
     failure:
-        if (p_component)
-        {
-            free(p_component);
-            p_component = NULL;
-        }
-
         opj_stream_destroy(stream);
         opj_destroy_codec(codec);
         opj_image_destroy(image);

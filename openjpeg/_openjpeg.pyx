@@ -15,7 +15,7 @@ cdef extern struct JPEG2000Parameters:
     uint32_t columns
     uint32_t rows
     int colourspace
-    uint32_t nr_components
+    uint32_t samples_per_pixel
     uint32_t precision
     unsigned int is_signed
     uint32_t nr_tiles
@@ -29,22 +29,24 @@ cdef extern int EncodeArray(
     int bits_stored,
     int photometric_interpretation,
     bint use_mct,
-    # bint lossless,
     PyObject* compression_ratios,
     PyObject* signal_noise_ratios,
     int codec_format,
 )
-# cdef extern int EncodeBuffer(
-#     cnp.PyArrayObject* arr,
-#     PyObject* dst,
-#     int bits_stored,
-#     int photometric_interpretation,
-#     bint use_mct,
-#     # bint lossless,
-#     PyObject* compression_ratios,
-#     PyObject* signal_noise_ratios,
-#     int codec_format,
-# )
+cdef extern int EncodeBuffer(
+    PyObject* src,
+    int columns,
+    int rows,
+    int samples_per_pixel,
+    int bits_stored,
+    int is_signed,
+    int photometric_interpretation,
+    PyObject* dst,
+    bint use_mct,
+    PyObject* compression_ratios,
+    PyObject* signal_noise_ratios,
+    int codec_format,
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -105,7 +107,7 @@ def decode(
     bpp = ceil(param['precision'] / 8)
     if bpp == 3:
         bpp = 4
-    nr_bytes = param['rows'] * param['columns'] * param['nr_components'] * bpp
+    nr_bytes = param['rows'] * param['columns'] * param['samples_per_pixel'] * bpp
 
     cdef PyObject* p_in = <PyObject*>fp
     cdef unsigned char *p_out
@@ -140,7 +142,7 @@ def get_parameters(fp: BinaryIO, codec: int = 0) -> Dict[str, Union[str, int, bo
     dict
         A :class:`dict` containing the J2K image parameters:
         ``{'columns': int, 'rows': int, 'colourspace': str,
-        'nr_components: int, 'precision': int, `is_signed`: bool,
+        'samples_per_pixel: int, 'precision': int, `is_signed`: bool,
         'nr_tiles: int'}``. Possible colour spaces are "unknown",
         "unspecified", "sRGB", "monochrome", "YUV", "e-YCC" and "CYMK".
 
@@ -153,7 +155,7 @@ def get_parameters(fp: BinaryIO, codec: int = 0) -> Dict[str, Union[str, int, bo
     param.columns = 0
     param.rows = 0
     param.colourspace = 0
-    param.nr_components = 0
+    param.samples_per_pixel = 0
     param.precision = 0
     param.is_signed = 0
     param.nr_tiles = 0
@@ -194,7 +196,7 @@ def get_parameters(fp: BinaryIO, codec: int = 0) -> Dict[str, Union[str, int, bo
         'rows' : param.rows,
         'columns' : param.columns,
         'colourspace' : colourspace,
-        'nr_components' : param.nr_components,
+        'samples_per_pixel' : param.samples_per_pixel,
         'precision' : param.precision,
         'is_signed' : bool(param.is_signed),
         'nr_tiles' : param.nr_tiles,
@@ -220,20 +222,20 @@ def encode_array(
         The array containing the image data to be encoded.
     bits_stored : int, optional
         The number of bits used per pixel.
-    photometric_interpretation : int, optional
+    photometric_interpretation : int
         The colour space of the unencoded image data that will be set in the
         JPEG 2000 metadata.
-    use_mct : bool, optional
+    use_mct : bool
         If ``True`` then apply multi-component transformation (MCT) to RGB
         images.
-    lossless : bool, optional
-        If ``True`` then use lossless encoding, otherwise use lossy encoding.
-    compression_ratios : list[float], optional
+    compression_ratios : list[float]
         Required if using lossy encoding, this is the compression ratio to use
         for each layer. Should be in decreasing order (such as ``[80, 30, 10]``)
         and the final value may be ``1`` to indicate lossless encoding should
         be used for that layer.
-    codec_format : int, optional
+    signal_noise_ratios : list[float]
+        Required if using lossy encoding
+    codec_format : int
         The codec to used when encoding:
 
         * ``0``: JPEG 2000 codestream only (default) (J2K/J2C format)
@@ -293,7 +295,7 @@ def encode_array(
 
     if codec_format not in (0, 2):
         raise ValueError(
-            "The value of the 'codec_format' parameter is invalid, must be 0 or 2"
+            f"Invalid 'codec_format' value '{codec_format}', must be 0 or 2"
         )
 
     compression_ratios = [float(x) for x in compression_ratios]
@@ -323,16 +325,158 @@ def encode_array(
 
 def encode_buffer(
     src,
-    int width,
-    int height,
-    int nr_components,
+    int columns,
+    int rows,
+    int samples_per_pixel,
     int bits_stored,
-    int bits_allocated,
-    bint is_signed,
+    int is_signed,
     int photometric_interpretation,
-    bint use_mct,
+    int use_mct,
     List[float] compression_ratios,
     List[float] signal_noise_ratios,
     int codec_format,
-) -> bytearray:
-    pass
+) -> Tuple[int, bytes]:
+    """Return the JPEG 2000 compressed `src`.
+
+    If performing lossy encoding then either `compression_ratios` or
+    `signal_noise_ratios` must be set to a non-empty list, otherwise lossless
+    encoding will be used.
+
+    Parameters
+    ----------
+    src : bytes | bytearray
+        A bytes or bytearray containing the image data to be encoded, ordered as
+        little endian and colour-by-pixel.
+    columns : int
+        The number of columns in the image, should be in the range (1, 16777215).
+    rows : int
+        The number of rows in the image, should be in the range (1, 16777215).
+    samples_per_pixel : int
+        The number of samples per pixel, should be 1, 3 or 4.
+    bits_stored : int
+        The number of bits used per pixel (i.e. the sample precision), should be
+        in the range (1, 24).
+    is_signed: int
+        ``0`` if the image uses unsigned pixels, ``1`` for signed.
+    photometric_interpretation : int
+        The colour space of the unencoded image data that will be set in the
+        JPEG 2000 metadata, should be in the range (0, 5):
+            ``0``: OPJ_CLRSPC_UNSPECIFIED
+            ``1``: OPJ_CLRSPC_SRGB
+            ``2``: OPJ_CLRSPC_GRAY
+            ``3``: OPJ_CLRSPC_SYCC
+            ``4``: OPJ_CLRSPC_EYCC
+            ``5``: OPJ_CLRSPC_CMYK
+    use_mct : bool
+        If ``1`` then apply multi-component transformation (MCT) to RGB
+        images. Requires a `photometric_interpretation` of ``1`` and a
+        `samples_per_pixel` value of ``3``.
+    compression_ratios : list[float]
+        Required if using lossy encoding, this is the compression ratio to use
+        for each layer. Should be in decreasing order (such as ``[80, 30, 10]``)
+        and the final value may be ``1`` to indicate lossless encoding should
+        be used for that layer.
+    signal_noise_ratios : list[float]
+
+    codec_format : int, optional
+        The codec to used when encoding:
+
+        * ``0``: JPEG 2000 codestream only (default) (J2K/J2C format)
+        * ``2``: A boxed JPEG 2000 codestream (JP2 format)
+
+    Returns
+    -------
+    tuple[int, bytes]
+        The return code of the encoding and the JPEG 2000 encoded image data.
+        The return code will be ``0`` for success, otherwise the encoding
+        failed.
+    """
+    # Checks
+    if not isinstance(src, (bytes, bytearray)):
+        raise TypeError(
+            f"'src' must be bytes or bytearray, not {type(src).__name__}"
+        )
+
+    if not 1 <= columns <= 2**24 - 1:
+        raise ValueError(
+            f"Invalid 'columns' value '{columns}', must be in range (1, 16777215)"
+        )
+
+    if not 1 <= rows <= 2**24 - 1:
+        raise ValueError(
+            f"Invalid 'rows' value '{rows}', must be in range (1, 16777215)"
+        )
+
+    if samples_per_pixel not in (1, 3, 4):
+        raise ValueError(
+            f"Invalid 'samples_per_pixel' value '{samples_per_pixel}', must be in 1, 3 "
+            "or 4"
+        )
+
+    if 0 < bits_stored <= 8:
+        bytes_allocated = 1
+    elif 8 < bits_stored <= 16:
+        bytes_allocated = 2
+    elif 16 < bits_stored <= 24:
+        bytes_allocated = 4
+    else:
+        raise ValueError(
+            f"Invalid 'bits_stored' value '{bits_stored}', must be in the "
+            "range (1, 24)"
+        )
+
+    actual_length = len(src)
+    expected_length = rows * columns * samples_per_pixel * bytes_allocated
+    if actual_length != expected_length:
+        raise ValueError(
+            f"The actual length of 'src' is {actual_length} bytes which doesn't "
+            f"match the expected length of {expected_length} bytes"
+        )
+
+    if is_signed not in (0, 1):
+        raise ValueError(
+            f"Invalid 'is_signed' value '{is_signed}', must be 0 or 1"
+        )
+
+    if photometric_interpretation not in (0, 1, 2, 3, 4, 5):
+        raise ValueError(
+            "Invalid 'photometric_interpretation' value "
+            f"'{photometric_interpretation}', must be in the range (0, 5)"
+        )
+
+    if use_mct not in (0, 1):
+        raise ValueError(
+            f"Invalid 'use_mct' value '{use_mct}', must be 0 or 1"
+        )
+
+    if codec_format not in (0, 2):
+        raise ValueError(
+            f"Invalid 'codec_format' value '{codec_format}', must be 0 or 2"
+        )
+
+    compression_ratios = [float(x) for x in compression_ratios]
+    signal_noise_ratios = [float(x) for x in signal_noise_ratios]
+    if compression_ratios and signal_noise_ratios:
+        raise ValueError(
+            "Only one of 'compression_ratios' or 'signal_noise_ratios' is "
+            "allowed when performing lossy compression"
+        )
+    if len(compression_ratios) > 10 or len(signal_noise_ratios) > 10:
+        raise ValueError("More than 10 compression layers is not supported")
+
+    dst = BytesIO()
+    return_code = EncodeBuffer(
+        <PyObject *> src,
+        columns,
+        rows,
+        samples_per_pixel,
+        bits_stored,
+        is_signed,
+        photometric_interpretation,
+        <PyObject *> dst,
+        use_mct,
+        <PyObject *> compression_ratios,
+        <PyObject *> signal_noise_ratios,
+        codec_format,
+    )
+    return return_code, dst.getvalue()

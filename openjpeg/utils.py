@@ -61,9 +61,9 @@ ENCODING_ERRORS = {
         "the input array has an invalid shape, must be (rows, columns) or "
         "(rows, columns, planes)"
     ),
-    3: ("the input array has an unsupported number of rows, must be " "in (1, 65535)"),
+    3: ("the input array has an unsupported number of rows, must be in (1, 2**32 - 1)"),
     4: (
-        "the input array has an unsupported number of columns, must be " "in (1, 65535)"
+        "the input array has an unsupported number of columns, must be in (1, 2**32 - 1)"
     ),
     5: (
         "the input array has an unsupported dtype, only bool, u1, u2, u4, i1, i2"
@@ -95,6 +95,12 @@ ENCODING_ERRORS = {
     25: "failure result from 'opj_start_compress()'",
     26: "failure result from 'opj_encode()'",
     27: "failure result from 'opj_endt_compress()'",
+    50: "the value of the 'bits_stored' parameter is invalid",
+    51: "the value of the 'samples_per_pixel' parameter is invalid",
+    52: "the value of the 'rows' is invalid, must be in (1, 2**24 - 1)",
+    53: "the value of the 'columns' is invalid, must be in (1, 2**24 - 1)",
+    54: "the value of the 'is_signed' is invalid, must be 0 or 1",
+    55: "the length of 'src' doesn't match the expected length",
 }
 
 
@@ -216,7 +222,7 @@ def decode(
     precision = cast(int, meta["precision"])
     rows = cast(int, meta["rows"])
     columns = cast(int, meta["columns"])
-    pixels_per_sample = cast(int, meta["nr_components"])
+    pixels_per_sample = cast(int, meta["samples_per_pixel"])
     pixel_representation = cast(bool, meta["is_signed"])
     bpp = ceil(precision / 8)
 
@@ -300,11 +306,11 @@ def decode_pixel_data(
         pixel_representation = ds.get("PixelRepresentation", pixel_representation)
 
         meta = get_parameters(buffer, j2k_format)
-        if samples_per_pixel != meta["nr_components"]:
+        if samples_per_pixel != meta["samples_per_pixel"]:
             warnings.warn(
                 f"The (0028,0002) Samples per Pixel value '{samples_per_pixel}' "
                 f"in the dataset does not match the number of components "
-                f"'{meta['nr_components']}' found in the JPEG 2000 data. "
+                f"'{meta['samples_per_pixel']}' found in the JPEG 2000 data. "
                 f"It's recommended that you change the  Samples per Pixel value "
                 f"to produce the correct output"
             )
@@ -368,7 +374,7 @@ def get_parameters(
     dict
         A :class:`dict` containing the J2K image parameters:
         ``{'columns': int, 'rows': int, 'colourspace': str,
-        'nr_components: int, 'precision': int, `is_signed`: bool}``. Possible
+        'samples_per_pixel: int, 'precision': int, `is_signed`: bool}``. Possible
         colour spaces are "unknown", "unspecified", "sRGB", "monochrome",
         "YUV", "e-YCC" and "CYMK".
 
@@ -456,7 +462,7 @@ def encode(
         that anyone decoding your image data will know which colour space
         transforms to apply. One of:
 
-        * ``0``: Unspecified
+        * ``0``: Unspecified (default)
         * ``1``: sRGB
         * ``2``: Greyscale
         * ``3``: sYCC (YCbCr)
@@ -538,11 +544,11 @@ encode_array = encode
 
 def encode_buffer(
     src: Union[bytes, bytearray],
-    width: int,
-    height: int,
-    nr_components,
-    bits_allocated: int,
+    columns: int,
+    rows: int,
+    samples_per_pixel: int,
     bits_stored: int,
+    is_signed: bool,
     *,
     photometric_interpretation: int = 0,
     use_mct: bool = True,
@@ -554,52 +560,176 @@ def encode_buffer(
     """Return the JPEG 2000 compressed `src`.
 
     .. versionadded:: 2.2
-    """
-    pass
-
-
-def encode_pixel_data(src: bytes, **kwargs: Any) -> bytes:
-    """Return the JPEG 2000 compressed `src`.
-
-    .. versionadded:: 2.2
 
     Parameters
     ----------
-    src : bytes
-        An array containing a single frame of image data to be encoded.
-    **kwargs
-        The following keyword arguments are optional:
+    src : bytes | bytearray
+        A single frame of little endian, colour-by-pixel ordered image data to
+        be JPEG2000 encoded. Each pixel should be encoded using the following
+        (a pixel may have 1 or 3 samples per pixel):
 
-        * ``'photometric_interpretation'``: int - the colour space of the
-          unencoded image in `arr`, one of the following:
+        * For  0 < bits per sample <=  8: 1 byte per sample
+        * For  8 < bits per sample <= 16: 2 bytes per sample
+        * For 16 < bits per sample <= 24: 4 bytes per sample
+    columns : int
+        The number of columns in the image, must be in the range [1, 2**24 - 1].
+    rows : int
+        The number of rows in the image, must be in the range [1, 2**24 - 1].
+    samples_per_pixel : int
+        The number of samples per pixel, must be 1, 3 or 4.
+    bits_stored : int
+        The number of bits per sample for each pixel, must be in the range
+        (1, 24).
+    is_signed : bool
+        If ``True`` then the image uses signed integers, ``False`` otherwise.
+    photometric_interpretation : int, optional
+        The colour space of the unencoded image data that will be set in the
+        JPEG 2000 metadata. If you are encoded RGB or YCbCr data then it's
+        strongly recommended that you select the correct colour space so
+        that anyone decoding your image data will know which colour space
+        transforms to apply. One of:
 
-          * ``0``: Unspecified
-          * ``1``: sRGB
-          * ``2``: Greyscale
-          * ``3``: sYCC (YCbCr)
-          * ``4``: eYCC
-          * ``5``: CMYK
+        * ``0``: Unspecified (default)
+        * ``1``: sRGB
+        * ``2``: Greyscale
+        * ``3``: sYCC (YCbCr)
+        * ``4``: eYCC
+        * ``5``: CMYK
 
-          It is strongly recommended you supply an appropriate
-          `photometric_interpretation`.
-        * ``'bits_stored'``: int - the bit-depth of the pixels in the image,
-          if not supplied then the smallest bit-depth that covers the full range
-          of pixel data in `arr` will be used.
-        * ``'lossless'``: bool: ``True`` to use lossless encoding (default),
-          ``False`` for lossy encoding. If using lossy encoding then
-          `compression_ratios` is required.
-        * ```use_mct': bool: ``True`` to use MCT with RGB images (default),
-          ``False`` otherwise.
-        * ``'codec_format'``: int - 0 for a JPEG2000 codestream (default),
-          1 for a JP2 codestream
-        * ''`compression_ratios'``: list[float] - required if `lossless` is
-          ``False``. Should be a list of the desired compression ratio per layer
-          in decreasing values. The final layer may be 1 for lossless
-          compression of that layer. Minimum value is 1 (for lossless).
+    use_mct : bool, optional
+        Apply multi-component transformation (MCT) prior to encoding the image
+        data. Defaults to ``True`` when the `photometric_interpretation` is
+        ``1`` as it is intended for use with RGB data and should result in
+        smaller file sizes. For all other values of `photometric_interpretation`
+        the value of `use_mct` will be ignored and MCT not applied.
+
+        If MCT is applied then the corresponding value of (0028,0004)
+        *Photometric Interpretation* is:
+
+        * ``"YBR_RCT"`` for lossless encoding
+        * ``"YBR_ICT"`` for lossy encoding
+
+        If MCT is not applied then *Photometric Intrepretation* should be the
+        value corresponding to the unencoded dataset.
+    compression_ratios : list[float], optional
+        Required if using lossy encoding, this is the compression ratio to use
+        for each layer. Should be in decreasing order (such as ``[80, 30, 10]``)
+        and the final value may be ``1`` to indicate lossless encoding should
+        be used for that layer. Cannot be used with `signal_noise_ratios`.
+    signal_noise_ratios : list[float], optional
+        Required if using lossy encoding, this is the desired peak
+        signal-to-noise ratio to use for each layer. Should be in increasing
+        order (such as ``[30, 40, 50]``), except for the last layer which may
+        be ``0`` to indicate lossless encoding should be used for that layer.
+        Cannot be used with `compression_ratios`.
+    codec_format : int, optional
+        The codec to used when encoding:
+
+        * ``0``: JPEG 2000 codestream only (default) (J2K/J2C format)
+        * ``2``: A boxed JPEG 2000 codestream (JP2 format)
 
     Returns
     -------
     bytes
         The JPEG 2000 encoded image data.
     """
+
+    if compression_ratios is None:
+        compression_ratios = []
+
+    if signal_noise_ratios is None:
+        signal_noise_ratios = []
+
+    return_code, buffer = _openjpeg.encode_buffer(
+        src,
+        columns,
+        rows,
+        samples_per_pixel,
+        bits_stored,
+        1 if is_signed else 0,
+        photometric_interpretation,
+        1 if use_mct else 0,
+        compression_ratios,
+        signal_noise_ratios,
+        codec_format,
+    )
+
+    if return_code != 0:
+        raise RuntimeError(
+            f"Error encoding the data: {ENCODING_ERRORS.get(return_code, return_code)}"
+        )
+
+    return cast(bytes, buffer)
+
+
+def encode_pixel_data(src: Union[bytes, bytearray], **kwargs: Any) -> bytes:
+    """Return the JPEG 2000 compressed `src`.
+
+    .. versionadded:: 2.2
+
+    Parameters
+    ----------
+    src : bytes | bytearray
+        A single frame of little endian, colour-by-pixel ordered image data to
+        be JPEG2000 encoded. Each pixel should be encoded using the following
+        (a pixel may have 1 or 3 samples per pixel):
+
+        * For  0 < bits per sample <=  8: 1 byte per sample
+        * For  8 < bits per sample <= 16: 2 bytes per sample
+        * For 16 < bits per sample <= 24: 4 bytes per sample
+    **kwargs
+        The following keyword arguments are required:
+
+        * ``'rows'``: int - the number of rows in the image (1, 65535)
+        * ``'columns'``: int - the number of columns in the image (1, 65535)
+        * ``'samples_per_pixel': int - the number of samples per pixel, 1 or 3.
+        * ``'bits_stored'``: int - the number of bits per sample for pixels in
+          the image (1, 24)
+        * ``'photometric_interpretation'``: str - the colour space of the
+          image in `src`, one of the following:
+
+          * ``"MONOCHROME1"``, ``"MONOCHROME2"``, ``"PALETTE COLOR"`` - will be
+            used with the greyscale colour space
+          * ``"RGB"``, ``"YBR_RCT"``, ``"YBR_ICT"`` - will be used with the sRGB
+            colour space
+          * ``"YBR_FULL"`` - will be used with the sYCC colour space
+
+          Anything else will default to the unspecified colour space.
+
+        The following keyword arguments are optional:
+
+        * ``'use_mct'``: bool: ``True`` to use MCT with RGB images (default)
+          ``False`` otherwise. Will be ignored if `photometric_interpretation`
+          is not RGB, YBR_RCT or YBR_ICT.
+        * ''`compression_ratios'``: list[float] - required for lossy encoding if
+          `signal_noise_ratios` is not used, this is the compression ratio to use
+          for each layer. Should be in decreasing order (such as ``[80, 30, 10]``)
+          and the final value may be ``1`` to indicate lossless encoding should
+          be used for that layer. Cannot be used with `signal_noise_ratios`.
+          Cannot be used with `compression_ratios`.
+        * ``'signal_noise_ratios'``: list[float] - required for lossy encoding
+          if `compression_ratios` is not used, should be...
+
+    Returns
+    -------
+    bytes
+        The JPEG 2000 encoded image data.
+    """
+    # Convert the photometric interpretation to int
+    pi = kwargs["photometric_interpretation"]
+    spp = kwargs["samples_per_pixel"]
+    if spp == 1:
+        kwargs["photometric_interpretation"] = 2
+    elif pi in ("RGB", "YBR_ICT", "YBR_RCT"):
+        kwargs["photometric_interpretation"] = 1
+    elif pi == "YBR_FULL":
+        kwargs["photometric_interpretation"] = 3
+    else:
+        kwargs["photometric_interpretation"] = 0
+
+    kwargs["is_signed"] = kargs["pixel_representation"]
+
+    # Enforce J2K codestream format only
+    kwargs["codec_format"] = 0
+
     return encode_buffer(src, **kwargs)
