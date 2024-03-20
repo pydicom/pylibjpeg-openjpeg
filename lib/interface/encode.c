@@ -539,9 +539,6 @@ extern int EncodeBuffer(
         return 50;
     }
 
-    printf("bytes_per_pixel: %d\n", bytes_per_pixel);
-    printf("precision: %d\n", bits_stored);
-
     // Check samples_per_pixel is 1, 3 or 4
     switch (samples_per_pixel) {
         case 1: break;
@@ -660,8 +657,6 @@ extern int EncodeBuffer(
     // Set up for lossy (if applicable)
     Py_ssize_t nr_cr_layers = PyObject_Length(compression_ratios);
     Py_ssize_t nr_snr_layers = PyObject_Length(signal_noise_ratios);
-    printf("cr: %d\n", nr_cr_layers);
-    printf("snr: %d\n", nr_snr_layers);
     if (nr_cr_layers > 0 || nr_snr_layers > 0) {
         // Lossy compression using compression ratios
         parameters.irreversible = 1;  // use DWT 9-7
@@ -741,7 +736,6 @@ extern int EncodeBuffer(
         cmptparm[i].dy = (OPJ_UINT32) 1;
         cmptparm[i].w = (OPJ_UINT32) columns;
         cmptparm[i].h = (OPJ_UINT32) rows;
-        printf("prec %d : %d\n", i, cmptparm[i].prec);
     }
 
     // Create the input image object
@@ -768,21 +762,19 @@ extern int EncodeBuffer(
     // src is ordered as colour-by-pixel
     unsigned int p;
     OPJ_UINT64 nr_pixels = rows * columns;
-    printf("nr pixels: %d\n", nr_pixels);
     char *data = PyBytes_AsString(src);
     if (bytes_per_pixel == 1) {
         for (OPJ_UINT64 ii = 0; ii < nr_pixels; ii++)
         {
             for (p = 0; p < samples_per_pixel; p++)
             {
-                printf("%d\n", *data);
                 image->comps[p].data[ii] = is_signed ? *data : (unsigned char) *data;
                 data++;
             }
         }
     } else if (bytes_per_pixel == 2) {
         union {
-            unsigned short val;
+            short val;
             unsigned char vals[2];
         } u16;
 
@@ -794,12 +786,12 @@ extern int EncodeBuffer(
                 data++;
                 u16.vals[1] = (unsigned char) *data;
                 data++;
-                image->comps[p].data[ii] = u16.val;
+                image->comps[p].data[ii] = is_signed ? u16.val : (unsigned short) u16.val;
             }
         }
     } else if (bytes_per_pixel == 4) {
         union {
-            unsigned long val;
+            long val;
             unsigned char vals[4];
         } u32;
 
@@ -815,7 +807,7 @@ extern int EncodeBuffer(
                 data++;
                 u32.vals[3] = (unsigned char) *data;
                 data++;
-                image->comps[p].data[ii] = u32.val;
+                image->comps[p].data[ii] = is_signed ? u32.val : (unsigned long) u32.val;
             }
         }
     }
@@ -851,8 +843,6 @@ extern int EncodeBuffer(
     // Creates an abstract output stream; allocates memory
     stream = opj_stream_create(BUFFER_SIZE, OPJ_FALSE);
 
-    printf("A\n");
-
     if (!stream) {
         py_error("Failed to create the output stream");
         return_code = 24;
@@ -876,16 +866,12 @@ extern int EncodeBuffer(
         goto failure;
     }
 
-    printf("B\n");
-
     result = result && opj_encode(codec, stream);
     if (!result)  {
         py_error("Failure result from 'opj_encode()'");
         return_code = 26;
         goto failure;
     }
-
-    printf("C\n");
 
     result = result && opj_end_compress(codec, stream);
     if (!result)  {

@@ -77,7 +77,7 @@ ENCODING_ERRORS = {
     ),
     9: (
         "the value of the 'photometric_interpretation' parameter is not valid "
-        "for the number of samples per pixel in the input array"
+        "for the number of samples per pixel"
     ),
     10: "the valid of the 'codec_format' paramter is invalid",
     11: "more than 100 'compression_ratios' is not supported",

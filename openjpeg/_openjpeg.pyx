@@ -399,17 +399,17 @@ def encode_buffer(
 
     if not 1 <= columns <= 2**24 - 1:
         raise ValueError(
-            f"Invalid 'columns' value '{columns}', must be in range (1, 16777215)"
+            f"Invalid 'columns' value '{columns}', must be in the range [1, 16777215]"
         )
 
     if not 1 <= rows <= 2**24 - 1:
         raise ValueError(
-            f"Invalid 'rows' value '{rows}', must be in range (1, 16777215)"
+            f"Invalid 'rows' value '{rows}', must be in the range [1, 16777215]"
         )
 
     if samples_per_pixel not in (1, 3, 4):
         raise ValueError(
-            f"Invalid 'samples_per_pixel' value '{samples_per_pixel}', must be in 1, 3 "
+            f"Invalid 'samples_per_pixel' value '{samples_per_pixel}', must be 1, 3 "
             "or 4"
         )
 
@@ -422,32 +422,28 @@ def encode_buffer(
     else:
         raise ValueError(
             f"Invalid 'bits_stored' value '{bits_stored}', must be in the "
-            "range (1, 24)"
+            "range [1, 24]"
         )
 
     actual_length = len(src)
     expected_length = rows * columns * samples_per_pixel * bytes_allocated
     if actual_length != expected_length:
         raise ValueError(
-            f"The actual length of 'src' is {actual_length} bytes which doesn't "
+            f"The length of 'src' is {actual_length} bytes which doesn't "
             f"match the expected length of {expected_length} bytes"
         )
 
     if is_signed not in (0, 1):
-        raise ValueError(
-            f"Invalid 'is_signed' value '{is_signed}', must be 0 or 1"
-        )
+        raise ValueError(f"Invalid 'is_signed' value '{is_signed}'")
 
     if photometric_interpretation not in (0, 1, 2, 3, 4, 5):
         raise ValueError(
             "Invalid 'photometric_interpretation' value "
-            f"'{photometric_interpretation}', must be in the range (0, 5)"
+            f"'{photometric_interpretation}', must be in the range [0, 5]"
         )
 
     if use_mct not in (0, 1):
-        raise ValueError(
-            f"Invalid 'use_mct' value '{use_mct}', must be 0 or 1"
-        )
+        raise ValueError(f"Invalid 'use_mct' value '{use_mct}'")
 
     if codec_format not in (0, 2):
         raise ValueError(
