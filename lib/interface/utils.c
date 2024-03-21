@@ -208,15 +208,20 @@ OPJ_OFF_T py_skip(OPJ_OFF_T offset, void *stream)
 
     Returns
     -------
-    off_t
-        The new position in the `stream`.
+    int
+        The number of bytes skipped.
     */
+    off_t current;
+    current = py_tell(stream);
+
     py_seek(offset, stream, SEEK_CUR);
 
     off_t pos;
     pos = py_tell(stream);
 
-    return pos ? pos : (OPJ_OFF_T) -1;
+    printf("Skipping from %d by %d\n", pos, offset);
+
+    return pos ? pos - current : (OPJ_OFF_T) -1;
 }
 
 

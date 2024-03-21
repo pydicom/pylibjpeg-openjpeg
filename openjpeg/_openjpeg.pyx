@@ -239,7 +239,7 @@ def encode_array(
         The codec to used when encoding:
 
         * ``0``: JPEG 2000 codestream only (default) (J2K/J2C format)
-        * ``2``: A boxed JPEG 2000 codestream (JP2 format)
+        * ``1``: A boxed JPEG 2000 codestream (JP2 format)
 
     Returns
     -------
@@ -293,9 +293,9 @@ def encode_array(
     # MCT may be used with RGB in both lossy and lossless modes
     use_mct = 1 if use_mct else 0
 
-    if codec_format not in (0, 2):
+    if codec_format not in (0, 1):
         raise ValueError(
-            f"Invalid 'codec_format' value '{codec_format}', must be 0 or 2"
+            f"Invalid 'codec_format' value '{codec_format}', must be 0 or 1"
         )
 
     compression_ratios = [float(x) for x in compression_ratios]
@@ -445,9 +445,9 @@ def encode_buffer(
     if use_mct not in (0, 1):
         raise ValueError(f"Invalid 'use_mct' value '{use_mct}'")
 
-    if codec_format not in (0, 2):
+    if codec_format not in (0, 1):
         raise ValueError(
-            f"Invalid 'codec_format' value '{codec_format}', must be 0 or 2"
+            f"Invalid 'codec_format' value '{codec_format}', must be 0 or 1"
         )
 
     compression_ratios = [float(x) for x in compression_ratios]

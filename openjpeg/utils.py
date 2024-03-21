@@ -61,9 +61,9 @@ ENCODING_ERRORS = {
         "the input array has an invalid shape, must be (rows, columns) or "
         "(rows, columns, planes)"
     ),
-    3: ("the input array has an unsupported number of rows, must be in (1, 2**32 - 1)"),
+    3: ("the input array has an unsupported number of rows, must be in [1, 2**32 - 1]"),
     4: (
-        "the input array has an unsupported number of columns, must be in (1, 2**32 - 1)"
+        "the input array has an unsupported number of columns, must be in [1, 2**32 - 1]"
     ),
     5: (
         "the input array has an unsupported dtype, only bool, u1, u2, u4, i1, i2"
@@ -72,8 +72,8 @@ ENCODING_ERRORS = {
     6: "the input array must use little endian byte ordering",
     7: "the input array must be C-style, contiguous and aligned",
     8: (
-        "the image precision given by bits stored must be in (1, itemsize of "
-        "the input array's dtype)"
+        "the image precision given by bits stored must be in [1, itemsize of "
+        "the input array's dtype]"
     ),
     9: (
         "the value of the 'photometric_interpretation' parameter is not valid "
@@ -82,10 +82,10 @@ ENCODING_ERRORS = {
     10: "the valid of the 'codec_format' paramter is invalid",
     11: "more than 100 'compression_ratios' is not supported",
     12: "invalid item in the 'compression_ratios' value",
-    13: "invalid compression ratio, must be in the range (1, 1000)",
+    13: "invalid compression ratio, must be in the range [1, 1000]",
     14: "more than 100 'signal_noise_ratios' is not supported",
     15: "invalid item in the 'signal_noise_ratios' value",
-    16: "invalid signal-to-noise ratio, must be in the range (0, 1000)",
+    16: "invalid signal-to-noise ratio, must be in the range [0, 1000]",
     # Encoding errors
     20: "failed to assign the image component parameters",
     21: "failed to create an empty image object",
@@ -97,8 +97,8 @@ ENCODING_ERRORS = {
     27: "failure result from 'opj_endt_compress()'",
     50: "the value of the 'bits_stored' parameter is invalid",
     51: "the value of the 'samples_per_pixel' parameter is invalid",
-    52: "the value of the 'rows' is invalid, must be in (1, 2**24 - 1)",
-    53: "the value of the 'columns' is invalid, must be in (1, 2**24 - 1)",
+    52: "the value of the 'rows' is invalid, must be in [1, 2**24 - 1]",
+    53: "the value of the 'columns' is invalid, must be in [1, 2**24 - 1]",
     54: "the value of the 'is_signed' is invalid, must be 0 or 1",
     55: "the length of 'src' doesn't match the expected length",
 }
@@ -120,7 +120,7 @@ def _get_format(stream: BinaryIO) -> int:
         The format of the encoded data, one of:
 
         * ``0``: JPEG-2000 codestream
-        * ``2``: JP2 file format
+        * ``1``: JP2 file format
 
     Raises
     ------
@@ -431,7 +431,7 @@ def _get_bits_stored(arr: np.ndarray) -> int:
     return cast(int, arr.dtype.itemsize * 8)
 
 
-def encode(
+def encode_array(
     arr: np.ndarray,
     bits_stored: Union[int, None] = None,
     photometric_interpretation: int = 0,
@@ -456,11 +456,9 @@ def encode(
         The bit-depth of the image, defaults to the minimum bit-depth required
         to fully cover the range of pixel data in `arr`.
     photometric_interpretation : int, optional
-        The colour space of the unencoded image data that will be set in the
-        JPEG 2000 metadata. If you are encoded RGB or YCbCr data then it's
-        strongly recommended that you select the correct colour space so
-        that anyone decoding your image data will know which colour space
-        transforms to apply. One of:
+        The colour space of the unencoded image data, used to help determine
+        if MCT may be applied. If `codec_format` is ``1`` then this will also
+        be the colour space set in the JP2 metadata. One of:
 
         * ``0``: Unspecified (default)
         * ``1``: sRGB
@@ -498,12 +496,12 @@ def encode(
         The codec to used when encoding:
 
         * ``0``: JPEG 2000 codestream only (default) (J2K/J2C format)
-        * ``2``: A boxed JPEG 2000 codestream (JP2 format)
+        * ``1``: A boxed JPEG 2000 codestream (JP2 format)
 
     Returns
     -------
     bytes
-        The encoded JPEG 2000 image data.
+        A JPEG 2000 or JP2 (with `codec_format=1`) codestream.
     """
     if compression_ratios is None:
         compression_ratios = []
@@ -539,7 +537,7 @@ def encode(
     return cast(bytes, buffer)
 
 
-encode_array = encode
+encode = encode_array
 
 
 def encode_buffer(
@@ -583,11 +581,9 @@ def encode_buffer(
     is_signed : bool
         If ``True`` then the image uses signed integers, ``False`` otherwise.
     photometric_interpretation : int, optional
-        The colour space of the unencoded image data that will be set in the
-        JPEG 2000 metadata. If you are encoded RGB or YCbCr data then it's
-        strongly recommended that you select the correct colour space so
-        that anyone decoding your image data will know which colour space
-        transforms to apply. One of:
+        The colour space of the unencoded image data, used to help determine
+        if MCT may be applied. If `codec_format` is ``1`` then this will also
+        be the colour space set in the JP2 metadata. One of:
 
         * ``0``: Unspecified (default)
         * ``1``: sRGB
@@ -595,7 +591,6 @@ def encode_buffer(
         * ``3``: sYCC (YCbCr)
         * ``4``: eYCC
         * ``5``: CMYK
-
     use_mct : bool, optional
         Apply multi-component transformation (MCT) prior to encoding the image
         data. Defaults to ``True`` when the `photometric_interpretation` is
@@ -626,12 +621,12 @@ def encode_buffer(
         The codec to used when encoding:
 
         * ``0``: JPEG 2000 codestream only (default) (J2K/J2C format)
-        * ``2``: A boxed JPEG 2000 codestream (JP2 format)
+        * ``1``: A boxed JPEG 2000 codestream (JP2 format)
 
     Returns
     -------
     bytes
-        The JPEG 2000 encoded image data.
+        A JPEG 2000 or JP2 (with `codec_format=1`) codestream.
     """
 
     if compression_ratios is None:
@@ -686,15 +681,7 @@ def encode_pixel_data(src: Union[bytes, bytearray], **kwargs: Any) -> bytes:
         * ``'bits_stored'``: int - the number of bits per sample for pixels in
           the image (1, 24)
         * ``'photometric_interpretation'``: str - the colour space of the
-          image in `src`, one of the following:
-
-          * ``"MONOCHROME1"``, ``"MONOCHROME2"``, ``"PALETTE COLOR"`` - will be
-            used with the greyscale colour space
-          * ``"RGB"``, ``"YBR_RCT"``, ``"YBR_ICT"`` - will be used with the sRGB
-            colour space
-          * ``"YBR_FULL"`` - will be used with the sYCC colour space
-
-          Anything else will default to the unspecified colour space.
+          image in `src`.
 
         The following keyword arguments are optional:
 
@@ -713,23 +700,17 @@ def encode_pixel_data(src: Union[bytes, bytearray], **kwargs: Any) -> bytes:
     Returns
     -------
     bytes
-        The JPEG 2000 encoded image data.
+        A JPEG 2000 codestream.
     """
-    # Convert the photometric interpretation to int
+    # A J2K codestream doesn't track the colour space, so the photometric
+    #   interpretation is only used to help with setting MCT
     pi = kwargs["photometric_interpretation"]
-    spp = kwargs["samples_per_pixel"]
-    if spp == 1:
-        kwargs["photometric_interpretation"] = 2
-    elif pi in ("RGB", "YBR_ICT", "YBR_RCT"):
+    if pi in ("RGB", "YBR_ICT", "YBR_RCT"):
         kwargs["photometric_interpretation"] = 1
-    elif pi == "YBR_FULL":
-        kwargs["photometric_interpretation"] = 3
     else:
         kwargs["photometric_interpretation"] = 0
 
-    kwargs["is_signed"] = kargs["pixel_representation"]
-
-    # Enforce J2K codestream format only
-    kwargs["codec_format"] = 0
+    kwargs["is_signed"] = kwargs["pixel_representation"]
+    kwargs["codec_format"] = 1
 
     return encode_buffer(src, **kwargs)

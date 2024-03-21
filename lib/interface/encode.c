@@ -65,7 +65,7 @@ extern int EncodeArray(
     codec_format : int
         The format of the encoded JPEG 2000 data, one of:
         * ``0`` - OPJ_CODEC_J2K : JPEG-2000 codestream
-        * ``2`` - OPJ_CODEC_JP2 : JP2 file format
+        * ``1`` - OPJ_CODEC_JP2 : JP2 file format
 
     Returns
     -------
@@ -203,7 +203,7 @@ extern int EncodeArray(
     }
 
     // Check the encoding format
-    if (codec_format != 0 && codec_format != 2) {
+    if (codec_format != 0 && codec_format != 1) {
         py_error("The value of the 'codec_format' parameter is invalid");
         return 10;
     }
@@ -390,7 +390,7 @@ extern int EncodeArray(
             codec = opj_create_compress(OPJ_CODEC_J2K);
             break;
         }
-        case 2: { // JP2 codestream
+        case 1: { // JP2 codestream
             codec = opj_create_compress(OPJ_CODEC_JP2);
             break;
         }
@@ -479,7 +479,7 @@ extern int EncodeBuffer(
     unsigned int use_mct,
     PyObject *compression_ratios,
     PyObject *signal_noise_ratios,
-    unsigned int codec_format
+    int codec_format
 )
 {
     /* Encode image data using JPEG 2000.
@@ -501,6 +501,9 @@ extern int EncodeBuffer(
         0 for unsigned, 1 for signed
     photometric_interpretation : int
         Supported values: 0-5
+    dst : PyObject *
+        The destination for the encoded codestream, should be a BinaryIO or
+        an object with write(), tell() and seek().
     use_mct : int
         Supported values 0-1, can't be used with subsampling
     compression_ratios : list[float]
@@ -514,10 +517,7 @@ extern int EncodeBuffer(
     codec_format : int
         The format of the encoded JPEG 2000 data, one of:
         * ``0`` - OPJ_CODEC_J2K : JPEG-2000 codestream
-        * ``2`` - OPJ_CODEC_JP2 : JP2 file format
-    dst : PyObject *
-        The destination for the encoded codestream, should be a BinaryIO or
-        an object with write(), tell() and seek().
+        * ``1`` - OPJ_CODEC_JP2 : JP2 file format
 
     Returns
     -------
@@ -622,15 +622,15 @@ extern int EncodeBuffer(
         return 9;
     }
 
+    // Check the encoding format
+    if (codec_format != 0 && codec_format != 1) {
+        py_error("The value of the 'codec_format' parameter is invalid");
+        return 10;
+    }
+
     // Disable MCT if the input is not RGB
     if (samples_per_pixel != 3 || photometric_interpretation != 1) {
         use_mct = 0;
-    }
-
-    // Check the encoding format
-    if (codec_format != 0 && codec_format != 2) {
-        py_error("The value of the 'codec_format' parameter is invalid");
-        return 10;
     }
 
     // Encoding parameters
@@ -819,7 +819,7 @@ extern int EncodeBuffer(
             codec = opj_create_compress(OPJ_CODEC_J2K);
             break;
         }
-        case 2: { // JP2 codestream
+        case 1: { // JP2 codestream
             codec = opj_create_compress(OPJ_CODEC_JP2);
             break;
         }
@@ -841,6 +841,7 @@ extern int EncodeBuffer(
     }
 
     // Creates an abstract output stream; allocates memory
+    // cio::opj_stream_create(buffer size, is_input)
     stream = opj_stream_create(BUFFER_SIZE, OPJ_FALSE);
 
     if (!stream) {
@@ -850,10 +851,13 @@ extern int EncodeBuffer(
     }
 
     // Functions for the stream
+    // JP2 isn't working with buffer-like...
+    opj_stream_set_user_data(stream, dst, NULL);
+    opj_stream_set_user_data_length(stream, py_length(dst));
+    opj_stream_set_read_function(stream, py_read);
     opj_stream_set_write_function(stream, py_write);
     opj_stream_set_skip_function(stream, py_skip);
     opj_stream_set_seek_function(stream, py_seek_set);
-    opj_stream_set_user_data(stream, dst, NULL);
 
     OPJ_BOOL result;
 

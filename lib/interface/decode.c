@@ -562,6 +562,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     }
 
     // Convert colour space (if required)
+    // I don't think this does anything unless decoding JP2
     if (
         image->color_space != OPJ_CLRSPC_SYCC
         && image->numcomps == 3
