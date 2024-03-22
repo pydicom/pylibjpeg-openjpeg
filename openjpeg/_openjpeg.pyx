@@ -397,14 +397,14 @@ def encode_buffer(
             f"'src' must be bytes or bytearray, not {type(src).__name__}"
         )
 
-    if not 1 <= columns <= 2**24 - 1:
+    if not 1 <= columns <= 65535:
         raise ValueError(
-            f"Invalid 'columns' value '{columns}', must be in the range [1, 16777215]"
+            f"Invalid 'columns' value '{columns}', must be in the range [1, 65535]"
         )
 
-    if not 1 <= rows <= 2**24 - 1:
+    if not 1 <= rows <= 65535:
         raise ValueError(
-            f"Invalid 'rows' value '{rows}', must be in the range [1, 16777215]"
+            f"Invalid 'rows' value '{rows}', must be in the range [1, 65535]"
         )
 
     if samples_per_pixel not in (1, 3, 4):

@@ -121,17 +121,17 @@ class TestEncode:
         """Test invalid array dimensions raise exceptions."""
         msg = (
             "Error encoding the data: the input array has an unsupported number "
-            r"of rows, must be in \[1, 2\*\*32 - 1\]"
+            r"of rows, must be in \[1, 65535\]"
         )
         with pytest.raises(RuntimeError, match=msg):
-            encode_array(np.ones((2**32, 1), dtype="u1"))
+            encode_array(np.ones((65536, 1), dtype="u1"))
 
         msg = (
             "Error encoding the data: the input array has an unsupported number "
-            r"of columns, must be in \[1, 2\*\*32 - 1\]"
+            r"of columns, must be in \[1, 65535\]"
         )
         with pytest.raises(RuntimeError, match=msg):
-            encode_array(np.ones((1, 2**32), dtype="u1"))
+            encode_array(np.ones((1, 65536), dtype="u1"))
 
     def test_invalid_bits_stored_raises(self):
         """Test invalid bits_stored"""
@@ -718,23 +718,23 @@ class TestEncodeBuffer:
 
     def test_invalid_shape_raises(self):
         """Test invalid image shape raises."""
-        msg = r"Invalid 'columns' value '0', must be in the range \[1, 16777215\]"
+        msg = r"Invalid 'columns' value '0', must be in the range \[1, 65535\]"
         with pytest.raises(ValueError, match=msg):
             encode_buffer(b"", 0, 1, 1, 1, False)
 
         msg = (
-            r"Invalid 'columns' value '16777216', must be in the range \[1, 16777215\]"
+            r"Invalid 'columns' value '65536', must be in the range \[1, 65535\]"
         )
         with pytest.raises(ValueError, match=msg):
-            encode_buffer(b"", 16777216, 1, 1, 1, False)
+            encode_buffer(b"", 65536, 1, 1, 1, False)
 
-        msg = r"Invalid 'rows' value '0', must be in the range \[1, 16777215\]"
+        msg = r"Invalid 'rows' value '0', must be in the range \[1, 65535\]"
         with pytest.raises(ValueError, match=msg):
             encode_buffer(b"", 1, 0, 1, 1, False)
 
-        msg = r"Invalid 'rows' value '16777216', must be in the range \[1, 16777215\]"
+        msg = r"Invalid 'rows' value '65536', must be in the range \[1, 65535\]"
         with pytest.raises(ValueError, match=msg):
-            encode_buffer(b"", 1, 16777216, 1, 1, False)
+            encode_buffer(b"", 1, 65536, 1, 1, False)
 
         msg = "Invalid 'samples_per_pixel' value '0', must be 1, 3 or 4"
         with pytest.raises(ValueError, match=msg):

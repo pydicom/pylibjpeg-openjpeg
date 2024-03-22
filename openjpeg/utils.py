@@ -61,9 +61,9 @@ ENCODING_ERRORS = {
         "the input array has an invalid shape, must be (rows, columns) or "
         "(rows, columns, planes)"
     ),
-    3: ("the input array has an unsupported number of rows, must be in [1, 2**32 - 1]"),
+    3: ("the input array has an unsupported number of rows, must be in [1, 65535]"),
     4: (
-        "the input array has an unsupported number of columns, must be in [1, 2**32 - 1]"
+        "the input array has an unsupported number of columns, must be in [1, 65535]"
     ),
     5: (
         "the input array has an unsupported dtype, only bool, u1, u2, u4, i1, i2"
@@ -97,8 +97,8 @@ ENCODING_ERRORS = {
     27: "failure result from 'opj_endt_compress()'",
     50: "the value of the 'bits_stored' parameter is invalid",
     51: "the value of the 'samples_per_pixel' parameter is invalid",
-    52: "the value of the 'rows' is invalid, must be in [1, 2**24 - 1]",
-    53: "the value of the 'columns' is invalid, must be in [1, 2**24 - 1]",
+    52: "the value of the 'rows' is invalid, must be in [1, 65535]",
+    53: "the value of the 'columns' is invalid, must be in [1, 65535]",
     54: "the value of the 'is_signed' is invalid, must be 0 or 1",
     55: "the length of 'src' doesn't match the expected length",
 }

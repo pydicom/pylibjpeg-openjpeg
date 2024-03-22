@@ -110,12 +110,12 @@ extern int EncodeArray(
         }
     }
 
-    // Check number of rows and columns is in (1, 2^32 - 1)
-    if (rows < 1 || rows > 0xFFFFFFFF) {
+    // Check number of rows and columns is in (1, 2^16 - 1)
+    if (rows < 1 || rows > 0xFFFF) {
         py_error("The input array has an unsupported number of rows");
         return 3;
     }
-    if (columns < 1 || columns > 0xFFFFFFFF) {
+    if (columns < 1 || columns > 0xFFFF) {
         py_error("The input array has an unsupported number of columns");
         return 4;
     }
@@ -341,7 +341,6 @@ extern int EncodeArray(
     image->y1 = (OPJ_UINT32)parameters.image_offset_y0 + (OPJ_UINT32)rows;
 
     // Add the image data
-    // Split to its own function -> one for ndarray, one for buffer
     void *ptr;
     unsigned int p, r, c;
     if (bits_allocated == 8) {  // bool, u1, i1
@@ -550,13 +549,13 @@ extern int EncodeBuffer(
         }
     }
 
-    // Check number of rows and columns is in (1, 2^24 - 1)
+    // Check number of rows and columns is in (1, 2^16 - 1)
     // The J2K standard supports up to 32-bit rows and columns
-    if (rows < 1 || rows > 0xFFFFFF) {
+    if (rows < 1 || rows > 0xFFFF) {
         py_error("The number of rows is invalid");
         return 52;
     }
-    if (columns < 1 || columns > 0xFFFFFF) {
+    if (columns < 1 || columns > 0xFFFF) {
         py_error("The number of columns is invalid");
         return 53;
     }
