@@ -553,7 +553,7 @@ def encode_buffer(
     compression_ratios: Union[List[float], None] = None,
     signal_noise_ratios: Union[List[float], None] = None,
     codec_format: int = 0,
-    **kwargs,
+    **kwargs: Any,
 ) -> Union[bytes, bytearray]:
     """Return the JPEG 2000 compressed `src`.
 
@@ -711,6 +711,6 @@ def encode_pixel_data(src: Union[bytes, bytearray], **kwargs: Any) -> bytes:
         kwargs["photometric_interpretation"] = 0
 
     kwargs["is_signed"] = kwargs["pixel_representation"]
-    kwargs["codec_format"] = 1
+    kwargs["codec_format"] = 0
 
     return encode_buffer(src, **kwargs)

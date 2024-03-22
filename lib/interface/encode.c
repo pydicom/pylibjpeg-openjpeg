@@ -851,10 +851,7 @@ extern int EncodeBuffer(
     }
 
     // Functions for the stream
-    // JP2 isn't working with buffer-like...
     opj_stream_set_user_data(stream, dst, NULL);
-    opj_stream_set_user_data_length(stream, py_length(dst));
-    opj_stream_set_read_function(stream, py_read);
     opj_stream_set_write_function(stream, py_write);
     opj_stream_set_skip_function(stream, py_skip);
     opj_stream_set_seek_function(stream, py_seek_set);

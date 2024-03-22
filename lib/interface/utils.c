@@ -67,7 +67,7 @@ Py_ssize_t py_tell(PyObject *stream)
     Returns
     -------
     Py_ssize_t
-        The new position in the `stream`.
+        The current position in the `stream`.
     */
     PyObject *result;
     Py_ssize_t location;
@@ -162,7 +162,7 @@ OPJ_BOOL py_seek(Py_ssize_t offset, void *stream, int whence)
     OPJ_TRUE : OBJ_BOOL
     */
     // Python and C; SEEK_SET is 0, SEEK_CUR is 1 and SEEK_END is 2
-    // fd.seek(nr_bytes),
+    // stream.seek(nr_bytes, whence),
     // k: convert C unsigned long int to Python int
     // i: convert C int to a Python integer
     PyObject *result;
@@ -197,7 +197,7 @@ OPJ_BOOL py_seek_set(OPJ_OFF_T offset, void *stream)
 OPJ_OFF_T py_skip(OPJ_OFF_T offset, void *stream)
 {
     /* Change the `stream` position by `offset` from SEEK_CUR and return the
-    new position.
+    number of skipped bytes.
 
     Parameters
     ----------
@@ -209,19 +209,17 @@ OPJ_OFF_T py_skip(OPJ_OFF_T offset, void *stream)
     Returns
     -------
     int
-        The number of bytes skipped.
+        The number of bytes skipped
     */
-    off_t current;
-    current = py_tell(stream);
+    off_t initial;
+    initial = py_tell(stream);
 
     py_seek(offset, stream, SEEK_CUR);
 
-    off_t pos;
-    pos = py_tell(stream);
+    off_t current;
+    current = py_tell(stream);
 
-    printf("Skipping from %d by %d\n", pos, offset);
-
-    return pos ? pos - current : (OPJ_OFF_T) -1;
+    return current - initial;
 }
 
 
