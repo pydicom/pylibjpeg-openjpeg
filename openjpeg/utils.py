@@ -62,9 +62,7 @@ ENCODING_ERRORS = {
         "(rows, columns, planes)"
     ),
     3: ("the input array has an unsupported number of rows, must be in [1, 65535]"),
-    4: (
-        "the input array has an unsupported number of columns, must be in [1, 65535]"
-    ),
+    4: ("the input array has an unsupported number of columns, must be in [1, 65535]"),
     5: (
         "the input array has an unsupported dtype, only bool, u1, u2, u4, i1, i2"
         " and i4 are supported"
@@ -82,10 +80,10 @@ ENCODING_ERRORS = {
     10: "the valid of the 'codec_format' paramter is invalid",
     11: "more than 100 'compression_ratios' is not supported",
     12: "invalid item in the 'compression_ratios' value",
-    13: "invalid compression ratio, must be in the range [1, 1000]",
+    13: "invalid compression ratio, lowest value must be at least 1",
     14: "more than 100 'signal_noise_ratios' is not supported",
     15: "invalid item in the 'signal_noise_ratios' value",
-    16: "invalid signal-to-noise ratio, must be in the range [0, 1000]",
+    16: "invalid signal-to-noise ratio, lowest value must be at least 0",
     # Encoding errors
     20: "failed to assign the image component parameters",
     21: "failed to create an empty image object",
@@ -428,7 +426,6 @@ def _get_bits_stored(arr: np.ndarray) -> int:
     return cast(int, arr.dtype.itemsize * 8)
 
 
-# TODO: cr and snr
 def encode_array(
     arr: np.ndarray,
     bits_stored: Union[int, None] = None,
@@ -450,21 +447,22 @@ def encode_array(
     * No sub-sampling
     * LRCP progression order
     * 64 x 64 code blocks
-    * 6 resolutions
+    * 6 DWT resolutions
     * 2^15 x 2^15 precincts
+    * 1 tile
     * No SOP or EPH markers
     * MCT will be used by default for 3 samples per pixel if
-      `photometric_interpretation` is ``1``
+      `photometric_interpretation` is ``1`` (RGB)
 
     Lossless compression will use the following:
 
-    * DWT 5-7
-    * MCT uses reversible component transformation
+    * DWT 5-7 with reversible component transformation
+    * 1 quality layer
 
     Lossy compression will use the following:
 
-    * DWT 9-7
-    * MCT uses irreversible component transformation
+    * DWT 9-7 with irreversible component transformation
+    * 1 or more quality layers
 
     Parameters
     ----------
@@ -504,15 +502,22 @@ def encode_array(
         value corresponding to the unencoded dataset.
     compression_ratios : list[float], optional
         Required for lossy encoding, this is the compression ratio to use
-        for each layer. Should be in decreasing order (such as ``[80, 30, 10]``)
-        and the final value may be ``1`` to indicate lossless encoding should
-        be used for that layer. Cannot be used with `signal_noise_ratios`.
+        for each quality layer. Each item in the list is the factor of
+        compression for a quality layer, so a value of ``[5]`` means 1 quality
+        layer with 5x compression and a value of ``[5, 2]`` means 2 quality
+        layers, one with 5x compression and one with 2x compression. If using
+        multiple quality layers then the list should be in ordered with
+        decreasing compression value and the lowest value must be at least 1.
+        **Cannot be used with** `signal_noise_ratios`.
     signal_noise_ratios : list[float], optional
-        Required for lossy encoding, this is the desired peak
-        signal-to-noise ratio to use for each layer. Should be in increasing
-        order (such as ``[30, 40, 50]``), except for the last layer which may
-        be ``0`` to indicate lossless encoding should be used for that layer.
-        Cannot be used with `compression_ratios`.
+        Required for lossy encoding, this is a list of the desired peak
+        signal-to-noise ratio (PSNR) to use for each layer. Each item in the
+        list is the PSNR for a quality layer, so a value of ``[30]`` means 1
+        quality layer with a PSNR of 30, and a value of ``[30, 50]`` means 2
+        quality layers, one with a PSNR of 30 and one with a PSNR of 50. If
+        using multiple quality layers then the list should be in ordered with
+        increasing PSNR value and the lowest value must be greater than 0.
+        **Cannot be used with** `compression_ratios`.
     codec_format : int, optional
         The codec to used when encoding:
 
@@ -580,6 +585,28 @@ def encode_buffer(
 
     .. versionadded:: 2.2
 
+    The following encoding parameters are always used:
+
+    * No sub-sampling
+    * LRCP progression order
+    * 64 x 64 code blocks
+    * 6 DWT resolutions
+    * 2^15 x 2^15 precincts
+    * 1 tile
+    * No SOP or EPH markers
+    * MCT will be used by default for 3 samples per pixel if
+      `photometric_interpretation` is ``1`` (RGB)
+
+    Lossless compression will use the following:
+
+    * DWT 5-7 with reversible component transformation
+    * 1 quality layer
+
+    Lossy compression will use the following:
+
+    * DWT 9-7 with irreversible component transformation
+    * 1 or more quality layers
+
     Parameters
     ----------
     src : bytes | bytearray
@@ -628,16 +655,23 @@ def encode_buffer(
         If MCT is not applied then *Photometric Intrepretation* should be the
         value corresponding to the unencoded dataset.
     compression_ratios : list[float], optional
-        Required if using lossy encoding, this is the compression ratio to use
-        for each layer. Should be in decreasing order (such as ``[80, 30, 10]``)
-        and the final value may be ``1`` to indicate lossless encoding should
-        be used for that layer. Cannot be used with `signal_noise_ratios`.
+        Required for lossy encoding, this is the compression ratio to use
+        for each quality layer. Each item in the list is the factor of
+        compression for a quality layer, so a value of ``[5]`` means 1 quality
+        layer with 5x compression and a value of ``[5, 2]`` means 2 quality
+        layers, one with 5x compression and one with 2x compression. If using
+        multiple quality layers then the list should be in ordered with
+        decreasing compression value and the lowest value must be at least 1.
+        **Cannot be used with** `signal_noise_ratios`.
     signal_noise_ratios : list[float], optional
-        Required if using lossy encoding, this is the desired peak
-        signal-to-noise ratio to use for each layer. Should be in increasing
-        order (such as ``[30, 40, 50]``), except for the last layer which may
-        be ``0`` to indicate lossless encoding should be used for that layer.
-        Cannot be used with `compression_ratios`.
+        Required for lossy encoding, this is a list of the desired peak
+        signal-to-noise ratio (PSNR) to use for each layer. Each item in the
+        list is the PSNR for a quality layer, so a value of ``[30]`` means 1
+        quality layer with a PSNR of 30, and a value of ``[30, 50]`` means 2
+        quality layers, one with a PSNR of 30 and one with a PSNR of 50. If
+        using multiple quality layers then the list should be in ordered with
+        increasing PSNR value and the lowest value must be greater than 0.
+        **Cannot be used with** `compression_ratios`.
     codec_format : int, optional
         The codec to used when encoding:
 
@@ -711,13 +745,11 @@ def encode_pixel_data(
           ``False`` otherwise. Will be ignored if `photometric_interpretation`
           is not RGB, YBR_RCT or YBR_ICT.
         * ''`compression_ratios'``: list[float] - required for lossy encoding if
-          `signal_noise_ratios` is not used, this is the compression ratio to use
-          for each layer. Should be in decreasing order (such as ``[80, 30, 10]``)
-          and the final value may be ``1`` to indicate lossless encoding should
-          be used for that layer. Cannot be used with `signal_noise_ratios`.
-          Cannot be used with `compression_ratios`.
+          `signal_noise_ratios` is not used. The desired compression ratio to
+          use for each quality layer.
         * ``'signal_noise_ratios'``: list[float] - required for lossy encoding
-          if `compression_ratios` is not used, should be...
+          if `compression_ratios` is not used. The desired peak
+          signal-to-noise ratio (PSNR) to use for each quality layer.
 
     Returns
     -------

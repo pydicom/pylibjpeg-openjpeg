@@ -55,13 +55,11 @@ extern int EncodeArray(
     use_mct : int
         Supported values 0-1, can't be used with subsampling
     compression_ratios : list[float]
-        Encode lossy with the specified compression ratio for each layer. The
-        ratio should be decreasing with increasing layer, and may be 1 to signal
-        the use of lossless encoding for that layer.
+        Encode lossy with the specified compression ratio for each quality
+        layer. The ratio should be decreasing with increasing layer.
     signal_noise_ratios : list[float]
-        Encode lossy with the specified peak signal-to-noise ratio. The ratio
-        should be increasing with increasing layer, but may be 0 in the final
-        layer to signal the use of lossless encoding for that layer.
+        Encode lossy with the specified peak signal-to-noise ratio for each
+        quality layer. The ratio should be increasing with increasing layer.
     codec_format : int
         The format of the encoded JPEG 2000 data, one of:
         * ``0`` - OPJ_CODEC_J2K : JPEG-2000 codestream
@@ -241,6 +239,7 @@ extern int EncodeArray(
     Py_ssize_t nr_snr_layers = PyObject_Length(signal_noise_ratios);
     if (nr_cr_layers > 0 || nr_snr_layers > 0) {
         // Lossy compression using compression ratios
+        // For 1 quality layer we use reversible if CR is 1 or PSNR is 0
         parameters.irreversible = 1;  // use DWT 9-7
         if (nr_cr_layers > 0) {
             if (nr_cr_layers > 100) {
@@ -257,12 +256,16 @@ extern int EncodeArray(
                     goto failure;
                 }
                 double value = PyFloat_AsDouble(item);
-                if (value < 1 || value > 1000) {
+                if (value < 1) {
                     return_code = 13;
                     goto failure;
                 }
                 // Maximum 100 rates
                 parameters.tcp_rates[idx] = value;
+
+                if (nr_cr_layers == 1 && value == 1) {
+                    parameters.irreversible = 0;  // use DWT 5-3
+                }
             }
             py_debug("Encoding using lossy compression based on compression ratios");
 
@@ -282,12 +285,16 @@ extern int EncodeArray(
                     goto failure;
                 }
                 double value = PyFloat_AsDouble(item);
-                if (value < 0 || value > 1000) {
+                if (value < 0) {
                     return_code = 16;
                     goto failure;
                 }
                 // Maximum 100 ratios
                 parameters.tcp_distoratio[idx] = value;
+
+                if (nr_snr_layers == 1 && value == 0) {
+                    parameters.irreversible = 0;  // use DWT 5-3
+                }
             }
             py_debug(
                 "Encoding using lossy compression based on peak signal-to-noise ratios"
@@ -506,13 +513,11 @@ extern int EncodeBuffer(
     use_mct : int
         Supported values 0-1, can't be used with subsampling
     compression_ratios : list[float]
-        Encode lossy with the specified compression ratio for each layer. The
-        ratio should be decreasing with increasing layer, and may be 1 to signal
-        the use of lossless encoding for that layer.
+        Encode lossy with the specified compression ratio for each quality
+        layer. The ratio should be decreasing with increasing layer.
     signal_noise_ratios : list[float]
-        Encode lossy with the specified peak signal-to-noise ratio. The ratio
-        should be increasing with increasing layer, but may be 0 in the final
-        layer to signal the use of lossless encoding for that layer.
+        Encode lossy with the specified peak signal-to-noise ratio for each
+        quality layer. The ratio should be increasing with increasing layer.
     codec_format : int
         The format of the encoded JPEG 2000 data, one of:
         * ``0`` - OPJ_CODEC_J2K : JPEG-2000 codestream
@@ -674,12 +679,16 @@ extern int EncodeBuffer(
                     goto failure;
                 }
                 double value = PyFloat_AsDouble(item);
-                if (value < 1 || value > 1000) {
+                if (value < 1) {
                     return_code = 13;
                     goto failure;
                 }
                 // Maximum 100 rates
                 parameters.tcp_rates[idx] = value;
+
+                if (nr_cr_layers == 1 && value == 1) {
+                    parameters.irreversible = 0;  // use DWT 5-3
+                }
             }
             py_debug("Encoding using lossy compression based on compression ratios");
 
@@ -699,12 +708,16 @@ extern int EncodeBuffer(
                     goto failure;
                 }
                 double value = PyFloat_AsDouble(item);
-                if (value < 0 || value > 1000) {
+                if (value < 0) {
                     return_code = 16;
                     goto failure;
                 }
                 // Maximum 100 ratios
                 parameters.tcp_distoratio[idx] = value;
+
+                if (nr_snr_layers == 1 && value == 0) {
+                    parameters.irreversible = 0;  // use DWT 5-3
+                }
             }
             py_debug(
                 "Encoding using lossy compression based on peak signal-to-noise ratios"

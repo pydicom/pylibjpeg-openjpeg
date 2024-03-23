@@ -1,7 +1,4 @@
-from io import BytesIO
-import logging
 import math
-import pickle
 from struct import unpack
 
 import numpy as np
@@ -9,14 +6,12 @@ import pytest
 
 from openjpeg.data import JPEG_DIRECTORY
 from openjpeg.utils import (
-    encode,
     encode_array,
     encode_buffer,
     encode_pixel_data,
     decode,
     PhotometricInterpretation as PI,
     _get_bits_stored,
-    get_parameters,
 )
 
 
@@ -227,8 +222,8 @@ class TestEncode:
             encode_array(np.ones((1, 2), dtype="u1"), compression_ratios=[1] * 11)
 
         msg = (
-            "Error encoding the data: invalid compression ratio, must be in the "
-            r"range \[1, 1000\]"
+            "Error encoding the data: invalid compression ratio, lowest value "
+            "must be at least 1"
         )
         with pytest.raises(RuntimeError, match=msg):
             encode_array(np.ones((1, 2), dtype="u1"), compression_ratios=[0])
@@ -243,8 +238,8 @@ class TestEncode:
             encode_array(np.ones((1, 2), dtype="u1"), signal_noise_ratios=[1] * 11)
 
         msg = (
-            "Error encoding the data: invalid signal-to-noise ratio, must be "
-            r"in the range \[0, 1000\]"
+            "Error encoding the data: invalid signal-to-noise ratio, lowest "
+            "value must be at least 0"
         )
         with pytest.raises(RuntimeError, match=msg):
             encode_array(np.ones((1, 2), dtype="u1"), signal_noise_ratios=[-1])
@@ -722,9 +717,7 @@ class TestEncodeBuffer:
         with pytest.raises(ValueError, match=msg):
             encode_buffer(b"", 0, 1, 1, 1, False)
 
-        msg = (
-            r"Invalid 'columns' value '65536', must be in the range \[1, 65535\]"
-        )
+        msg = r"Invalid 'columns' value '65536', must be in the range \[1, 65535\]"
         with pytest.raises(ValueError, match=msg):
             encode_buffer(b"", 65536, 1, 1, 1, False)
 
@@ -814,8 +807,8 @@ class TestEncodeBuffer:
             encode_buffer(b"\x00", 1, 1, 1, 8, False, compression_ratios=[1] * 11)
 
         msg = (
-            "Error encoding the data: invalid compression ratio, must be in the "
-            r"range \[1, 1000\]"
+            "Error encoding the data: invalid compression ratio, lowest value "
+            "must be at least 1"
         )
         with pytest.raises(RuntimeError, match=msg):
             encode_buffer(b"\x00", 1, 1, 1, 8, False, compression_ratios=[0])
@@ -830,8 +823,8 @@ class TestEncodeBuffer:
             encode_buffer(b"\x00", 1, 1, 1, 8, False, signal_noise_ratios=[1] * 11)
 
         msg = (
-            "Error encoding the data: invalid signal-to-noise ratio, must be "
-            r"in the range \[0, 1000\]"
+            "Error encoding the data: invalid signal-to-noise ratio, lowest "
+            "value must be at least 0"
         )
         with pytest.raises(RuntimeError, match=msg):
             encode_buffer(b"\x00", 1, 1, 1, 8, False, signal_noise_ratios=[-1])
@@ -1298,7 +1291,6 @@ class TestEncodeBuffer:
 
             maximum = 2 ** (bit_depth - 1) - 1
             minimum = -(2 ** (bit_depth - 1))
-            dtype = f"i{math.ceil(bit_depth / 8)}"
             arr = np.random.randint(
                 low=minimum, high=maximum + 1, size=(rows, cols, 3), dtype="i1"
             )
@@ -1379,7 +1371,6 @@ class TestEncodeBuffer:
 
             maximum = 2 ** (bit_depth - 1) - 1
             minimum = -(2 ** (bit_depth - 1))
-            dtype = f"i{math.ceil(bit_depth / 8)}"
             arr = np.random.randint(
                 low=minimum, high=maximum + 1, size=(rows, cols, 3), dtype="i2"
             )

@@ -230,11 +230,10 @@ def encode_array(
         images.
     compression_ratios : list[float]
         Required for lossy encoding, this is the compression ratio to use
-        for each layer. Should be in decreasing order (such as ``[80, 30, 10]``)
-        and the final value may be ``1`` to indicate lossless encoding should
-        be used for that layer.
+        for each quality layer. Cannot be used with `signal_noise_ratios`.
     signal_noise_ratios : list[float]
-        Required for lossy encoding
+        Required for lossy encoding, this is the PSNR to use for each quality
+        layer. Cannot be used with `compression_ratios`.
     codec_format : int
         The codec to used when encoding:
 
@@ -372,12 +371,11 @@ def encode_buffer(
         images. Requires a `photometric_interpretation` of ``1`` and a
         `samples_per_pixel` value of ``3``.
     compression_ratios : list[float]
-        Required if using lossy encoding, this is the compression ratio to use
-        for each layer. Should be in decreasing order (such as ``[80, 30, 10]``)
-        and the final value may be ``1`` to indicate lossless encoding should
-        be used for that layer.
+        Required for lossy encoding, this is the compression ratio to use
+        for each quality layer. Cannot be used with `signal_noise_ratios`.
     signal_noise_ratios : list[float]
-
+        Required for lossy encoding, this is the PSNR to use for each quality
+        layer. Cannot be used with `compression_ratios`.
     codec_format : int, optional
         The codec to used when encoding:
 
