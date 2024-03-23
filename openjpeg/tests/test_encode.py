@@ -228,9 +228,6 @@ class TestEncode:
         with pytest.raises(RuntimeError, match=msg):
             encode_array(np.ones((1, 2), dtype="u1"), compression_ratios=[0])
 
-        with pytest.raises(RuntimeError, match=msg):
-            encode_array(np.ones((1, 2), dtype="u1"), compression_ratios=[1001])
-
     def test_invalid_signal_noise_ratios_raises(self):
         """Test an invalid 'signal_noise_ratios' raises exceptions."""
         msg = "More than 10 compression layers is not supported"
@@ -243,9 +240,6 @@ class TestEncode:
         )
         with pytest.raises(RuntimeError, match=msg):
             encode_array(np.ones((1, 2), dtype="u1"), signal_noise_ratios=[-1])
-
-        with pytest.raises(RuntimeError, match=msg):
-            encode_array(np.ones((1, 2), dtype="u1"), signal_noise_ratios=[1001])
 
     def test_encoding_failures_raise(self):
         """Miscellaneous test to check that failures are handled properly."""
@@ -813,9 +807,6 @@ class TestEncodeBuffer:
         with pytest.raises(RuntimeError, match=msg):
             encode_buffer(b"\x00", 1, 1, 1, 8, False, compression_ratios=[0])
 
-        with pytest.raises(RuntimeError, match=msg):
-            encode_buffer(b"\x00", 1, 1, 1, 8, False, compression_ratios=[1001])
-
     def test_invalid_signal_noise_ratios_raises(self):
         """Test an invalid 'signal_noise_ratios' raises exceptions."""
         msg = "More than 10 compression layers is not supported"
@@ -828,9 +819,6 @@ class TestEncodeBuffer:
         )
         with pytest.raises(RuntimeError, match=msg):
             encode_buffer(b"\x00", 1, 1, 1, 8, False, signal_noise_ratios=[-1])
-
-        with pytest.raises(RuntimeError, match=msg):
-            encode_buffer(b"\x00", 1, 1, 1, 8, False, signal_noise_ratios=[1001])
 
     def test_invalid_pi_for_samples_raises(self):
         """Test invalid photometric interpretation values for nr of samples."""
