@@ -71,7 +71,7 @@ def test_subsampling():
     assert params["rows"] == 256
     assert params["columns"] == 256
     assert params["colourspace"] == "unspecified"
-    assert params["nr_components"] == 3
+    assert params["samples_per_pixel"] == 3
     assert params["precision"] == 8
     assert params["is_signed"] is False
     assert params["nr_tiles"] == 0
@@ -91,7 +91,7 @@ class TestGetParametersDCM:
         params = get_parameters(frame)
 
         assert (info[0], info[1]) == (params["rows"], params["columns"])
-        assert info[2] == params["nr_components"]
+        assert info[2] == params["samples_per_pixel"]
         assert info[3] == params["precision"]
         assert info[4] == params["is_signed"]
 
@@ -105,7 +105,7 @@ class TestGetParametersDCM:
         params = get_parameters(frame)
 
         assert (info[0], info[1]) == (params["rows"], params["columns"])
-        assert info[2] == params["nr_components"]
+        assert info[2] == params["samples_per_pixel"]
         assert info[3] == params["precision"]
         assert info[4] == params["is_signed"]
 

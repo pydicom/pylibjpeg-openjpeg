@@ -6,7 +6,8 @@ import pytest
 
 from openjpeg.data import JPEG_DIRECTORY
 from openjpeg.utils import (
-    encode,
+    encode_array,
+    encode_buffer,
     encode_pixel_data,
     decode,
     PhotometricInterpretation as PI,
@@ -69,7 +70,7 @@ def parse_j2k(buffer):
 
 
 class TestEncode:
-    """Tests for encode()"""
+    """Tests for encode_array()"""
 
     def test_invalid_shape_raises(self):
         """Test invalid array shapes raise exceptions."""
@@ -78,10 +79,10 @@ class TestEncode:
             r"must be \(rows, columns\) or \(rows, columns, planes\)"
         )
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((1,), dtype="u1"))
+            encode_array(np.ones((1,), dtype="u1"))
 
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((1, 2, 3, 4), dtype="u1"))
+            encode_array(np.ones((1, 2, 3, 4), dtype="u1"))
 
     def test_invalid_samples_per_pixel_raises(self):
         """Test invalid samples per pixel raise exceptions."""
@@ -90,17 +91,17 @@ class TestEncode:
             "of samples per pixel, must be 1, 3 or 4"
         )
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((1, 2, 2), dtype="u1"))
+            encode_array(np.ones((1, 2, 2), dtype="u1"))
 
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((1, 2, 5), dtype="u1"))
+            encode_array(np.ones((1, 2, 5), dtype="u1"))
 
     def test_invalid_dtype_raises(self):
         """Test invalid array dtype raise exceptions."""
         msg = "input array has an unsupported dtype"
         for dtype in ("u8", "i8", "f", "d", "c", "U", "m", "M"):
             with pytest.raises((ValueError, RuntimeError), match=msg):
-                encode(np.ones((1, 2), dtype=dtype))
+                encode_array(np.ones((1, 2), dtype=dtype))
 
     def test_invalid_contiguity_raises(self):
         """Test invalid array contiguity raise exceptions."""
@@ -109,23 +110,23 @@ class TestEncode:
             "contiguous and aligned"
         )
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((3, 3), dtype="u1").T)
+            encode_array(np.ones((3, 3), dtype="u1").T)
 
     def test_invalid_dimensions_raises(self):
         """Test invalid array dimensions raise exceptions."""
         msg = (
             "Error encoding the data: the input array has an unsupported number "
-            r"of rows, must be in \(1, 65535\)"
+            r"of rows, must be in \[1, 65535\]"
         )
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((65536, 1), dtype="u1"))
+            encode_array(np.ones((65536, 1), dtype="u1"))
 
         msg = (
             "Error encoding the data: the input array has an unsupported number "
-            r"of columns, must be in \(1, 65535\)"
+            r"of columns, must be in \[1, 65535\]"
         )
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((1, 65536), dtype="u1"))
+            encode_array(np.ones((1, 65536), dtype="u1"))
 
     def test_invalid_bits_stored_raises(self):
         """Test invalid bits_stored"""
@@ -134,31 +135,31 @@ class TestEncode:
             r"be in the range \(1, 8\)"
         )
         with pytest.raises(ValueError, match=msg):
-            encode(np.ones((1, 2), dtype="u1"), bits_stored=0)
+            encode_array(np.ones((1, 2), dtype="u1"), bits_stored=0)
 
         with pytest.raises(ValueError, match=msg):
-            encode(np.ones((1, 2), dtype="u1"), bits_stored=9)
+            encode_array(np.ones((1, 2), dtype="u1"), bits_stored=9)
 
         msg = (
             "A 'bits_stored' value of 15 is incompatible with the range of "
             r"pixel data in the input array: \(-16385, 2\)"
         )
         with pytest.raises(ValueError, match=msg):
-            encode(np.asarray([-(2**14) - 1, 2], dtype="i2"), bits_stored=15)
+            encode_array(np.asarray([-(2**14) - 1, 2], dtype="i2"), bits_stored=15)
 
         msg = (
             "A 'bits_stored' value of 15 is incompatible with the range of "
             r"pixel data in the input array: \(-16384, 16384\)"
         )
         with pytest.raises(ValueError, match=msg):
-            encode(np.asarray([-(2**14), 2**14], dtype="i2"), bits_stored=15)
+            encode_array(np.asarray([-(2**14), 2**14], dtype="i2"), bits_stored=15)
 
         msg = (
             "A 'bits_stored' value of 4 is incompatible with the range of "
             r"pixel data in the input array: \(0, 16\)"
         )
         with pytest.raises(ValueError, match=msg):
-            encode(np.asarray([0, 2**4], dtype="u2"), bits_stored=4)
+            encode_array(np.asarray([0, 2**4], dtype="u2"), bits_stored=4)
 
     def test_invalid_pixel_value_raises(self):
         """Test invalid pixel values raise exceptions."""
@@ -167,13 +168,13 @@ class TestEncode:
             "supported bit-depth of 24"
         )
         with pytest.raises(ValueError, match=msg):
-            encode(np.asarray([2**24, 2], dtype="u4"))
+            encode_array(np.asarray([2**24, 2], dtype="u4"))
 
         with pytest.raises(ValueError, match=msg):
-            encode(np.asarray([2**23, 2], dtype="i4"))
+            encode_array(np.asarray([2**23, 2], dtype="i4"))
 
         with pytest.raises(ValueError, match=msg):
-            encode(np.asarray([-(2**23) - 1, 2], dtype="i4"))
+            encode_array(np.asarray([-(2**23) - 1, 2], dtype="i4"))
 
     def test_compression_snr_raises(self):
         """Test using compression_ratios and signal_noise_ratios raises."""
@@ -182,7 +183,7 @@ class TestEncode:
             "allowed when performing lossy compression"
         )
         with pytest.raises(ValueError, match=msg):
-            encode(
+            encode_array(
                 np.asarray([0, 2], dtype="u2"),
                 compression_ratios=[2, 1],
                 signal_noise_ratios=[1, 2],
@@ -192,64 +193,53 @@ class TestEncode:
         """Test invalid photometric_interpretation raises."""
         msg = (
             "Error encoding the data: the value of the 'photometric_interpretation' "
-            "parameter is not valid for the number of samples per pixel in the "
-            "input array"
+            "parameter is not valid for the number of samples per pixel"
         )
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((1, 2), dtype="u1"), photometric_interpretation=PI.RGB)
+            encode_array(np.ones((1, 2), dtype="u1"), photometric_interpretation=PI.RGB)
 
         with pytest.raises(RuntimeError, match=msg):
-            encode(
+            encode_array(
                 np.ones((1, 2, 3), dtype="u1"),
                 photometric_interpretation=PI.MONOCHROME2,
             )
 
         with pytest.raises(RuntimeError, match=msg):
-            encode(
+            encode_array(
                 np.ones((1, 2, 4), dtype="u1"),
                 photometric_interpretation=PI.MONOCHROME2,
             )
 
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((1, 2, 4), dtype="u1"), photometric_interpretation=PI.RGB)
-
-    def test_invalid_codec_format_raises(self):
-        """Test an invalid 'codec_format' raises and exception."""
-        msg = "The value of the 'codec_format' parameter is invalid, must be 0 or 2"
-        with pytest.raises(ValueError, match=msg):
-            encode(np.ones((1, 2), dtype="u1"), codec_format=1)
+            encode_array(
+                np.ones((1, 2, 4), dtype="u1"), photometric_interpretation=PI.RGB
+            )
 
     def test_invalid_compression_ratios_raises(self):
         """Test an invalid 'compression_ratios' raises exceptions."""
         msg = "More than 10 compression layers is not supported"
         with pytest.raises(ValueError, match=msg):
-            encode(np.ones((1, 2), dtype="u1"), compression_ratios=[1] * 11)
+            encode_array(np.ones((1, 2), dtype="u1"), compression_ratios=[1] * 11)
 
         msg = (
-            "Error encoding the data: invalid compression ratio, must be in the "
-            r"range \(1, 1000\)"
+            "Error encoding the data: invalid compression ratio, lowest value "
+            "must be at least 1"
         )
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((1, 2), dtype="u1"), compression_ratios=[0])
-
-        with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((1, 2), dtype="u1"), compression_ratios=[1001])
+            encode_array(np.ones((1, 2), dtype="u1"), compression_ratios=[0])
 
     def test_invalid_signal_noise_ratios_raises(self):
         """Test an invalid 'signal_noise_ratios' raises exceptions."""
         msg = "More than 10 compression layers is not supported"
         with pytest.raises(ValueError, match=msg):
-            encode(np.ones((1, 2), dtype="u1"), signal_noise_ratios=[1] * 11)
+            encode_array(np.ones((1, 2), dtype="u1"), signal_noise_ratios=[1] * 11)
 
         msg = (
-            "Error encoding the data: invalid signal-to-noise ratio, must be "
-            r"in the range \(0, 1000\)"
+            "Error encoding the data: invalid signal-to-noise ratio, lowest "
+            "value must be at least 0"
         )
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((1, 2), dtype="u1"), signal_noise_ratios=[-1])
-
-        with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((1, 2), dtype="u1"), signal_noise_ratios=[1001])
+            encode_array(np.ones((1, 2), dtype="u1"), signal_noise_ratios=[-1])
 
     def test_encoding_failures_raise(self):
         """Miscellaneous test to check that failures are handled properly."""
@@ -258,23 +248,23 @@ class TestEncode:
         #   creating the empty image
         #   setting the encoder
         #   creating the output stream
-        #   opj_encode()
+        #   opj_encode_array()
         #   opj_end_compress()
 
         # Input too small
         msg = r"Error encoding the data: failure result from 'opj_start_compress\(\)'"
         with pytest.raises(RuntimeError, match=msg):
-            encode(np.ones((1, 2), dtype="u1"))
+            encode_array(np.ones((1, 2), dtype="u1"))
 
     def test_mct(self):
         """Test that MCT is applied as required."""
         # Should only be applied with RGB
         arr = np.random.randint(0, 2**8 - 1, size=(100, 100, 3), dtype="u1")
-        buffer = encode(arr, photometric_interpretation=PI.RGB, use_mct=True)
+        buffer = encode_array(arr, photometric_interpretation=PI.RGB, use_mct=True)
         param = parse_j2k(buffer)
         assert param["mct"] is True
 
-        buffer = encode(
+        buffer = encode_array(
             arr,
             photometric_interpretation=PI.RGB,
             use_mct=True,
@@ -283,11 +273,11 @@ class TestEncode:
         param = parse_j2k(buffer)
         assert param["mct"] is True
 
-        buffer = encode(arr, photometric_interpretation=PI.RGB, use_mct=False)
+        buffer = encode_array(arr, photometric_interpretation=PI.RGB, use_mct=False)
         param = parse_j2k(buffer)
         assert param["mct"] is False
 
-        buffer = encode(
+        buffer = encode_array(
             arr,
             photometric_interpretation=PI.RGB,
             use_mct=False,
@@ -297,11 +287,11 @@ class TestEncode:
         assert param["mct"] is False
 
         for pi in (0, 3, 4):
-            buffer = encode(arr, photometric_interpretation=pi, use_mct=True)
+            buffer = encode_array(arr, photometric_interpretation=pi, use_mct=True)
             param = parse_j2k(buffer)
             assert param["mct"] is False
 
-            buffer = encode(
+            buffer = encode_array(
                 arr,
                 photometric_interpretation=pi,
                 use_mct=True,
@@ -311,11 +301,13 @@ class TestEncode:
             assert param["mct"] is False
 
         arr = np.random.randint(0, 2**8 - 1, size=(100, 100), dtype="u1")
-        buffer = encode(arr, photometric_interpretation=PI.MONOCHROME1, use_mct=True)
+        buffer = encode_array(
+            arr, photometric_interpretation=PI.MONOCHROME1, use_mct=True
+        )
         param = parse_j2k(buffer)
         assert param["mct"] is False
 
-        buffer = encode(
+        buffer = encode_array(
             arr,
             photometric_interpretation=PI.MONOCHROME1,
             use_mct=True,
@@ -325,11 +317,11 @@ class TestEncode:
         assert param["mct"] is False
 
         arr = np.random.randint(0, 2**8 - 1, size=(100, 100, 4), dtype="u1")
-        buffer = encode(arr, photometric_interpretation=5, use_mct=True)
+        buffer = encode_array(arr, photometric_interpretation=5, use_mct=True)
         param = parse_j2k(buffer)
         assert param["mct"] is False
 
-        buffer = encode(
+        buffer = encode_array(
             arr,
             photometric_interpretation=5,
             use_mct=True,
@@ -340,11 +332,26 @@ class TestEncode:
 
     def test_lossless_bool(self):
         """Test encoding bool data for bit-depth 1"""
-        rows = 123
-        cols = 234
-        planes = 3
-        arr = np.random.randint(0, high=1, size=(rows, cols), dtype="bool")
-        buffer = encode(arr, photometric_interpretation=PI.MONOCHROME2)
+        """Test encoding bool data for bit-depth 1"""
+        # Convert one of the test images to 1-bit
+        # Note that as of OpenJpeg v2.5.0 that random 1-bit images are prone
+        #   to encoding failures
+        jpg = DIR_15444 / "HTJ2K" / "Bretagne1_ht.j2k"
+        with open(jpg, "rb") as f:
+            data = f.read()
+
+        arr = decode(data)
+        assert "uint8" == arr.dtype
+        assert (480, 640, 3) == arr.shape
+
+        mono = arr[..., 0]
+        mono[mono <= 127] = 0
+        mono[mono > 127] = 1
+        mono = mono.astype("bool")
+        assert mono.min() == 0
+        assert mono.max() == 1
+
+        buffer = encode_array(mono, photometric_interpretation=PI.MONOCHROME2)
         out = decode(buffer)
         param = parse_j2k(buffer)
         assert param["precision"] == 1
@@ -353,10 +360,13 @@ class TestEncode:
         assert param["components"] == 1
 
         assert out.dtype.kind == "u"
-        assert np.array_equal(arr, out)
+        assert np.array_equal(mono, out)
 
-        arr = np.random.randint(0, high=1, size=(rows, cols, planes), dtype="bool")
-        buffer = encode(arr, photometric_interpretation=PI.RGB, use_mct=False)
+        arr[arr <= 127] = 0
+        arr[arr > 127] = 1
+        arr = arr.astype("bool")
+
+        buffer = encode_array(arr, photometric_interpretation=PI.RGB)
         out = decode(buffer)
         param = parse_j2k(buffer)
         assert param["precision"] == 1
@@ -371,11 +381,11 @@ class TestEncode:
         """Test encoding unsigned data for bit-depth 1-16"""
         rows = 123
         cols = 234
-        for bit_depth in range(1, 17):
+        for bit_depth in range(2, 17):
             maximum = 2**bit_depth - 1
             dtype = f"u{math.ceil(bit_depth / 8)}"
-            arr = np.random.randint(0, high=maximum, size=(rows, cols), dtype=dtype)
-            buffer = encode(arr, photometric_interpretation=PI.MONOCHROME2)
+            arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype=dtype)
+            buffer = encode_array(arr, photometric_interpretation=PI.MONOCHROME2)
             out = decode(buffer)
             param = parse_j2k(buffer)
             assert param["precision"] == bit_depth
@@ -386,8 +396,10 @@ class TestEncode:
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
 
-            arr = np.random.randint(0, high=maximum, size=(rows, cols, 3), dtype=dtype)
-            buffer = encode(arr, photometric_interpretation=PI.RGB, use_mct=False)
+            arr = np.random.randint(
+                0, high=maximum + 1, size=(rows, cols, 3), dtype=dtype
+            )
+            buffer = encode_array(arr, photometric_interpretation=PI.RGB, use_mct=False)
             out = decode(buffer)
             param = parse_j2k(buffer)
             assert param["precision"] == bit_depth
@@ -398,8 +410,10 @@ class TestEncode:
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
 
-            arr = np.random.randint(0, high=maximum, size=(rows, cols, 4), dtype=dtype)
-            buffer = encode(arr, photometric_interpretation=5, use_mct=False)
+            arr = np.random.randint(
+                0, high=maximum + 1, size=(rows, cols, 4), dtype=dtype
+            )
+            buffer = encode_array(arr, photometric_interpretation=5, use_mct=False)
             out = decode(buffer)
             param = parse_j2k(buffer)
             assert param["precision"] == bit_depth
@@ -417,8 +431,8 @@ class TestEncode:
         planes = 3
         for bit_depth in range(17, 25):
             maximum = 2**bit_depth - 1
-            arr = np.random.randint(0, high=maximum, size=(rows, cols), dtype="u4")
-            buffer = encode(arr, photometric_interpretation=PI.MONOCHROME2)
+            arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype="u4")
+            buffer = encode_array(arr, photometric_interpretation=PI.MONOCHROME2)
             out = decode(buffer)
 
             param = parse_j2k(buffer)
@@ -431,9 +445,9 @@ class TestEncode:
             assert np.array_equal(arr, out)
 
             arr = np.random.randint(
-                0, high=maximum, size=(rows, cols, planes), dtype="u4"
+                0, high=maximum + 1, size=(rows, cols, planes), dtype="u4"
             )
-            buffer = encode(arr, photometric_interpretation=PI.RGB, use_mct=False)
+            buffer = encode_array(arr, photometric_interpretation=PI.RGB, use_mct=False)
             out = decode(buffer)
 
             param = parse_j2k(buffer)
@@ -449,14 +463,14 @@ class TestEncode:
         """Test encoding signed data for bit-depth 1-16"""
         rows = 123
         cols = 543
-        for bit_depth in range(1, 17):
+        for bit_depth in range(2, 17):
             maximum = 2 ** (bit_depth - 1) - 1
             minimum = -(2 ** (bit_depth - 1))
             dtype = f"i{math.ceil(bit_depth / 8)}"
             arr = np.random.randint(
-                low=minimum, high=maximum, size=(rows, cols), dtype=dtype
+                low=minimum, high=maximum + 1, size=(rows, cols), dtype=dtype
             )
-            buffer = encode(arr, photometric_interpretation=PI.MONOCHROME2)
+            buffer = encode_array(arr, photometric_interpretation=PI.MONOCHROME2)
             out = decode(buffer)
 
             param = parse_j2k(buffer)
@@ -474,7 +488,7 @@ class TestEncode:
             arr = np.random.randint(
                 low=minimum, high=maximum, size=(rows, cols, 3), dtype=dtype
             )
-            buffer = encode(arr, photometric_interpretation=PI.RGB, use_mct=False)
+            buffer = encode_array(arr, photometric_interpretation=PI.RGB, use_mct=False)
             out = decode(buffer)
 
             param = parse_j2k(buffer)
@@ -489,7 +503,7 @@ class TestEncode:
             arr = np.random.randint(
                 low=minimum, high=maximum, size=(rows, cols, 4), dtype=dtype
             )
-            buffer = encode(arr, photometric_interpretation=5, use_mct=False)
+            buffer = encode_array(arr, photometric_interpretation=5, use_mct=False)
             out = decode(buffer)
 
             param = parse_j2k(buffer)
@@ -510,9 +524,9 @@ class TestEncode:
             maximum = 2 ** (bit_depth - 1) - 1
             minimum = -(2 ** (bit_depth - 1))
             arr = np.random.randint(
-                low=minimum, high=maximum, size=(rows, cols), dtype="i4"
+                low=minimum, high=maximum + 1, size=(rows, cols), dtype="i4"
             )
-            buffer = encode(arr, photometric_interpretation=PI.MONOCHROME2)
+            buffer = encode_array(arr, photometric_interpretation=PI.MONOCHROME2)
             out = decode(buffer)
 
             param = parse_j2k(buffer)
@@ -525,9 +539,9 @@ class TestEncode:
             assert np.array_equal(arr, out)
 
             arr = np.random.randint(
-                low=minimum, high=maximum, size=(rows, cols, planes), dtype="i4"
+                low=minimum, high=maximum + 1, size=(rows, cols, planes), dtype="i4"
             )
-            buffer = encode(arr, photometric_interpretation=PI.RGB, use_mct=False)
+            buffer = encode_array(arr, photometric_interpretation=PI.RGB, use_mct=False)
             out = decode(buffer)
 
             param = parse_j2k(buffer)
@@ -546,8 +560,8 @@ class TestEncode:
         for bit_depth in range(1, 17):
             maximum = 2**bit_depth - 1
             dtype = f"u{math.ceil(bit_depth / 8)}"
-            arr = np.random.randint(0, high=maximum, size=(rows, cols), dtype=dtype)
-            buffer = encode(arr, compression_ratios=[4, 2, 1])
+            arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype=dtype)
+            buffer = encode_array(arr, compression_ratios=[4, 2, 1])
             out = decode(buffer)
             param = parse_j2k(buffer)
             assert param["precision"] == bit_depth
@@ -558,7 +572,7 @@ class TestEncode:
             assert out.dtype.kind == "u"
             assert np.allclose(arr, out, atol=5)
 
-            buffer = encode(arr, signal_noise_ratios=[50, 100, 200])
+            buffer = encode_array(arr, signal_noise_ratios=[50, 100, 200])
             out = decode(buffer)
             param = parse_j2k(buffer)
             assert param["precision"] == bit_depth
@@ -578,9 +592,9 @@ class TestEncode:
             minimum = -(2 ** (bit_depth - 1))
             dtype = f"i{math.ceil(bit_depth / 8)}"
             arr = np.random.randint(
-                low=minimum, high=maximum, size=(rows, cols), dtype=dtype
+                low=minimum, high=maximum + 1, size=(rows, cols), dtype=dtype
             )
-            buffer = encode(arr, compression_ratios=[4, 2, 1])
+            buffer = encode_array(arr, compression_ratios=[4, 2, 1])
             out = decode(buffer)
             param = parse_j2k(buffer)
             assert param["precision"] == bit_depth
@@ -591,7 +605,7 @@ class TestEncode:
             assert out.dtype.kind == "i"
             assert np.allclose(arr, out, atol=5)
 
-            buffer = encode(arr, signal_noise_ratios=[50, 100, 200])
+            buffer = encode_array(arr, signal_noise_ratios=[50, 100, 200])
             out = decode(buffer)
             param = parse_j2k(buffer)
             assert param["precision"] == bit_depth
@@ -613,25 +627,23 @@ class TestEncode:
         assert (256, 256, 3) == arr.shape
 
         # Test lossless
-        result = encode(arr, photometric_interpretation=PI.YBR_FULL)
+        result = encode_array(arr, photometric_interpretation=PI.YBR_FULL)
         out = decode(result)
         assert np.array_equal(arr, out)
 
         # Test lossy
-        result = encode(
+        result = encode_array(
             arr,
             photometric_interpretation=PI.YBR_FULL,
-            lossless=0,
             compression_ratios=[6, 4, 2, 1],
         )
         out = decode(result)
         assert np.allclose(out, arr, atol=2)
 
         # Test lossy
-        result = encode(
+        result = encode_array(
             arr,
             photometric_interpretation=PI.YBR_FULL,
-            lossless=0,
             compression_ratios=[80, 100, 150],
         )
         out = decode(result)
@@ -649,7 +661,7 @@ class TestEncode:
         assert (512, 512) == arr.shape
 
         # Test lossless
-        result = encode(
+        result = encode_array(
             arr,
             photometric_interpretation=PI.MONOCHROME2,
         )
@@ -657,7 +669,7 @@ class TestEncode:
         assert np.array_equal(arr, out)
 
         # Test lossy w/ compression ratios
-        result = encode(
+        result = encode_array(
             arr,
             photometric_interpretation=PI.MONOCHROME2,
             compression_ratios=[6, 4, 2, 1],
@@ -666,7 +678,7 @@ class TestEncode:
         assert np.allclose(out, arr, atol=2)
 
         # Test lossy w/ signal-to-noise ratios
-        result = encode(
+        result = encode_array(
             arr,
             photometric_interpretation=PI.MONOCHROME2,
             signal_noise_ratios=[80, 100],
@@ -674,15 +686,1091 @@ class TestEncode:
         out = decode(result)
         assert np.allclose(out, arr, atol=2)
 
+    def test_jp2(self):
+        """Test using JP2 format"""
+        jpg = DIR_15444 / "HTJ2K" / "Bretagne1_ht.j2k"
+        with open(jpg, "rb") as f:
+            arr = decode(f.read())
+
+        buffer = encode_array(arr, codec_format=1)
+        assert buffer.startswith(b"\x00\x00\x00\x0c\x6a\x50\x20\x20\x0d\x0a\x87\x0a")
+
+
+class TestEncodeBuffer:
+    """Tests for _openjpeg.encode_buffer"""
+
+    def test_invalid_type_raises(self):
+        """Test invalid buffer type raises."""
+        msg = "'src' must be bytes or bytearray, not list"
+        with pytest.raises(TypeError, match=msg):
+            encode_buffer([1, 2, 3], 1, 1, 1, 1, False)
+
+    def test_invalid_shape_raises(self):
+        """Test invalid image shape raises."""
+        msg = r"Invalid 'columns' value '0', must be in the range \[1, 65535\]"
+        with pytest.raises(ValueError, match=msg):
+            encode_buffer(b"", 0, 1, 1, 1, False)
+
+        msg = r"Invalid 'columns' value '65536', must be in the range \[1, 65535\]"
+        with pytest.raises(ValueError, match=msg):
+            encode_buffer(b"", 65536, 1, 1, 1, False)
+
+        msg = r"Invalid 'rows' value '0', must be in the range \[1, 65535\]"
+        with pytest.raises(ValueError, match=msg):
+            encode_buffer(b"", 1, 0, 1, 1, False)
+
+        msg = r"Invalid 'rows' value '65536', must be in the range \[1, 65535\]"
+        with pytest.raises(ValueError, match=msg):
+            encode_buffer(b"", 1, 65536, 1, 1, False)
+
+        msg = "Invalid 'samples_per_pixel' value '0', must be 1, 3 or 4"
+        with pytest.raises(ValueError, match=msg):
+            encode_buffer(b"", 1, 1, 0, 1, False)
+
+        msg = "Invalid 'samples_per_pixel' value '2', must be 1, 3 or 4"
+        with pytest.raises(ValueError, match=msg):
+            encode_buffer(b"", 1, 1, 2, 1, False)
+
+    def test_invalid_bits_stored_raises(self):
+        """Test invalid image pixel precision."""
+        msg = r"Invalid 'bits_stored' value '0', must be in the range \[1, 24\]"
+        with pytest.raises(ValueError, match=msg):
+            encode_buffer(b"", 1, 1, 1, 0, False)
+
+        msg = r"Invalid 'bits_stored' value '25', must be in the range \[1, 24\]"
+        with pytest.raises(ValueError, match=msg):
+            encode_buffer(b"", 1, 1, 1, 25, False)
+
+    def test_invalid_length_raises(self):
+        """Test mismatch between actual and expected src length"""
+        msg = (
+            "The length of 'src' is 2 bytes which doesn't match the expected "
+            "length of 1 bytes"
+        )
+        for bits_stored in range(1, 9):
+            with pytest.raises(ValueError, match=msg):
+                encode_buffer(b"\x00\x01", 1, 1, 1, bits_stored, False)
+
+        msg = (
+            "The length of 'src' is 3 bytes which doesn't match the expected "
+            "length of 2 bytes"
+        )
+        for bits_stored in range(9, 17):
+            with pytest.raises(ValueError, match=msg):
+                encode_buffer(b"\x00\x01\x02", 1, 1, 1, bits_stored, False)
+
+        msg = (
+            "The length of 'src' is 3 bytes which doesn't match the expected "
+            "length of 4 bytes"
+        )
+        for bits_stored in range(17, 25):
+            with pytest.raises(ValueError, match=msg):
+                encode_buffer(b"\x00\x01\x02", 1, 1, 1, bits_stored, False)
+
+    def test_invalid_photometric_interpretation_raises(self):
+        """Test invalid photometric interpretation"""
+        msg = (
+            "Invalid 'photometric_interpretation' value '6', must be in the "
+            r"range \[0, 5\]"
+        )
+        with pytest.raises(ValueError, match=msg):
+            encode_buffer(b"\x00", 1, 1, 1, 8, False, photometric_interpretation=6)
+
+    def test_compression_snr_raises(self):
+        """Test using compression_ratios and signal_noise_ratios raises."""
+        msg = (
+            "Only one of 'compression_ratios' or 'signal_noise_ratios' is "
+            "allowed when performing lossy compression"
+        )
+        with pytest.raises(ValueError, match=msg):
+            encode_buffer(
+                b"\x00",
+                1,
+                1,
+                1,
+                8,
+                False,
+                compression_ratios=[2, 1],
+                signal_noise_ratios=[1, 2],
+            )
+
+    def test_invalid_compression_ratios_raises(self):
+        """Test an invalid 'compression_ratios' raises exceptions."""
+        msg = "More than 10 compression layers is not supported"
+        with pytest.raises(ValueError, match=msg):
+            encode_buffer(b"\x00", 1, 1, 1, 8, False, compression_ratios=[1] * 11)
+
+        msg = (
+            "Error encoding the data: invalid compression ratio, lowest value "
+            "must be at least 1"
+        )
+        with pytest.raises(RuntimeError, match=msg):
+            encode_buffer(b"\x00", 1, 1, 1, 8, False, compression_ratios=[0])
+
+    def test_invalid_signal_noise_ratios_raises(self):
+        """Test an invalid 'signal_noise_ratios' raises exceptions."""
+        msg = "More than 10 compression layers is not supported"
+        with pytest.raises(ValueError, match=msg):
+            encode_buffer(b"\x00", 1, 1, 1, 8, False, signal_noise_ratios=[1] * 11)
+
+        msg = (
+            "Error encoding the data: invalid signal-to-noise ratio, lowest "
+            "value must be at least 0"
+        )
+        with pytest.raises(RuntimeError, match=msg):
+            encode_buffer(b"\x00", 1, 1, 1, 8, False, signal_noise_ratios=[-1])
+
+    def test_invalid_pi_for_samples_raises(self):
+        """Test invalid photometric interpretation values for nr of samples."""
+        msg = (
+            "Error encoding the data: the value of the 'photometric_interpretation' "
+            "parameter is not valid for the number of samples per pixel"
+        )
+        with pytest.raises(RuntimeError, match=msg):
+            encode_buffer(b"\x00\x01", 1, 2, 1, 8, False, photometric_interpretation=1)
+
+        with pytest.raises(RuntimeError, match=msg):
+            encode_buffer(
+                b"\x00\x01\x02", 1, 1, 3, 8, False, photometric_interpretation=2
+            )
+
+        with pytest.raises(RuntimeError, match=msg):
+            encode_buffer(
+                b"\x00\x01\x02\x03", 1, 1, 4, 8, False, photometric_interpretation=2
+            )
+
+    def test_encoding_failures_raise(self):
+        """Miscellaneous test to check that failures are handled properly."""
+        # Not exhaustive!
+        # Input too small
+        msg = r"Error encoding the data: failure result from 'opj_start_compress\(\)'"
+        with pytest.raises(RuntimeError, match=msg):
+            encode_buffer(b"\x00\x01", 1, 2, 1, 8, False)
+
+    def test_mct(self):
+        """Test that MCT is applied as required."""
+        # Should only be applied with RGB
+        arr = np.random.randint(0, 2**8 - 1, size=(100, 100, 3), dtype="u1")
+        buffer = encode_buffer(
+            arr.tobytes(),
+            100,
+            100,
+            3,
+            8,
+            False,
+            photometric_interpretation=PI.RGB,
+            use_mct=True,
+        )
+        param = parse_j2k(buffer)
+        assert param["mct"] is True
+
+        buffer = encode_buffer(
+            arr.tobytes(),
+            100,
+            100,
+            3,
+            8,
+            False,
+            photometric_interpretation=PI.RGB,
+            use_mct=True,
+            compression_ratios=[2.5, 3, 5],
+        )
+        param = parse_j2k(buffer)
+        assert param["mct"] is True
+
+        buffer = encode_buffer(
+            arr.tobytes(),
+            100,
+            100,
+            3,
+            8,
+            False,
+            photometric_interpretation=PI.RGB,
+            use_mct=False,
+        )
+        param = parse_j2k(buffer)
+        assert param["mct"] is False
+
+        buffer = encode_buffer(
+            arr.tobytes(),
+            100,
+            100,
+            3,
+            8,
+            False,
+            photometric_interpretation=PI.RGB,
+            use_mct=False,
+            compression_ratios=[2.5, 3, 5],
+        )
+        param = parse_j2k(buffer)
+        assert param["mct"] is False
+
+        for pi in (0, 3, 4):
+            buffer = encode_buffer(
+                arr.tobytes(),
+                100,
+                100,
+                3,
+                8,
+                False,
+                photometric_interpretation=pi,
+                use_mct=True,
+            )
+            param = parse_j2k(buffer)
+            assert param["mct"] is False
+
+            buffer = encode_buffer(
+                arr.tobytes(),
+                100,
+                100,
+                3,
+                8,
+                False,
+                photometric_interpretation=pi,
+                use_mct=True,
+                compression_ratios=[2.5, 3, 5],
+            )
+            param = parse_j2k(buffer)
+            assert param["mct"] is False
+
+        arr = np.random.randint(0, 2**8 - 1, size=(100, 100), dtype="u1")
+        buffer = encode_buffer(
+            arr.tobytes(),
+            100,
+            100,
+            1,
+            8,
+            False,
+            photometric_interpretation=PI.MONOCHROME1,
+            use_mct=True,
+        )
+        param = parse_j2k(buffer)
+        assert param["mct"] is False
+
+        buffer = encode_buffer(
+            arr.tobytes(),
+            100,
+            100,
+            1,
+            8,
+            False,
+            photometric_interpretation=PI.MONOCHROME1,
+            use_mct=True,
+            compression_ratios=[2.5, 3, 5],
+        )
+        param = parse_j2k(buffer)
+        assert param["mct"] is False
+
+        arr = np.random.randint(0, 2**8 - 1, size=(100, 100, 4), dtype="u1")
+        buffer = encode_buffer(
+            arr.tobytes(),
+            100,
+            100,
+            4,
+            8,
+            False,
+            photometric_interpretation=5,
+            use_mct=True,
+        )
+        param = parse_j2k(buffer)
+        assert param["mct"] is False
+
+        buffer = encode_buffer(
+            arr.tobytes(),
+            100,
+            100,
+            4,
+            8,
+            False,
+            photometric_interpretation=5,
+            use_mct=True,
+            compression_ratios=[2.5, 3, 5],
+        )
+        param = parse_j2k(buffer)
+        assert param["mct"] is False
+
+    def test_lossless_bool(self):
+        """Test encoding bool data for bit-depth 1"""
+        # Convert one of the test images to 1-bit
+        # Note that as of OpenJpeg v2.5.0 that random 1-bit images are prone
+        #   to encoding failures
+        jpg = DIR_15444 / "HTJ2K" / "Bretagne1_ht.j2k"
+        with open(jpg, "rb") as f:
+            data = f.read()
+
+        arr = decode(data)
+        assert "uint8" == arr.dtype
+        assert (480, 640, 3) == arr.shape
+
+        mono = arr[..., 0]
+        mono[mono <= 127] = 0
+        mono[mono > 127] = 1
+        mono = mono.astype("bool")
+        assert mono.min() == 0
+        assert mono.max() == 1
+
+        buffer = encode_buffer(
+            mono.tobytes(),
+            640,
+            480,
+            1,
+            1,
+            False,
+            photometric_interpretation=PI.MONOCHROME2,
+        )
+        out = decode(buffer)
+        param = parse_j2k(buffer)
+        assert param["precision"] == 1
+        assert param["is_signed"] is False
+        assert param["layers"] == 1
+        assert param["components"] == 1
+
+        assert out.dtype.kind == "u"
+        assert np.array_equal(mono, out)
+
+        arr[arr <= 127] = 0
+        arr[arr > 127] = 1
+        arr = arr.astype("bool")
+
+        buffer = encode_buffer(
+            arr.tobytes(),
+            640,
+            480,
+            3,
+            1,
+            False,
+            photometric_interpretation=PI.RGB,
+        )
+        out = decode(buffer)
+        param = parse_j2k(buffer)
+        assert param["precision"] == 1
+        assert param["is_signed"] is False
+        assert param["layers"] == 1
+        assert param["components"] == 3
+
+        assert out.dtype.kind == "u"
+        assert np.array_equal(arr, out)
+
+    def test_lossless_unsigned_u1(self):
+        """Test encoding unsigned data for bit-depth 1-8"""
+        rows = 123
+        cols = 234
+        for bit_depth in range(2, 9):
+            maximum = 2**bit_depth - 1
+            arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype="u1")
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                1,
+                bit_depth,
+                False,
+                photometric_interpretation=PI.MONOCHROME2,
+            )
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 1
+            assert param["components"] == 1
+
+            assert out.dtype.kind == "u"
+            assert np.array_equal(arr, out)
+
+            arr = np.random.randint(
+                0, high=maximum + 1, size=(rows, cols, 3), dtype="u1"
+            )
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                3,
+                bit_depth,
+                False,
+                photometric_interpretation=PI.RGB,
+                use_mct=False,
+            )
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 1
+            assert param["components"] == 3
+
+            assert out.dtype.kind == "u"
+            assert np.array_equal(arr, out)
+
+            arr = np.random.randint(
+                0, high=maximum + 1, size=(rows, cols, 4), dtype="u1"
+            )
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                4,
+                bit_depth,
+                False,
+                photometric_interpretation=5,
+                use_mct=False,
+            )
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 1
+            assert param["components"] == 4
+
+            assert out.dtype.kind == "u"
+            assert np.array_equal(arr, out)
+
+    def test_lossless_unsigned_u2(self):
+        """Test encoding unsigned data for bit-depth 9-16"""
+        rows = 123
+        cols = 234
+        for bit_depth in range(9, 17):
+            maximum = 2**bit_depth - 1
+            arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype="u2")
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                1,
+                bit_depth,
+                False,
+                photometric_interpretation=PI.MONOCHROME2,
+            )
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 1
+            assert param["components"] == 1
+
+            assert out.dtype.kind == "u"
+            assert np.array_equal(arr, out)
+
+            arr = np.random.randint(
+                0, high=maximum + 1, size=(rows, cols, 3), dtype="u2"
+            )
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                3,
+                bit_depth,
+                False,
+                photometric_interpretation=PI.RGB,
+                use_mct=False,
+            )
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 1
+            assert param["components"] == 3
+
+            assert out.dtype.kind == "u"
+            assert np.array_equal(arr, out)
+
+            arr = np.random.randint(
+                0, high=maximum + 1, size=(rows, cols, 4), dtype="u2"
+            )
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                4,
+                bit_depth,
+                False,
+                photometric_interpretation=5,
+                use_mct=False,
+            )
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 1
+            assert param["components"] == 4
+
+            assert out.dtype.kind == "u"
+            assert np.array_equal(arr, out)
+
+    def test_lossless_unsigned_u4(self):
+        """Test encoding unsigned data for bit-depth 17-24"""
+        rows = 123
+        cols = 234
+        planes = 3
+        for bit_depth in range(17, 25):
+            maximum = 2**bit_depth - 1
+            arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype="u4")
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                1,
+                bit_depth,
+                False,
+                photometric_interpretation=PI.MONOCHROME2,
+            )
+            out = decode(buffer)
+
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 1
+            assert param["components"] == 1
+
+            assert out.dtype.kind == "u"
+            assert np.array_equal(arr, out)
+
+            arr = np.random.randint(
+                0, high=maximum + 1, size=(rows, cols, planes), dtype="u4"
+            )
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                3,
+                bit_depth,
+                False,
+                photometric_interpretation=PI.RGB,
+                use_mct=False,
+            )
+            out = decode(buffer)
+
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 1
+            assert param["components"] == 3
+
+            assert out.dtype.kind == "u"
+            assert np.array_equal(arr, out)
+
+    def test_lossless_signed_i1(self):
+        """Test encoding signed data for bit-depth 1-8"""
+        rows = 123
+        cols = 543
+        for bit_depth in range(2, 9):
+            maximum = 2 ** (bit_depth - 1) - 1
+            minimum = -(2 ** (bit_depth - 1))
+            arr = np.random.randint(
+                low=minimum, high=maximum + 1, size=(rows, cols), dtype="i1"
+            )
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                1,
+                bit_depth,
+                True,
+                photometric_interpretation=PI.MONOCHROME2,
+            )
+            out = decode(buffer)
+
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is True
+            assert param["layers"] == 1
+            assert param["components"] == 1
+
+            assert out.dtype.kind == "i"
+            assert np.array_equal(arr, out)
+
+            maximum = 2 ** (bit_depth - 1) - 1
+            minimum = -(2 ** (bit_depth - 1))
+            arr = np.random.randint(
+                low=minimum, high=maximum + 1, size=(rows, cols, 3), dtype="i1"
+            )
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                3,
+                bit_depth,
+                True,
+                photometric_interpretation=PI.RGB,
+                use_mct=False,
+            )
+            out = decode(buffer)
+
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is True
+            assert param["layers"] == 1
+            assert param["components"] == 3
+
+            assert out.dtype.kind == "i"
+            assert np.array_equal(arr, out)
+
+            arr = np.random.randint(
+                low=minimum, high=maximum + 1, size=(rows, cols, 4), dtype="i1"
+            )
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                4,
+                bit_depth,
+                True,
+                photometric_interpretation=5,
+                use_mct=False,
+            )
+            out = decode(buffer)
+
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is True
+            assert param["layers"] == 1
+            assert param["components"] == 4
+
+            assert out.dtype.kind == "i"
+            assert np.array_equal(arr, out)
+
+    def test_lossless_signed_i2(self):
+        """Test encoding signed data for bit-depth 9-16"""
+        rows = 123
+        cols = 543
+        for bit_depth in range(9, 17):
+            maximum = 2 ** (bit_depth - 1) - 1
+            minimum = -(2 ** (bit_depth - 1))
+            arr = np.random.randint(
+                low=minimum, high=maximum + 1, size=(rows, cols), dtype="i2"
+            )
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                1,
+                bit_depth,
+                True,
+                photometric_interpretation=PI.MONOCHROME2,
+            )
+            out = decode(buffer)
+
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is True
+            assert param["layers"] == 1
+            assert param["components"] == 1
+
+            assert out.dtype.kind == "i"
+            assert np.array_equal(arr, out)
+
+            maximum = 2 ** (bit_depth - 1) - 1
+            minimum = -(2 ** (bit_depth - 1))
+            arr = np.random.randint(
+                low=minimum, high=maximum + 1, size=(rows, cols, 3), dtype="i2"
+            )
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                3,
+                bit_depth,
+                True,
+                photometric_interpretation=PI.RGB,
+                use_mct=False,
+            )
+            out = decode(buffer)
+
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is True
+            assert param["layers"] == 1
+            assert param["components"] == 3
+
+            assert out.dtype.kind == "i"
+            assert np.array_equal(arr, out)
+
+            arr = np.random.randint(
+                low=minimum, high=maximum + 1, size=(rows, cols, 4), dtype="i2"
+            )
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                4,
+                bit_depth,
+                True,
+                photometric_interpretation=5,
+                use_mct=False,
+            )
+            out = decode(buffer)
+
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is True
+            assert param["layers"] == 1
+            assert param["components"] == 4
+
+            assert out.dtype.kind == "i"
+            assert np.array_equal(arr, out)
+
+    def test_lossless_signed_i4(self):
+        """Test encoding signed data for bit-depth 17-24"""
+        rows = 123
+        cols = 234
+        planes = 3
+        for bit_depth in range(17, 25):
+            maximum = 2 ** (bit_depth - 1) - 1
+            minimum = -(2 ** (bit_depth - 1))
+            arr = np.random.randint(
+                low=minimum, high=maximum + 1, size=(rows, cols), dtype="i4"
+            )
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                1,
+                bit_depth,
+                True,
+                photometric_interpretation=PI.MONOCHROME2,
+            )
+            out = decode(buffer)
+
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is True
+            assert param["layers"] == 1
+            assert param["components"] == 1
+
+            assert out.dtype.kind == "i"
+            assert np.array_equal(arr, out)
+
+            arr = np.random.randint(
+                low=minimum, high=maximum + 1, size=(rows, cols, planes), dtype="i4"
+            )
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                3,
+                bit_depth,
+                True,
+                photometric_interpretation=PI.RGB,
+                use_mct=False,
+            )
+            out = decode(buffer)
+
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is True
+            assert param["layers"] == 1
+            assert param["components"] == 3
+
+            assert out.dtype.kind == "i"
+            assert np.array_equal(arr, out)
+
+    def test_lossy_unsigned(self):
+        """Test lossy encoding with unsigned data"""
+        rows = 123
+        cols = 234
+        for bit_depth in range(2, 17):
+            maximum = 2**bit_depth - 1
+            dtype = f"u{math.ceil(bit_depth / 8)}"
+            arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype=dtype)
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                1,
+                bit_depth,
+                False,
+                compression_ratios=[4, 2, 1],
+            )
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 3
+            assert param["components"] == 1
+
+            assert out.dtype.kind == "u"
+            assert np.allclose(arr, out, atol=5)
+
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                1,
+                bit_depth,
+                False,
+                signal_noise_ratios=[50, 100, 200],
+            )
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 3
+            assert param["components"] == 1
+
+            assert out.dtype.kind == "u"
+            assert np.allclose(arr, out, atol=5)
+
+    def test_lossy_signed(self):
+        """Test lossy encoding with unsigned data"""
+        rows = 123
+        cols = 234
+        for bit_depth in range(2, 17):
+            maximum = 2 ** (bit_depth - 1) - 1
+            minimum = -(2 ** (bit_depth - 1))
+            dtype = f"i{math.ceil(bit_depth / 8)}"
+            arr = np.random.randint(
+                low=minimum, high=maximum + 1, size=(rows, cols), dtype=dtype
+            )
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                1,
+                bit_depth,
+                True,
+                compression_ratios=[4, 2, 1],
+            )
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is True
+            assert param["layers"] == 3
+            assert param["components"] == 1
+
+            assert out.dtype.kind == "i"
+            assert np.allclose(arr, out, atol=5)
+
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                1,
+                bit_depth,
+                True,
+                signal_noise_ratios=[50, 100, 200],
+            )
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is True
+            assert param["layers"] == 3
+            assert param["components"] == 1
+
+            assert out.dtype.kind == "i"
+            assert np.allclose(arr, out, atol=5)
+
+    def test_roundtrip_u1_ybr(self):
+        """Test a round trip for u1 YBR."""
+        jpg = DIR_15444 / "2KLS" / "oj36.j2k"
+        with open(jpg, "rb") as f:
+            data = f.read()
+
+        arr = decode(data)
+        assert "uint8" == arr.dtype
+        assert (256, 256, 3) == arr.shape
+
+        # Test lossless
+        result = encode_buffer(
+            arr.tobytes(),
+            256,
+            256,
+            3,
+            8,
+            False,
+            photometric_interpretation=PI.YBR_FULL,
+        )
+        out = decode(result)
+        assert np.array_equal(arr, out)
+
+        # Test lossy
+        result = encode_buffer(
+            arr.tobytes(),
+            256,
+            256,
+            3,
+            8,
+            False,
+            photometric_interpretation=PI.YBR_FULL,
+            compression_ratios=[6, 4, 2, 1],
+        )
+        out = decode(result)
+        assert np.allclose(out, arr, atol=2)
+
+        # Test lossy
+        result = encode_buffer(
+            arr.tobytes(),
+            256,
+            256,
+            3,
+            8,
+            False,
+            photometric_interpretation=PI.YBR_FULL,
+            compression_ratios=[80, 100, 150],
+        )
+        out = decode(result)
+        assert np.allclose(out, arr, atol=2)
+
+    def test_roundtrip_i2_mono(self):
+        """Test a round trip for i2 YBR."""
+
+        jpg = DIR_15444 / "2KLS" / "693.j2k"
+        with open(jpg, "rb") as f:
+            data = f.read()
+
+        arr = decode(data)
+        assert "i2" == arr.dtype
+        assert (512, 512) == arr.shape
+
+        # Test lossless
+        result = encode_buffer(
+            arr.tobytes(),
+            512,
+            512,
+            1,
+            14,
+            True,
+            photometric_interpretation=PI.MONOCHROME2,
+        )
+        out = decode(result)
+        assert np.array_equal(arr, out)
+
+        # Test lossy w/ compression ratios
+        result = encode_buffer(
+            arr.tobytes(),
+            512,
+            512,
+            1,
+            14,
+            True,
+            photometric_interpretation=PI.MONOCHROME2,
+            compression_ratios=[6, 4, 2, 1],
+        )
+        out = decode(result)
+        assert np.allclose(out, arr, atol=2)
+
+        # Test lossy w/ signal-to-noise ratios
+        result = encode_buffer(
+            arr.tobytes(),
+            512,
+            512,
+            1,
+            14,
+            True,
+            photometric_interpretation=PI.MONOCHROME2,
+            signal_noise_ratios=[80, 100],
+        )
+        out = decode(result)
+        assert np.allclose(out, arr, atol=2)
+
+    def test_jp2(self):
+        """Test using JP2 format"""
+        jpg = DIR_15444 / "HTJ2K" / "Bretagne1_ht.j2k"
+        with open(jpg, "rb") as f:
+            arr = decode(f.read())
+
+        kwargs = {
+            "rows": 480,
+            "columns": 640,
+            "samples_per_pixel": 3,
+            "pixel_representation": 0,
+            "is_signed": False,
+            "bits_stored": 8,
+            "codec_format": 1,
+        }
+
+        buffer = encode_buffer(arr.tobytes(), **kwargs)
+        assert buffer.startswith(b"\x00\x00\x00\x0c\x6a\x50\x20\x20\x0d\x0a\x87\x0a")
+
 
 class TestEncodePixelData:
     """Tests for encode_pixel_data()"""
 
     def test_nominal(self):
         """Test the function works OK"""
-        arr = np.random.randint(0, high=65535, size=(100, 100), dtype="u2")
-        buffer = encode_pixel_data(arr)
+        jpg = DIR_15444 / "HTJ2K" / "Bretagne1_ht.j2k"
+        with open(jpg, "rb") as f:
+            arr = decode(f.read())
+
+        kwargs = {
+            "rows": 480,
+            "columns": 640,
+            "samples_per_pixel": 3,
+            "pixel_representation": 0,
+            "bits_stored": 8,
+            "photometric_interpretation": "RGB",
+        }
+        buffer = encode_pixel_data(arr.tobytes(), **kwargs)
         assert np.array_equal(arr, decode(buffer))
+
+    def test_photometric_interpretation(self):
+        """Check photometric interpretation sets MCT correctly."""
+        jpg = DIR_15444 / "HTJ2K" / "Bretagne1_ht.j2k"
+        with open(jpg, "rb") as f:
+            arr = decode(f.read())
+
+        kwargs = {
+            "rows": 480,
+            "columns": 640,
+            "samples_per_pixel": 3,
+            "pixel_representation": 0,
+            "bits_stored": 8,
+        }
+        for pi in ("RGB", "YBR_ICT", "YBR_RCT"):
+            buffer = encode_pixel_data(
+                arr.tobytes(),
+                photometric_interpretation=pi,
+                **kwargs,
+            )
+            param = parse_j2k(buffer)
+            assert param["mct"] is True
+
+        buffer = encode_pixel_data(
+            arr.tobytes(),
+            photometric_interpretation="YBR_FULL",
+            use_mct=True,
+            **kwargs,
+        )
+        param = parse_j2k(buffer)
+        assert param["mct"] is False
+
+    def test_codec_format_ignored(self):
+        """Test that codec_format gets ignored."""
+        jpg = DIR_15444 / "HTJ2K" / "Bretagne1_ht.j2k"
+        with open(jpg, "rb") as f:
+            arr = decode(f.read())
+
+        kwargs = {
+            "rows": 480,
+            "columns": 640,
+            "samples_per_pixel": 3,
+            "pixel_representation": 0,
+            "photometric_interpretation": "RGB",
+            "bits_stored": 8,
+            "codec_format": 1,
+        }
+        buffer = encode_pixel_data(arr.tobytes(), **kwargs)
+        assert buffer.startswith(b"\xff\x4f\xff\x51")
+
+    def test_pixel_representation(self):
+        """Test pixel representation is applied correctly."""
+        jpg = DIR_15444 / "HTJ2K" / "Bretagne1_ht.j2k"
+        with open(jpg, "rb") as f:
+            arr = decode(f.read())
+
+        kwargs = {
+            "rows": 480,
+            "columns": 640,
+            "samples_per_pixel": 3,
+            "pixel_representation": 0,
+            "photometric_interpretation": "RGB",
+            "bits_stored": 8,
+        }
+        buffer = encode_pixel_data(arr.tobytes(), **kwargs)
+        info = parse_j2k(buffer)
+        assert info["is_signed"] is False
+
+        kwargs["pixel_representation"] = 1
+        buffer = encode_pixel_data(arr.tobytes(), **kwargs)
+        info = parse_j2k(buffer)
+        assert info["is_signed"] is True
 
 
 class TestGetBitsStored:

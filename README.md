@@ -49,7 +49,6 @@ Encoding of NumPy ndarrays is supported for the following:
 * Number of rows/columns: up to 65535
 * Number of planes: 1, 3 or 4
 
-
 ### Transfer Syntaxes
 | UID | Description |
 | --- | --- |
@@ -95,10 +94,10 @@ Lossless encoding of RGB with multiple-component transformation:
 ```python
 
 import numpy as np
-from openjpeg import encode
+from openjpeg import encode_array
 
-arr = np.random.randint(low=0, high=65535, size=(100, 100, 3), dtype="uint8")
-encode(arr, photometric_interpretation=1)  # 1: sRGB
+arr = np.random.randint(low=0, high=65536, size=(100, 100, 3), dtype="uint8")
+encode_array(arr, photometric_interpretation=1)  # 1: sRGB
 ```
 
 Lossy encoding of a monochrome image using compression ratios:
@@ -106,12 +105,12 @@ Lossy encoding of a monochrome image using compression ratios:
 ```python
 
 import numpy as np
-from openjpeg import encode
+from openjpeg import encode_array
 
-arr = np.random.randint(low=-2**15, high=2**15 - 1, size=(100, 100), dtype="int8")
+arr = np.random.randint(low=-2**15, high=2**15, size=(100, 100), dtype="int8")
 # You must determine your own values for `compression_ratios`
 #   as these are for illustration purposes only
-encode(arr, compression_ratios=[2, 4, 6])
+encode_array(arr, compression_ratios=[5, 2])
 ```
 
 Lossy encoding of a monochrome image using peak signal-to-noise ratios:
@@ -119,14 +118,14 @@ Lossy encoding of a monochrome image using peak signal-to-noise ratios:
 ```python
 
 import numpy as np
-from openjpeg import encode
+from openjpeg import encode_array
 
-arr = np.random.randint(low=-2**15, high=2**15 - 1, size=(100, 100), dtype="int8")
+arr = np.random.randint(low=-2**15, high=2**15, size=(100, 100), dtype="int8")
 # You must determine your own values for `signal_noise_ratios`
 #   as these are for illustration purposes only
-encode(arr, signal_noise_ratios=[50, 80, 100])
+encode_array(arr, signal_noise_ratios=[50, 80, 100])
 ```
 
-See the docstring for the [encode() function][2] for full details.
+See the docstring for the [encode_array() function][2] for full details.
 
-[2]: https://github.com/pydicom/pylibjpeg-openjpeg/blob/main/openjpeg/utils.py#L428
+[2]: https://github.com/pydicom/pylibjpeg-openjpeg/blob/main/openjpeg/utils.py#L429
