@@ -49,10 +49,6 @@ Encoding of NumPy ndarrays is supported for the following:
 * Number of rows/columns: up to 65535
 * Number of planes: 1, 3 or 4
 
-
-
-
-
 ### Transfer Syntaxes
 | UID | Description |
 | --- | --- |
@@ -132,4 +128,4 @@ encode_array(arr, signal_noise_ratios=[50, 80, 100])
 
 See the docstring for the [encode_array() function][2] for full details.
 
-[2]: https://github.com/pydicom/pylibjpeg-openjpeg/blob/main/openjpeg/utils.py#L431
+[2]: https://github.com/pydicom/pylibjpeg-openjpeg/blob/main/openjpeg/utils.py#L429

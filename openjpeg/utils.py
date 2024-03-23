@@ -435,7 +435,7 @@ def encode_array(
     signal_noise_ratios: Union[List[float], None] = None,
     codec_format: int = 0,
     **kwargs: Any,
-) -> Union[bytes, bytearray]:
+) -> bytes:
     """Return the JPEG 2000 compressed `arr`.
 
     Encoding of the input array will use lossless compression by default, to
@@ -456,7 +456,7 @@ def encode_array(
 
     Lossless compression will use the following:
 
-    * DWT 5-7 with reversible component transformation
+    * DWT 5-3 with reversible component transformation
     * 1 quality layer
 
     Lossy compression will use the following:
@@ -580,7 +580,7 @@ def encode_buffer(
     signal_noise_ratios: Union[List[float], None] = None,
     codec_format: int = 0,
     **kwargs: Any,
-) -> Union[bytes, bytearray]:
+) -> bytes:
     """Return the JPEG 2000 compressed `src`.
 
     .. versionadded:: 2.2
@@ -599,7 +599,7 @@ def encode_buffer(
 
     Lossless compression will use the following:
 
-    * DWT 5-7 with reversible component transformation
+    * DWT 5-3 with reversible component transformation
     * 1 quality layer
 
     Lossy compression will use the following:
@@ -714,7 +714,7 @@ def encode_buffer(
 
 def encode_pixel_data(
     src: Union[bytes, bytearray], **kwargs: Any
-) -> Union[bytes, bytearray]:
+) -> bytes:
     """Return the JPEG 2000 compressed `src`.
 
     .. versionadded:: 2.2

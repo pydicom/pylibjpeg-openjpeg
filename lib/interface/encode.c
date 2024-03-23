@@ -496,9 +496,9 @@ extern int EncodeBuffer(
         The image data to be encoded, as a little endian and colour-by-pixel
         ordered bytes or bytearray.
     columns : int
-        Supported values: 1-2^24 - 1
+        Supported values: 1-2^16 - 1
     rows : int
-        Supported values: 1-2^24 - 1
+        Supported values: 1-2^16 - 1
     samples_per_pixel : int
         Supported values: 1, 3, 4
     bits_stored : int

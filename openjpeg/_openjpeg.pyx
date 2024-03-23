@@ -224,7 +224,7 @@ def encode_array(
         The number of bits used per pixel.
     photometric_interpretation : int
         The colour space of the unencoded image data that will be set in the
-        JPEG 2000 metadata.
+        JP2 metadata (if `codec_format` is ``1``).
     use_mct : bool
         If ``True`` then apply multi-component transformation (MCT) to RGB
         images.
@@ -347,29 +347,23 @@ def encode_buffer(
         A bytes or bytearray containing the image data to be encoded, ordered as
         little endian and colour-by-pixel.
     columns : int
-        The number of columns in the image, should be in the range (1, 16777215).
+        The number of columns in the image, should be in the range [1, 65535].
     rows : int
-        The number of rows in the image, should be in the range (1, 16777215).
+        The number of rows in the image, should be in the range [1, 65535].
     samples_per_pixel : int
         The number of samples per pixel, should be 1, 3 or 4.
     bits_stored : int
         The number of bits used per pixel (i.e. the sample precision), should be
-        in the range (1, 24).
+        in the range [1, 24].
     is_signed: int
         ``0`` if the image uses unsigned pixels, ``1`` for signed.
     photometric_interpretation : int
         The colour space of the unencoded image data that will be set in the
-        JPEG 2000 metadata, should be in the range (0, 5):
-            ``0``: OPJ_CLRSPC_UNSPECIFIED
-            ``1``: OPJ_CLRSPC_SRGB
-            ``2``: OPJ_CLRSPC_GRAY
-            ``3``: OPJ_CLRSPC_SYCC
-            ``4``: OPJ_CLRSPC_EYCC
-            ``5``: OPJ_CLRSPC_CMYK
+        JP2 metadata (if `codec_format` is ``1``).
     use_mct : bool
         If ``1`` then apply multi-component transformation (MCT) to RGB
         images. Requires a `photometric_interpretation` of ``1`` and a
-        `samples_per_pixel` value of ``3``.
+        `samples_per_pixel` value of ``3``, otherwise no MCT will be used.
     compression_ratios : list[float]
         Required for lossy encoding, this is the compression ratio to use
         for each quality layer. Cannot be used with `signal_noise_ratios`.
@@ -380,7 +374,7 @@ def encode_buffer(
         The codec to used when encoding:
 
         * ``0``: JPEG 2000 codestream only (default) (J2K/J2C format)
-        * ``2``: A boxed JPEG 2000 codestream (JP2 format)
+        * ``1``: A boxed JPEG 2000 codestream (JP2 format)
 
     Returns
     -------
