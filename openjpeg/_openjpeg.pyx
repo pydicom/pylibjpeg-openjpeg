@@ -57,7 +57,7 @@ ERRORS = {
     4: "failed to set the component indices",
     5: "failed to set the decoded area",
     6: "failed to decode image",
-    7: "support for more than 16-bits per component is not implemented",
+    7: "support for more than 32-bits per component is not implemented",
     8: "failed to upscale subsampled components",
 }
 
@@ -229,12 +229,12 @@ def encode_array(
         If ``True`` then apply multi-component transformation (MCT) to RGB
         images.
     compression_ratios : list[float]
-        Required if using lossy encoding, this is the compression ratio to use
+        Required for lossy encoding, this is the compression ratio to use
         for each layer. Should be in decreasing order (such as ``[80, 30, 10]``)
         and the final value may be ``1`` to indicate lossless encoding should
         be used for that layer.
     signal_noise_ratios : list[float]
-        Required if using lossy encoding
+        Required for lossy encoding
     codec_format : int
         The codec to used when encoding:
 
@@ -243,9 +243,9 @@ def encode_array(
 
     Returns
     -------
-    int
-        The return code of the encoding, will be ``0`` for success, otherwise
-        encoding failed.
+    tuple[int, bytes]
+        The return code of the encoding and the encoded image data. The return
+        code will be ``0`` for success, otherwise the encoding failed.
     """
     if not (1 <= bits_stored <= arr.dtype.itemsize * 8):
         raise ValueError(

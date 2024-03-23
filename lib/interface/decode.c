@@ -669,7 +669,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
             }
         }
     } else {
-        // Support for more than 16-bits per component is not implemented
+        // Support for more than 32-bits per component is not implemented
         return_code = 7;
         goto failure;
     }

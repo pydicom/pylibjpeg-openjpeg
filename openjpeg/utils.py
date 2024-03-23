@@ -48,7 +48,7 @@ DECODING_ERRORS = {
     4: "failed to set the component indices",
     5: "failed to set the decoded area",
     6: "failed to decode image",
-    7: "support for more than 16-bits per component is not implemented",
+    7: "support for more than 32-bits per component is not implemented",
     8: "failed to upscale subsampled components",
 }
 ENCODING_ERRORS = {
@@ -154,8 +154,7 @@ def decode(
     j2k_format: Union[int, None] = None,
     reshape: bool = True,
 ) -> np.ndarray:
-    """Return the decoded JPEG2000 data from `stream` as a
-    :class:`numpy.ndarray`.
+    """Return the decoded JPEG2000 data from `stream` as a :class:`numpy.ndarray`.
 
     .. versionchanged:: 1.1
 
@@ -163,7 +162,7 @@ def decode(
 
     Parameters
     ----------
-    stream : str, pathlib.Path, bytes or file-like
+    stream : str, pathlib.Path, bytes, bytearray or file-like
         The path to the JPEG 2000 file or a Python object containing the
         encoded JPEG 2000 data. If using a file-like then the object must have
         ``tell()``, ``seek()`` and ``read()`` methods.
@@ -238,7 +237,7 @@ def decode(
 
 
 def decode_pixel_data(
-    src: bytes,
+    src: Union[bytes, bytearray],
     ds: Union["Dataset", Dict[str, Any], None] = None,
     version: int = Version.v1,
     **kwargs: Any,
@@ -249,16 +248,14 @@ def decode_pixel_data(
 
     Parameters
     ----------
-    src : bytes
-        A Python object containing the encoded JPEG 2000 data. If not
-        :class:`bytes` then the object must have ``tell()``, ``seek()`` and
-        ``read()`` methods.
+    src : bytes | bytearray
+        The encoded JPEG 2000 data as :class:`bytes`, :class:`bytearray`.
     ds : pydicom.dataset.Dataset, optional
         A :class:`~pydicom.dataset.Dataset` containing the group ``0x0028``
         elements corresponding to the *Pixel data*. If used then the
         *Samples per Pixel*, *Bits Stored* and *Pixel Representation* values
         will be checked against the JPEG 2000 data and warnings issued if
-        different.
+        different. Not used if `version` is ``2``.
     version : int, optional
 
         * If ``1`` (default) then return the image data as an :class:`numpy.ndarray`
@@ -431,6 +428,7 @@ def _get_bits_stored(arr: np.ndarray) -> int:
     return cast(int, arr.dtype.itemsize * 8)
 
 
+# TODO: cr and snr
 def encode_array(
     arr: np.ndarray,
     bits_stored: Union[int, None] = None,
@@ -447,14 +445,37 @@ def encode_array(
     use lossy compression either `compression_ratios` or `signal_noise_ratios`
     must be supplied.
 
+    The following encoding parameters are always used:
+
+    * No sub-sampling
+    * LRCP progression order
+    * 64 x 64 code blocks
+    * 6 resolutions
+    * 2^15 x 2^15 precincts
+    * No SOP or EPH markers
+    * MCT will be used by default for 3 samples per pixel if
+      `photometric_interpretation` is ``1``
+
+    Lossless compression will use the following:
+
+    * DWT 5-7
+    * MCT uses reversible component transformation
+
+    Lossy compression will use the following:
+
+    * DWT 9-7
+    * MCT uses irreversible component transformation
+
     Parameters
     ----------
     arr : numpy.ndarray
-        The array containing the image data to be encoded. 1-bit data should be
-        unpacked (if packed) and stored as a bool or u1 dtype.
+        The array containing the image data to be encoded. For 1-bit DICOM
+        *Pixel Data*, the data should be unpacked (if packed) and stored as a
+        bool or u1 dtype.
     bits_stored : int, optional
-        The bit-depth of the image, defaults to the minimum bit-depth required
-        to fully cover the range of pixel data in `arr`.
+        The bit-depth (precision) of the pixels in the image, defaults to the
+        minimum bit-depth required to fully cover the range of pixel data in
+        `arr`.
     photometric_interpretation : int, optional
         The colour space of the unencoded image data, used to help determine
         if MCT may be applied. If `codec_format` is ``1`` then this will also
@@ -482,12 +503,12 @@ def encode_array(
         If MCT is not applied then *Photometric Intrepretation* should be the
         value corresponding to the unencoded dataset.
     compression_ratios : list[float], optional
-        Required if using lossy encoding, this is the compression ratio to use
+        Required for lossy encoding, this is the compression ratio to use
         for each layer. Should be in decreasing order (such as ``[80, 30, 10]``)
         and the final value may be ``1`` to indicate lossless encoding should
         be used for that layer. Cannot be used with `signal_noise_ratios`.
     signal_noise_ratios : list[float], optional
-        Required if using lossy encoding, this is the desired peak
+        Required for lossy encoding, this is the desired peak
         signal-to-noise ratio to use for each layer. Should be in increasing
         order (such as ``[30, 40, 50]``), except for the last layer which may
         be ``0`` to indicate lossless encoding should be used for that layer.
@@ -563,16 +584,16 @@ def encode_buffer(
     ----------
     src : bytes | bytearray
         A single frame of little endian, colour-by-pixel ordered image data to
-        be JPEG2000 encoded. Each pixel should be encoded using the following
-        (a pixel may have 1 or 3 samples per pixel):
+        be JPEG 2000 encoded. Each pixel should be encoded using the following
+        (each pixel has 1 or more samples):
 
         * For  0 < bits per sample <=  8: 1 byte per sample
         * For  8 < bits per sample <= 16: 2 bytes per sample
         * For 16 < bits per sample <= 24: 4 bytes per sample
     columns : int
-        The number of columns in the image, must be in the range [1, 2**24 - 1].
+        The number of columns in the image, must be in the range [1, 2**16 - 1].
     rows : int
-        The number of rows in the image, must be in the range [1, 2**24 - 1].
+        The number of rows in the image, must be in the range [1, 2**16 - 1].
     samples_per_pixel : int
         The number of samples per pixel, must be 1, 3 or 4.
     bits_stored : int
@@ -657,7 +678,9 @@ def encode_buffer(
     return cast(bytes, buffer)
 
 
-def encode_pixel_data(src: Union[bytes, bytearray], **kwargs: Any) -> bytes:
+def encode_pixel_data(
+    src: Union[bytes, bytearray], **kwargs: Any
+) -> Union[bytes, bytearray]:
     """Return the JPEG 2000 compressed `src`.
 
     .. versionadded:: 2.2
@@ -666,8 +689,7 @@ def encode_pixel_data(src: Union[bytes, bytearray], **kwargs: Any) -> bytes:
     ----------
     src : bytes | bytearray
         A single frame of little endian, colour-by-pixel ordered image data to
-        be JPEG2000 encoded. Each pixel should be encoded using the following
-        (a pixel may have 1 or 3 samples per pixel):
+        be JPEG2000 encoded. Each pixel should be encoded using the following:
 
         * For  0 < bits per sample <=  8: 1 byte per sample
         * For  8 < bits per sample <= 16: 2 bytes per sample
@@ -699,7 +721,7 @@ def encode_pixel_data(src: Union[bytes, bytearray], **kwargs: Any) -> bytes:
 
     Returns
     -------
-    bytes
+    bytes | bytearray
         A JPEG 2000 codestream.
     """
     # A J2K codestream doesn't track the colour space, so the photometric
