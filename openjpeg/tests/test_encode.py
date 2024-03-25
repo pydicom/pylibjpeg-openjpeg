@@ -1713,7 +1713,7 @@ class TestEncodePixelData:
             "pixel_representation": 0,
             "bits_stored": 8,
         }
-        for pi in ("RGB", "YBR_ICT", "YBR_RCT"):
+        for pi in ("YBR_ICT", "YBR_RCT"):
             buffer = encode_pixel_data(
                 arr.tobytes(),
                 photometric_interpretation=pi,
@@ -1722,14 +1722,15 @@ class TestEncodePixelData:
             param = parse_j2k(buffer)
             assert param["mct"] is True
 
-        buffer = encode_pixel_data(
-            arr.tobytes(),
-            photometric_interpretation="YBR_FULL",
-            use_mct=True,
-            **kwargs,
-        )
-        param = parse_j2k(buffer)
-        assert param["mct"] is False
+        for pi in ("RGB", "YBR_FULL", "MONOCHROME1"):
+            buffer = encode_pixel_data(
+                arr.tobytes(),
+                photometric_interpretation=pi,
+                use_mct=True,
+                **kwargs,
+            )
+            param = parse_j2k(buffer)
+            assert param["mct"] is False
 
     def test_codec_format_ignored(self):
         """Test that codec_format gets ignored."""

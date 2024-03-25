@@ -567,7 +567,7 @@ encode = encode_array
 
 
 def encode_buffer(
-    src: Union[bytes, bytearray],
+    src: bytes,
     columns: int,
     rows: int,
     samples_per_pixel: int,
@@ -609,7 +609,7 @@ def encode_buffer(
 
     Parameters
     ----------
-    src : bytes | bytearray
+    src : bytes
         A single frame of little endian, colour-by-pixel ordered image data to
         be JPEG 2000 encoded. Each pixel should be encoded using the following
         (each pixel has 1 or more samples):
@@ -712,16 +712,14 @@ def encode_buffer(
     return cast(bytes, buffer)
 
 
-def encode_pixel_data(
-    src: Union[bytes, bytearray], **kwargs: Any
-) -> bytes:
+def encode_pixel_data(src: bytes, **kwargs: Any) -> bytes:
     """Return the JPEG 2000 compressed `src`.
 
     .. versionadded:: 2.2
 
     Parameters
     ----------
-    src : bytes | bytearray
+    src : bytes
         A single frame of little endian, colour-by-pixel ordered image data to
         be JPEG2000 encoded. Each pixel should be encoded using the following:
 
@@ -743,7 +741,7 @@ def encode_pixel_data(
 
         * ``'use_mct'``: bool: ``True`` to use MCT with RGB images (default)
           ``False`` otherwise. Will be ignored if `photometric_interpretation`
-          is not RGB, YBR_RCT or YBR_ICT.
+          is not YBR_RCT or YBR_ICT.
         * ''`compression_ratios'``: list[float] - required for lossy encoding if
           `signal_noise_ratios` is not used. The desired compression ratio to
           use for each quality layer.
@@ -759,7 +757,7 @@ def encode_pixel_data(
     # A J2K codestream doesn't track the colour space, so the photometric
     #   interpretation is only used to help with setting MCT
     pi = kwargs["photometric_interpretation"]
-    if pi in ("RGB", "YBR_ICT", "YBR_RCT"):
+    if pi in ("YBR_ICT", "YBR_RCT"):
         kwargs["photometric_interpretation"] = 1
     else:
         kwargs["photometric_interpretation"] = 0
