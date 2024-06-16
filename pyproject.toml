@@ -48,12 +48,12 @@ packages = [
     {include = "openjpeg" },
 ]
 readme = "README.md"
-version = "2.2.1"
+version = "2.2.2"
 
 
 [tool.poetry.dependencies]
 python = "^3.8"
-numpy = "^1.24"
+numpy = "*"
 
 [tool.poetry.plugins."pylibjpeg.jpeg_2000_decoders"]
 openjpeg = "openjpeg:decode"
