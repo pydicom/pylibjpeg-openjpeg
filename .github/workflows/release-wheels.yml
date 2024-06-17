@@ -1,11 +1,11 @@
 name: release-deploy
 
 on:
-  release:
-    types: [ published ]
+  # release:
+  #   types: [ published ]
   # push:
   #   branches: [ main ]
-  # pull_request:
+  pull_request:
 
 jobs:
   build-sdist:
@@ -42,77 +42,77 @@ jobs:
       matrix:
         include:
           # Windows 32 bit
-          - os: windows-latest
-            python: 38
-            platform_id: win32
-          - os: windows-latest
-            python: 39
-            platform_id: win32
-          - os: windows-latest
-            python: 310
-            platform_id: win32
-          - os: windows-latest
-            python: 311
-            platform_id: win32
-          - os: windows-latest
-            python: 312
-            platform_id: win32
-
-          # Windows 64 bit
-          - os: windows-latest
-            python: 38
-            platform_id: win_amd64
-          - os: windows-latest
-            python: 39
-            platform_id: win_amd64
-          - os: windows-latest
-            python: 310
-            platform_id: win_amd64
-          - os: windows-latest
-            python: 311
-            platform_id: win_amd64
-          - os: windows-latest
-            python: 312
-            platform_id: win_amd64
-
-          # Linux 64 bit manylinux2014
-          - os: ubuntu-latest
-            python: 38
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
-          - os: ubuntu-latest
-            python: 39
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
-          - os: ubuntu-latest
-            python: 310
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
-          - os: ubuntu-latest
-            python: 311
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
-          - os: ubuntu-latest
-            python: 312
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
-
-          # Linux aarch64
-          - os: ubuntu-latest
-            python: 38
-            platform_id: manylinux_aarch64
-          - os: ubuntu-latest
-            python: 39
-            platform_id: manylinux_aarch64
-          - os: ubuntu-latest
-            python: 310
-            platform_id: manylinux_aarch64
-          - os: ubuntu-latest
-            python: 311
-            platform_id: manylinux_aarch64
-          - os: ubuntu-latest
-            python: 312
-            platform_id: manylinux_aarch64
+          # - os: windows-latest
+          #   python: 38
+          #   platform_id: win32
+          # - os: windows-latest
+          #   python: 39
+          #   platform_id: win32
+          # - os: windows-latest
+          #   python: 310
+          #   platform_id: win32
+          # - os: windows-latest
+          #   python: 311
+          #   platform_id: win32
+          # - os: windows-latest
+          #   python: 312
+          #   platform_id: win32
+          #
+          # # Windows 64 bit
+          # - os: windows-latest
+          #   python: 38
+          #   platform_id: win_amd64
+          # - os: windows-latest
+          #   python: 39
+          #   platform_id: win_amd64
+          # - os: windows-latest
+          #   python: 310
+          #   platform_id: win_amd64
+          # - os: windows-latest
+          #   python: 311
+          #   platform_id: win_amd64
+          # - os: windows-latest
+          #   python: 312
+          #   platform_id: win_amd64
+          #
+          # # Linux 64 bit manylinux2014
+          # - os: ubuntu-latest
+          #   python: 38
+          #   platform_id: manylinux_x86_64
+          #   manylinux_image: manylinux2014
+          # - os: ubuntu-latest
+          #   python: 39
+          #   platform_id: manylinux_x86_64
+          #   manylinux_image: manylinux2014
+          # - os: ubuntu-latest
+          #   python: 310
+          #   platform_id: manylinux_x86_64
+          #   manylinux_image: manylinux2014
+          # - os: ubuntu-latest
+          #   python: 311
+          #   platform_id: manylinux_x86_64
+          #   manylinux_image: manylinux2014
+          # - os: ubuntu-latest
+          #   python: 312
+          #   platform_id: manylinux_x86_64
+          #   manylinux_image: manylinux2014
+          #
+          # # Linux aarch64
+          # - os: ubuntu-latest
+          #   python: 38
+          #   platform_id: manylinux_aarch64
+          # - os: ubuntu-latest
+          #   python: 39
+          #   platform_id: manylinux_aarch64
+          # - os: ubuntu-latest
+          #   python: 310
+          #   platform_id: manylinux_aarch64
+          # - os: ubuntu-latest
+          #   python: 311
+          #   platform_id: manylinux_aarch64
+          # - os: ubuntu-latest
+          #   python: 312
+          #   platform_id: manylinux_aarch64
 
           # MacOS 12 x86_64
           - os: macos-12
@@ -218,10 +218,11 @@ jobs:
 
     # Cross compiling wheels for arm64 with poetry creates wheels with wrong tag
     # Update the wheel with the correct tag then remove the incorrect wheel
-    - name: Fix poetry mistagging
-      run: |
-        wheel tags --platform-tag macosx_14_0_arm64 ./dist/*-macosx_14_0_x86_64.whl
-        rm ./dist/*-macosx_14_0_x86_64.whl
+    # - name: Fix poetry mistagging
+    #   run: |
+    #     ls -l ./dist/
+    #     wheel tags --platform-tag macosx_14_0_arm64 ./dist/*-macosx_14_0_x86_64.whl
+    #     rm ./dist/*-macosx_14_0_x86_64.whl
 
     - name: Store artifacts
       uses: actions/upload-artifact@v4
