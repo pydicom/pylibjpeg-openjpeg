@@ -15,7 +15,7 @@ from .utils import (
 # Setup default logging
 _logger = logging.getLogger(__name__)
 _logger.addHandler(logging.NullHandler())
-_logger.debug(f"pylibjpeg v{__version__}")
+_logger.debug(f"pylibjpeg-openjpeg v{__version__}")
 
 
 def debug_logger() -> None:
