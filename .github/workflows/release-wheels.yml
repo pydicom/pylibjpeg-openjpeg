@@ -220,7 +220,7 @@ jobs:
     # Update the wheel with the correct tag then remove the incorrect wheel
     - name: Fix poetry mistagging
       run: |
-        wheel tags --platform-tag macosx_12_0_arm64 ./dist/*-macosx_14_0_x86_64.whl
+        wheel tags --platform-tag macosx_14_0_arm64 ./dist/*-macosx_14_0_x86_64.whl
         rm ./dist/*-macosx_14_0_x86_64.whl
 
     - name: Store artifacts
