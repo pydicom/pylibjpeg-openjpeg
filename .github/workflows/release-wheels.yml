@@ -216,13 +216,6 @@ jobs:
       run: |
         python -m cibuildwheel --output-dir dist
 
-    # Cross compiling wheels for arm64 with poetry creates wheels with wrong tag
-    # Update the wheel with the correct tag then remove the incorrect wheel
-    - name: Fix poetry mistagging
-      run: |
-        wheel tags --platform-tag macosx_14_0_arm64 ./dist/*-macosx_14_0_x86_64.whl
-        rm ./dist/*-macosx_14_0_x86_64.whl
-
     - name: Store artifacts
       uses: actions/upload-artifact@v4
       with:
