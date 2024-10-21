@@ -458,7 +458,9 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
     fd : PyObject *
         The Python stream object containing the JPEG 2000 data to be decoded.
     out : unsigned char *
-        The numpy ndarray of uint8 where the decoded image data will be written
+        Either a Python bytearray object or a numpy ndarray of uint8 to write the
+        decoded image data to. Multi-byte decoded data will be written using little
+        endian byte ordering.
     codec_format : int
         The format of the JPEG 2000 data, one of:
         * ``0`` - OPJ_CODEC_J2K : JPEG-2000 codestream
@@ -632,11 +634,18 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
                 for (ii = 0; ii < NR_COMPONENTS; ii++)
                 {
                     u16.val = (unsigned short)(*p_component[ii]);
-                    // Little endian output
+                    // Ensure little endian output
+#ifdef ON_BE_SYSTEM
+                    *out = u16.vals[1];
+                    out++;
+                    *out = u16.vals[0];
+                    out++;
+#else
                     *out = u16.vals[0];
                     out++;
                     *out = u16.vals[1];
                     out++;
+#endif
                     p_component[ii]++;
                 }
             }
@@ -655,7 +664,17 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
                 for (ii = 0; ii < NR_COMPONENTS; ii++)
                 {
                     u32.val = (unsigned long)(*p_component[ii]);
-                    // Little endian output
+                    // Ensure little endian output
+#ifdef ON_BE_SYSTEM
+                    *out = u32.vals[3];
+                    out++;
+                    *out = u32.vals[2];
+                    out++;
+                    *out = u32.vals[1];
+                    out++;
+                    *out = u32.vals[0];
+                    out++;
+#else
                     *out = u32.vals[0];
                     out++;
                     *out = u32.vals[1];
@@ -664,6 +683,8 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
                     out++;
                     *out = u32.vals[3];
                     out++;
+#endif
+
                     p_component[ii]++;
                 }
             }

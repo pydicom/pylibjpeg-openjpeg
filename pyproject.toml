@@ -20,11 +20,11 @@ classifiers=[
     "Intended Audience :: Science/Research",
     "Development Status :: 5 - Production/Stable",
     "Natural Language :: English",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Medical Science Apps.",
     "Topic :: Software Development :: Libraries",
@@ -48,11 +48,11 @@ packages = [
     {include = "openjpeg" },
 ]
 readme = "README.md"
-version = "2.3.0"
+version = "2.4.0"
 
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 numpy = "*"
 
 [tool.poetry.plugins."pylibjpeg.jpeg_2000_decoders"]
@@ -75,7 +75,7 @@ omit = [
 ]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 files = "openjpeg"
 exclude = ["openjpeg/tests"]
 show_error_codes = true
