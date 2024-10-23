@@ -114,8 +114,8 @@ class TestJPEGBaseline(HandlerTestBase):
         assert 0 == ds.PixelRepresentation
 
         msg = (
-            r"Unable to decompress 'JPEG Baseline \(Process 1\)' pixel data because "
-            "all plugins are missing dependencies:"
+            "Unable to convert the Pixel Data as the 'pylibjpeg-libjpeg' plugin is "
+            "not installed"
         )
         with pytest.raises(RuntimeError, match=msg):
             ds.pixel_array
@@ -144,8 +144,8 @@ class TestJPEGExtended(HandlerTestBase):
         assert 0 == ds.PixelRepresentation
 
         msg = (
-            r"Unable to decompress 'JPEG Extended \(Process 2 and 4\)' pixel data "
-            "because all plugins are missing dependencies:"
+            "Unable to convert the Pixel Data as the 'pylibjpeg-libjpeg' plugin is "
+            "not installed"
         )
         with pytest.raises(RuntimeError, match=msg):
             ds.pixel_array
@@ -172,8 +172,8 @@ class TestJPEGLossless(HandlerTestBase):
         assert 0 == ds.PixelRepresentation
 
         msg = (
-            r"Unable to decompress 'JPEG Lossless, Non-Hierarchical \(Process 14\)' "
-            "pixel data because all plugins are missing dependencies:"
+            "Unable to convert the Pixel Data as the 'pylibjpeg-libjpeg' plugin is "
+            "not installed"
         )
         with pytest.raises(RuntimeError, match=msg):
             ds.pixel_array
@@ -201,9 +201,8 @@ class TestJPEGLosslessSV1(HandlerTestBase):
         assert 0 == ds.PixelRepresentation
 
         msg = (
-            "Unable to decompress 'JPEG Lossless, Non-Hierarchical, First-Order "
-            r"Prediction \(Process 14 \[Selection Value 1\]\)' "
-            "pixel data because all plugins are missing dependencies:"
+            "Unable to convert the Pixel Data as the 'pylibjpeg-libjpeg' plugin is "
+            "not installed"
         )
         with pytest.raises(RuntimeError, match=msg):
             ds.pixel_array
@@ -231,8 +230,8 @@ class TestJPEGLSLossless(HandlerTestBase):
         assert 1 == ds.PixelRepresentation
 
         msg = (
-            r"Unable to decompress 'JPEG-LS Lossless Image Compression' "
-            "pixel data because all plugins are missing dependencies:"
+            "Unable to convert the Pixel Data as the 'pylibjpeg-libjpeg' plugin is "
+            "not installed"
         )
         with pytest.raises(RuntimeError, match=msg):
             ds.pixel_array
@@ -259,8 +258,8 @@ class TestJPEGLS(HandlerTestBase):
         assert 1 == ds.PixelRepresentation
 
         msg = (
-            r"Unable to decompress 'JPEG-LS Lossy \(Near-Lossless\) Image Compression' "
-            "pixel data because all plugins are missing dependencies:"
+            "Unable to convert the Pixel Data as the 'pylibjpeg-libjpeg' plugin is "
+            "not installed"
         )
         with pytest.raises(RuntimeError, match=msg):
             ds.pixel_array

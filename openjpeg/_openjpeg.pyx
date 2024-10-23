@@ -252,8 +252,9 @@ def encode_array(
             f"in the range (1, {arr.dtype.itemsize * 8})"
         )
 
-    allowed = (bool, np.uint8, np.int8, np.uint16, np.int16, np.uint32, np.int32)
-    if arr.dtype not in allowed:
+    # allowed = (bool, "u1", "i1", "<u2", "<i2", "<u4", "<i4")
+    kind, itemsize = arr.dtype.kind, arr.dtype.itemsize
+    if kind not in ("b", "i", "u") or itemsize not in (1, 2, 4):
         raise ValueError(
             f"The input array has an unsupported dtype '{arr.dtype}', only bool, "
             "u1, u2, u4, i1, i2 and i4 are supported"
@@ -265,8 +266,8 @@ def encode_array(
     arr_max = arr.max()
     arr_min = arr.min()
     if (
-        (arr.dtype == np.uint32 and arr_max > 2**24 - 1)
-        or (arr.dtype == np.int32 and (arr_max > 2**23 - 1 or arr_min < -2**23))
+        (kind == "u" and itemsize == 4 and arr_max > 2**24 - 1)
+        or (kind == "i" and itemsize == 4 and (arr_max > 2**23 - 1 or arr_min < -2**23))
     ):
         raise ValueError(
             "The input array contains values outside the range of the maximum "
@@ -274,14 +275,14 @@ def encode_array(
         )
 
     # Check the array matches bits_stored
-    if arr.dtype in (np.uint8, np.uint16, np.uint32) and arr_max > 2**bits_stored - 1:
+    if kind == "u" and itemsize in (1, 2, 4) and arr_max > 2**bits_stored - 1:
         raise ValueError(
             f"A 'bits_stored' value of {bits_stored} is incompatible with "
             f"the range of pixel data in the input array: ({arr_min}, {arr_max})"
         )
 
     if (
-        arr.dtype in (np.int8, np.int16, np.int32)
+        kind == "i" and itemsize in (1, 2, 4)
         and (arr_max > 2**(bits_stored - 1) - 1 or arr_min < -2**(bits_stored - 1))
     ):
         raise ValueError(
