@@ -635,7 +635,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
                 {
                     u16.val = (unsigned short)(*p_component[ii]);
                     // Ensure little endian output
-#ifdef ON_BE_SYSTEM
+#ifdef OPJ_BIG_ENDIAN
                     *out = u16.vals[1];
                     out++;
                     *out = u16.vals[0];
@@ -665,7 +665,7 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
                 {
                     u32.val = (unsigned long)(*p_component[ii]);
                     // Ensure little endian output
-#ifdef ON_BE_SYSTEM
+#ifdef OPJ_BIG_ENDIAN
                     *out = u32.vals[3];
                     out++;
                     *out = u32.vals[2];

@@ -252,7 +252,6 @@ def encode_array(
             f"in the range (1, {arr.dtype.itemsize * 8})"
         )
 
-    # allowed = (bool, "u1", "i1", "<u2", "<i2", "<u4", "<i4")
     kind, itemsize = arr.dtype.kind, arr.dtype.itemsize
     if kind not in ("b", "i", "u") or itemsize not in (1, 2, 4):
         raise ValueError(

@@ -1,0 +1,12 @@
+.. _v2.3.0:
+
+2.3.0
+=====
+
+Changes
+.......
+
+* Fixed using MCT with RGB in ``encode_pixel_data()``
+* Removed using :class:`bytearray` as an image data source in ``encode_pixel_data()``
+  and ``encode_buffer()``
+* Added compatibility for NumPy > 2.0 with Python 3.9+

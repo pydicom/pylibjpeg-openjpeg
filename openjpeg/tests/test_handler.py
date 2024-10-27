@@ -396,7 +396,7 @@ class TestJPEG2000Lossless(HandlerTestBase):
 
         arr = ds.pixel_array
         assert arr.flags.writeable
-        assert "int16" == arr.dtype
+        assert "<i2" == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
 
         # Values checked against GDCM
@@ -418,7 +418,7 @@ class TestJPEG2000Lossless(HandlerTestBase):
 
         arr = ds.pixel_array
         assert arr.flags.writeable
-        assert "int16" == arr.dtype
+        assert "<i2" == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
 
         # Values checked against GDCM
@@ -439,7 +439,7 @@ class TestJPEG2000Lossless(HandlerTestBase):
 
         arr = ds.pixel_array
         assert arr.flags.writeable
-        assert "uint16" == arr.dtype
+        assert "<u2" == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
 
         # Values checked against GDCM
@@ -460,7 +460,7 @@ class TestJPEG2000Lossless(HandlerTestBase):
 
         arr = ds.pixel_array
         assert arr.flags.writeable
-        assert "uint16" == arr.dtype
+        assert "<u2" == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
 
         # Values checked against GDCM
@@ -481,7 +481,7 @@ class TestJPEG2000Lossless(HandlerTestBase):
 
         arr = ds.pixel_array
         assert arr.flags.writeable
-        assert "uint16" == arr.dtype
+        assert "<u2" == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
 
         # Values checked against GDCM
@@ -502,7 +502,7 @@ class TestJPEG2000Lossless(HandlerTestBase):
 
         arr = ds.pixel_array
         assert arr.flags.writeable
-        assert "uint16" == arr.dtype
+        assert "<u2" == arr.dtype
         assert (ds.NumberOfFrames, ds.Rows, ds.Columns) == arr.shape
 
         # Values checked against GDCM
@@ -728,7 +728,7 @@ class TestJPEG2000(HandlerTestBase):
 
         arr = ds.pixel_array
         assert arr.flags.writeable
-        assert "int16" == arr.dtype
+        assert "<i2" == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
 
     def test_1s_1f_i_16_16(self):
@@ -744,7 +744,7 @@ class TestJPEG2000(HandlerTestBase):
 
         arr = ds.pixel_array
         assert arr.flags.writeable
-        assert "int16" == arr.dtype
+        assert "<i2" == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
 
         # Values checked against GDCM
@@ -766,7 +766,7 @@ class TestJPEG2000(HandlerTestBase):
 
         arr = ds.pixel_array
         assert arr.flags.writeable
-        assert "uint16" == arr.dtype
+        assert "<u2" == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
 
         # Values checked against GDCM
@@ -785,7 +785,7 @@ class TestJPEG2000(HandlerTestBase):
 
         arr = ds.pixel_array
         assert arr.flags.writeable
-        assert "uint16" == arr.dtype
+        assert "<u2" == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
 
         # Values checked against GDCM
@@ -806,7 +806,7 @@ class TestJPEG2000(HandlerTestBase):
 
         arr = ds.pixel_array
         assert arr.flags.writeable
-        assert "uint16" == arr.dtype
+        assert "<u2" == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
 
         # Values checked against GDCM
@@ -828,7 +828,7 @@ class TestJPEG2000(HandlerTestBase):
 
         arr = ds.pixel_array
         assert arr.flags.writeable
-        assert "uint16" == arr.dtype
+        assert "<u2" == arr.dtype
         assert (ds.NumberOfFrames, ds.Rows, ds.Columns) == arr.shape
 
     @pytest.mark.skip("No suitable dataset")
@@ -880,7 +880,7 @@ class TestJPEG2000(HandlerTestBase):
 
         arr = ds.pixel_array
         assert arr.flags.writeable
-        assert "uint16" == arr.dtype
+        assert "<u2" == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
 
         # Values checked against GDCM

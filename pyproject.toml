@@ -8,7 +8,7 @@ requires = [
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.build]
-script = "build_lib.py"
+script = "build.py"
 generate-setup-file = true
 
 [tool.poetry]

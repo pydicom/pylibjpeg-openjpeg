@@ -791,62 +791,48 @@ extern int EncodeBuffer(
             }
         }
     } else if (bytes_per_pixel == 2) {
-        union {
-            signed short val;
-            unsigned char vals[2];
-        } u16;
+        unsigned short value;
+        unsigned char temp1;
+        unsigned char temp2;
 
         for (OPJ_UINT64 ii = 0; ii < nr_pixels; ii++)
         {
             for (p = 0; p < samples_per_pixel; p++)
             {
-#ifdef ON_BE_SYSTEM
-                u16.vals[1] = (unsigned char) *data;
+                temp1 = (unsigned char) *data;
                 data++;
-                u16.vals[0] = (unsigned char) *data;
+                temp2 = (unsigned char) *data;
                 data++;
-#else
-                u16.vals[0] = (unsigned char) *data;
-                data++;
-                u16.vals[1] = (unsigned char) *data;
-                data++;
-#endif
-                image->comps[p].data[ii] = is_signed ? u16.val : (unsigned short) u16.val;
+                value = (unsigned short) ((temp2 << 8) + temp1);
+                image->comps[p].data[ii] = is_signed ? (signed short) value : value;
             }
         }
     } else if (bytes_per_pixel == 4) {
-        union {
-            signed long val;
-            unsigned char vals[4];
-        } u32;
+        unsigned long value;
+        unsigned char temp1;
+        unsigned char temp2;
+        unsigned char temp3;
+        unsigned char temp4;
 
         for (OPJ_UINT64 ii = 0; ii < nr_pixels; ii++)
         {
             for (p = 0; p < samples_per_pixel; p++)
             {
-#ifdef ON_BE_SYSTEM
-                u32.vals[3] = (unsigned char) *data;
+                temp1 = (unsigned char) * data;
                 data++;
-                u32.vals[2] = (unsigned char) *data;
+                temp2 = (unsigned char) * data;
                 data++;
-                u32.vals[1] = (unsigned char) *data;
+                temp3 = (unsigned char) * data;
                 data++;
-                u32.vals[0] = (unsigned char) *data;
+                temp4 = (unsigned char) * data;
                 data++;
-#else
-                u32.vals[0] = (unsigned char) *data;
-                data++;
-                u32.vals[1] = (unsigned char) *data;
-                data++;
-                u32.vals[2] = (unsigned char) *data;
-                data++;
-                u32.vals[3] = (unsigned char) *data;
-                data++;
-#endif
+
+                value = (unsigned long)((temp4 << 24) + (temp3 << 16) + (temp2 << 8) + temp1);
+
                 if (is_signed) {
-                    image->comps[p].data[ii] = u32.val;
+                    image->comps[p].data[ii] = (long) value;
                 } else {
-                    image->comps[p].data[ii] = (unsigned long) u32.val;
+                    image->comps[p].data[ii] = value;
                 }
             }
         }

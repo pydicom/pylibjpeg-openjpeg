@@ -1,0 +1,14 @@
+.. _v2.2.0:
+
+2.2.0
+=====
+
+Changes
+.......
+
+* Added support for encoding using :class:`bytes` or :class:`bytearray`
+* Fixed encoding with the JP2 format
+* Changed ``nr_components`` parameter to ``samples_per_pixel`` to be more in line
+  with DICOM
+* Encoding with ``compression_ratios=[1]`` or ``signal_noise_ratios=[0]`` should now
+  result in lossless encoding.
