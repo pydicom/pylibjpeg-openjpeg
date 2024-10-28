@@ -425,21 +425,16 @@ class TestEncode:
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
 
-    # @pytest.mark.skipif(sys.byteorder == "big", reason="Running on BE system")
     def test_lossless_unsigned_u4(self):
         """Test encoding unsigned data for bit-depth 17-32"""
-        dtype = "<u4" if sys.byteorder == "little" else ">u4"
         rows = 123
         cols = 234
         planes = 3
         for bit_depth in range(17, 25):
             maximum = 2**bit_depth - 1
-            arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype=dtype)
-            # if sys.byteorder == "big":
-            #     arr = arr.byteswap().astype("<u4")
+            arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype="u4")
             buffer = encode_array(arr, photometric_interpretation=PI.MONOCHROME2)
             out = decode(buffer)
-            print(bit_depth, out.min(), out.max())
 
             param = parse_j2k(buffer)
             assert param["precision"] == bit_depth
@@ -451,7 +446,7 @@ class TestEncode:
             assert np.array_equal(arr, out)
 
             arr = np.random.randint(
-                0, high=maximum + 1, size=(rows, cols, planes), dtype=dtype
+                0, high=maximum + 1, size=(rows, cols, planes), dtype="u4"
             )
             buffer = encode_array(arr, photometric_interpretation=PI.RGB, use_mct=False)
             out = decode(buffer)
@@ -521,8 +516,7 @@ class TestEncode:
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
 
-    # @pytest.mark.skipif(sys.byteorder == "big", reason="Running on BE system")
-    def test_lossless_signed_u4(self):
+    def test_lossless_signed_i4(self):
         """Test encoding signed data for bit-depth 17-32"""
         rows = 123
         cols = 234
@@ -531,7 +525,7 @@ class TestEncode:
             maximum = 2 ** (bit_depth - 1) - 1
             minimum = -(2 ** (bit_depth - 1))
             arr = np.random.randint(
-                low=minimum, high=maximum + 1, size=(rows, cols), dtype="<i4"
+                low=minimum, high=maximum + 1, size=(rows, cols), dtype="i4"
             )
             buffer = encode_array(arr, photometric_interpretation=PI.MONOCHROME2)
             out = decode(buffer)
@@ -546,7 +540,7 @@ class TestEncode:
             assert np.array_equal(arr, out)
 
             arr = np.random.randint(
-                low=minimum, high=maximum + 1, size=(rows, cols, planes), dtype="<i4"
+                low=minimum, high=maximum + 1, size=(rows, cols, planes), dtype="i4"
             )
             buffer = encode_array(arr, photometric_interpretation=PI.RGB, use_mct=False)
             out = decode(buffer)
@@ -1227,7 +1221,7 @@ class TestEncodeBuffer:
         rows = 123
         cols = 234
         planes = 3
-        for bit_depth in range(24, 32):
+        for bit_depth in range(17, 25):
             maximum = 2**bit_depth - 1
             arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype="u4")
             if sys.byteorder == "big":
@@ -1243,14 +1237,6 @@ class TestEncodeBuffer:
                 photometric_interpretation=PI.MONOCHROME2,
             )
             out = decode(buffer)
-            print(bit_depth, arr.min(), arr.max())
-            print(bit_depth, out.min(), out.max())
-            import matplotlib.pyplot as plt
-
-            fig, (ax1, ax2) = plt.subplots(1, 2)
-            ax1.imshow(arr)
-            ax2.imshow(out)
-            plt.show()
 
             param = parse_j2k(buffer)
             assert param["precision"] == bit_depth
@@ -1462,12 +1448,15 @@ class TestEncodeBuffer:
         rows = 123
         cols = 234
         planes = 3
-        for bit_depth in range(24, 32):
+        for bit_depth in range(17, 25):
             maximum = 2 ** (bit_depth - 1) - 1
             minimum = -(2 ** (bit_depth - 1))
             arr = np.random.randint(
-                low=minimum, high=maximum + 1, size=(rows, cols), dtype="<i4"
+                low=minimum, high=maximum + 1, size=(rows, cols), dtype="i4"
             )
+            if sys.byteorder == "big":
+                arr = arr.byteswap().view("<i4")
+
             buffer = encode_buffer(
                 arr.tobytes(),
                 cols,
@@ -1478,14 +1467,7 @@ class TestEncodeBuffer:
                 photometric_interpretation=PI.MONOCHROME2,
             )
             out = decode(buffer)
-            print(bit_depth, arr.min(), arr.max())
-            print(bit_depth, out.min(), out.max())
-            import matplotlib.pyplot as plt
 
-            fig, (ax1, ax2) = plt.subplots(1, 2)
-            ax1.imshow(arr)
-            ax2.imshow(out)
-            plt.show()
 
             param = parse_j2k(buffer)
             assert param["precision"] == bit_depth
@@ -1497,8 +1479,11 @@ class TestEncodeBuffer:
             assert np.array_equal(arr, out)
 
             arr = np.random.randint(
-                low=minimum, high=maximum + 1, size=(rows, cols, planes), dtype="<i4"
+                low=minimum, high=maximum + 1, size=(rows, cols, planes), dtype="i4"
             )
+            if sys.byteorder == "big":
+                arr = arr.byteswap().view("<i4")
+
             buffer = encode_buffer(
                 arr.tobytes(),
                 cols,

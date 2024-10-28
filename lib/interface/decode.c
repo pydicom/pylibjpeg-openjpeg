@@ -635,24 +635,25 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
                 {
                     u16.val = (unsigned short)(*p_component[ii]);
                     // Ensure little endian output
-#ifdef OPJ_BIG_ENDIAN
-                    *out = u16.vals[1];
-                    out++;
-                    *out = u16.vals[0];
-                    out++;
-#else
-                    *out = u16.vals[0];
-                    out++;
-                    *out = u16.vals[1];
-                    out++;
-#endif
+                    #ifdef PYOJ_BIG_ENDIAN
+                        *out = u16.vals[1];
+                        out++;
+                        *out = u16.vals[0];
+                        out++;
+                    #else
+                        *out = u16.vals[0];
+                        out++;
+                        *out = u16.vals[1];
+                        out++;
+                    #endif
+
                     p_component[ii]++;
                 }
             }
         }
     } else if (precision <= 32) {
         union {
-            unsigned long val;
+            OPJ_INT32 val;
             unsigned char vals[4];
         } u32;
 
@@ -663,27 +664,27 @@ extern int Decode(PyObject* fd, unsigned char *out, int codec_format)
             {
                 for (ii = 0; ii < NR_COMPONENTS; ii++)
                 {
-                    u32.val = (unsigned long)(*p_component[ii]);
+                    u32.val = (OPJ_INT32)(*p_component[ii]);
                     // Ensure little endian output
-#ifdef OPJ_BIG_ENDIAN
-                    *out = u32.vals[3];
-                    out++;
-                    *out = u32.vals[2];
-                    out++;
-                    *out = u32.vals[1];
-                    out++;
-                    *out = u32.vals[0];
-                    out++;
-#else
-                    *out = u32.vals[0];
-                    out++;
-                    *out = u32.vals[1];
-                    out++;
-                    *out = u32.vals[2];
-                    out++;
-                    *out = u32.vals[3];
-                    out++;
-#endif
+                    #ifdef PYOJ_BIG_ENDIAN
+                        *out = u32.vals[3];
+                        out++;
+                        *out = u32.vals[2];
+                        out++;
+                        *out = u32.vals[1];
+                        out++;
+                        *out = u32.vals[0];
+                        out++;
+                    #else
+                        *out = u32.vals[0];
+                        out++;
+                        *out = u32.vals[1];
+                        out++;
+                        *out = u32.vals[2];
+                        out++;
+                        *out = u32.vals[3];
+                        out++;
+                    #endif
 
                     p_component[ii]++;
                 }

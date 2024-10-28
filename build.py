@@ -26,14 +26,9 @@ def build(setup_kwargs: Any) -> Any:
     setup_oj()
 
     # Determine if system is big endian or not
-    macros = [
-        ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"),
-        # ("USE_JPIP", "0"),
-    ]
+    macros = [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
     if unpack("h", b"\x00\x01")[0] == 1:
-        # macros.append(("ON_BE_SYSTEM", None))
-        macros.append(("OPJ_BIG_ENDIAN", None))
-        # macros.append(("__BIG_ENDIAN__", None))
+        macros.append(("PYOJ_BIG_ENDIAN", None))
 
     ext = Extension(
         "_openjpeg",
@@ -150,14 +145,6 @@ def setup_oj() -> None:
         with open(INTERFACE_SRC / "opj_config.h", "a") as f:
             f.write("\n")
             f.write("#define USE_JPIP 0")
-
-    # Use our own OPJ_BIG_ENDIAN macro
-    if os.path.exists(INTERFACE_SRC / "opj_config_private.h"):
-        with open(INTERFACE_SRC / "opj_config_private.h", "r") as f:
-            lines = f.readlines()
-
-        with open(INTERFACE_SRC / "opj_config_private.h", "w") as f:
-            f.writelines(lines[:-5])
 
 
 def reset_oj() -> None:
