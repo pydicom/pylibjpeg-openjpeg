@@ -10,11 +10,3 @@ Changes
 * Supported Python versions are 3.9 to 3.13.
 * NumPy < 2.0 is no longer supported.
 * Switched to OpenJpeg v2.5.2
-
-Known Issues
-------------
-
-* OpenJpeg seems to be unable to correctly encode image data with more than 16-bit
-  precision when running on big endian systems
-* Encoding images on little endian systems works with up to 24-bit precision, but the
-  results for lossy encoding can be extremely poor for more than 20+ bits.
