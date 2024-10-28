@@ -53,7 +53,7 @@ version = "2.4.0"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-numpy = "^2.1"
+numpy = "^2.0"
 
 [tool.poetry.plugins."pylibjpeg.jpeg_2000_decoders"]
 openjpeg = "openjpeg:decode"
