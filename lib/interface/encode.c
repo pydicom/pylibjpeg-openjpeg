@@ -137,7 +137,7 @@ extern int EncodeArray(
 
     // Check array is C-style, contiguous and aligned
     if (PyArray_ISCARRAY_RO(arr) != 1) {
-        py_error("The input array must be C-style, contiguous and aligned");
+        py_error("The input array must be C-style, contiguous, aligned and in machine byte-order");
         return 7;
     };
 
@@ -383,7 +383,12 @@ extern int EncodeArray(
                 {
                     ptr = PyArray_GETPTR3(arr, r, c, p);
                     // `data[...]` is OPJ_INT32, so *may* support range i (1, 32), u (1, 31)
-                    image->comps[p].data[c + columns * r] = is_signed ? *(npy_int32 *) ptr : *(npy_uint32 *) ptr;
+                    if (is_signed) {
+                        image->comps[p].data[c + columns * r] = *(npy_int32 *) ptr;
+                    } else {
+                        image->comps[p].data[c + columns * r] = *(npy_uint32 *) ptr;
+
+                    }
                 }
             }
         }
@@ -780,46 +785,55 @@ extern int EncodeBuffer(
         {
             for (p = 0; p < samples_per_pixel; p++)
             {
-                image->comps[p].data[ii] = is_signed ? *data : (unsigned char) *data;
+                // comps[...].data[...] is OPJ_INT32 -> int32_t
+                image->comps[p].data[ii] = is_signed ? (signed char) *data : (unsigned char) *data;
                 data++;
             }
         }
     } else if (bytes_per_pixel == 2) {
-        union {
-            short val;
-            unsigned char vals[2];
-        } u16;
+        unsigned short value;
+        unsigned char temp1;
+        unsigned char temp2;
 
         for (OPJ_UINT64 ii = 0; ii < nr_pixels; ii++)
         {
             for (p = 0; p < samples_per_pixel; p++)
             {
-                u16.vals[0] = (unsigned char) *data;
+                temp1 = (unsigned char) *data;
                 data++;
-                u16.vals[1] = (unsigned char) *data;
+                temp2 = (unsigned char) *data;
                 data++;
-                image->comps[p].data[ii] = is_signed ? u16.val : (unsigned short) u16.val;
+                value = (unsigned short) ((temp2 << 8) + temp1);
+                image->comps[p].data[ii] = is_signed ? (signed short) value : value;
             }
         }
     } else if (bytes_per_pixel == 4) {
-        union {
-            long val;
-            unsigned char vals[4];
-        } u32;
+        unsigned long value;
+        unsigned char temp1;
+        unsigned char temp2;
+        unsigned char temp3;
+        unsigned char temp4;
 
         for (OPJ_UINT64 ii = 0; ii < nr_pixels; ii++)
         {
             for (p = 0; p < samples_per_pixel; p++)
             {
-                u32.vals[0] = (unsigned char) *data;
+                temp1 = (unsigned char) * data;
                 data++;
-                u32.vals[1] = (unsigned char) *data;
+                temp2 = (unsigned char) * data;
                 data++;
-                u32.vals[2] = (unsigned char) *data;
+                temp3 = (unsigned char) * data;
                 data++;
-                u32.vals[3] = (unsigned char) *data;
+                temp4 = (unsigned char) * data;
                 data++;
-                image->comps[p].data[ii] = is_signed ? u32.val : (unsigned long) u32.val;
+
+                value = (unsigned long)((temp4 << 24) + (temp3 << 16) + (temp2 << 8) + temp1);
+
+                if (is_signed) {
+                    image->comps[p].data[ii] = (long) value;
+                } else {
+                    image->comps[p].data[ii] = value;
+                }
             }
         }
     }

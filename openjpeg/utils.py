@@ -224,7 +224,7 @@ def decode(
     bpp = ceil(precision / 8)
 
     bpp = 4 if bpp == 3 else bpp
-    dtype = f"u{bpp}" if not pixel_representation else f"i{bpp}"
+    dtype = f"<u{bpp}" if not pixel_representation else f"<i{bpp}"
     arr = arr.view(dtype)
 
     shape = [rows, columns]

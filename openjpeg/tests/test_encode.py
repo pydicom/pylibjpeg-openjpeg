@@ -1,5 +1,6 @@
 import math
 from struct import unpack
+import sys
 
 import numpy as np
 import pytest
@@ -145,21 +146,21 @@ class TestEncode:
             r"pixel data in the input array: \(-16385, 2\)"
         )
         with pytest.raises(ValueError, match=msg):
-            encode_array(np.asarray([-(2**14) - 1, 2], dtype="i2"), bits_stored=15)
+            encode_array(np.asarray([-(2**14) - 1, 2], dtype="<i2"), bits_stored=15)
 
         msg = (
             "A 'bits_stored' value of 15 is incompatible with the range of "
             r"pixel data in the input array: \(-16384, 16384\)"
         )
         with pytest.raises(ValueError, match=msg):
-            encode_array(np.asarray([-(2**14), 2**14], dtype="i2"), bits_stored=15)
+            encode_array(np.asarray([-(2**14), 2**14], dtype="<i2"), bits_stored=15)
 
         msg = (
             "A 'bits_stored' value of 4 is incompatible with the range of "
             r"pixel data in the input array: \(0, 16\)"
         )
         with pytest.raises(ValueError, match=msg):
-            encode_array(np.asarray([0, 2**4], dtype="u2"), bits_stored=4)
+            encode_array(np.asarray([0, 2**4], dtype="<u2"), bits_stored=4)
 
     def test_invalid_pixel_value_raises(self):
         """Test invalid pixel values raise exceptions."""
@@ -168,13 +169,13 @@ class TestEncode:
             "supported bit-depth of 24"
         )
         with pytest.raises(ValueError, match=msg):
-            encode_array(np.asarray([2**24, 2], dtype="u4"))
+            encode_array(np.asarray([2**24, 2], dtype="<u4"))
 
         with pytest.raises(ValueError, match=msg):
-            encode_array(np.asarray([2**23, 2], dtype="i4"))
+            encode_array(np.asarray([2**23, 2], dtype="<i4"))
 
         with pytest.raises(ValueError, match=msg):
-            encode_array(np.asarray([-(2**23) - 1, 2], dtype="i4"))
+            encode_array(np.asarray([-(2**23) - 1, 2], dtype="<i4"))
 
     def test_compression_snr_raises(self):
         """Test using compression_ratios and signal_noise_ratios raises."""
@@ -184,7 +185,7 @@ class TestEncode:
         )
         with pytest.raises(ValueError, match=msg):
             encode_array(
-                np.asarray([0, 2], dtype="u2"),
+                np.asarray([0, 2], dtype="<u2"),
                 compression_ratios=[2, 1],
                 signal_noise_ratios=[1, 2],
             )
@@ -515,7 +516,7 @@ class TestEncode:
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
 
-    def test_lossless_signed_u4(self):
+    def test_lossless_signed_i4(self):
         """Test encoding signed data for bit-depth 17-32"""
         rows = 123
         cols = 234
@@ -657,8 +658,12 @@ class TestEncode:
             data = f.read()
 
         arr = decode(data)
-        assert "i2" == arr.dtype
+        assert "<i2" == arr.dtype
         assert (512, 512) == arr.shape
+
+        if sys.byteorder == "big":
+            # ndarray must match system byte order
+            arr = arr.astype(">i2")
 
         # Test lossless
         result = encode_array(
@@ -1125,11 +1130,21 @@ class TestEncodeBuffer:
 
     def test_lossless_unsigned_u2(self):
         """Test encoding unsigned data for bit-depth 9-16"""
+        jpg = DIR_15444 / "2KLS" / "693.j2k"
+        with open(jpg, "rb") as f:
+            data = f.read()
+
+        arr = decode(data)
+
         rows = 123
         cols = 234
         for bit_depth in range(9, 17):
             maximum = 2**bit_depth - 1
             arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype="u2")
+            if sys.byteorder == "big":
+                # I think randint() requires dtype use machine byte order
+                arr = arr.byteswap().view("<u2")
+
             buffer = encode_buffer(
                 arr.tobytes(),
                 cols,
@@ -1152,6 +1167,9 @@ class TestEncodeBuffer:
             arr = np.random.randint(
                 0, high=maximum + 1, size=(rows, cols, 3), dtype="u2"
             )
+            if sys.byteorder == "big":
+                arr = arr.byteswap().view("<u2")
+
             buffer = encode_buffer(
                 arr.tobytes(),
                 cols,
@@ -1175,6 +1193,9 @@ class TestEncodeBuffer:
             arr = np.random.randint(
                 0, high=maximum + 1, size=(rows, cols, 4), dtype="u2"
             )
+            if sys.byteorder == "big":
+                arr = arr.byteswap().view("<u2")
+
             buffer = encode_buffer(
                 arr.tobytes(),
                 cols,
@@ -1203,6 +1224,9 @@ class TestEncodeBuffer:
         for bit_depth in range(17, 25):
             maximum = 2**bit_depth - 1
             arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype="u4")
+            if sys.byteorder == "big":
+                arr = arr.byteswap().view("<u4")
+
             buffer = encode_buffer(
                 arr.tobytes(),
                 cols,
@@ -1226,6 +1250,9 @@ class TestEncodeBuffer:
             arr = np.random.randint(
                 0, high=maximum + 1, size=(rows, cols, planes), dtype="u4"
             )
+            if sys.byteorder == "big":
+                arr = arr.byteswap().view("<u4")
+
             buffer = encode_buffer(
                 arr.tobytes(),
                 cols,
@@ -1337,6 +1364,9 @@ class TestEncodeBuffer:
             arr = np.random.randint(
                 low=minimum, high=maximum + 1, size=(rows, cols), dtype="i2"
             )
+            if sys.byteorder == "big":
+                arr = arr.byteswap().view("<i2")
+
             buffer = encode_buffer(
                 arr.tobytes(),
                 cols,
@@ -1362,6 +1392,9 @@ class TestEncodeBuffer:
             arr = np.random.randint(
                 low=minimum, high=maximum + 1, size=(rows, cols, 3), dtype="i2"
             )
+            if sys.byteorder == "big":
+                arr = arr.byteswap().view("<i2")
+
             buffer = encode_buffer(
                 arr.tobytes(),
                 cols,
@@ -1386,6 +1419,9 @@ class TestEncodeBuffer:
             arr = np.random.randint(
                 low=minimum, high=maximum + 1, size=(rows, cols, 4), dtype="i2"
             )
+            if sys.byteorder == "big":
+                arr = arr.byteswap().view("<i2")
+
             buffer = encode_buffer(
                 arr.tobytes(),
                 cols,
@@ -1418,6 +1454,9 @@ class TestEncodeBuffer:
             arr = np.random.randint(
                 low=minimum, high=maximum + 1, size=(rows, cols), dtype="i4"
             )
+            if sys.byteorder == "big":
+                arr = arr.byteswap().view("<i4")
+
             buffer = encode_buffer(
                 arr.tobytes(),
                 cols,
@@ -1428,6 +1467,7 @@ class TestEncodeBuffer:
                 photometric_interpretation=PI.MONOCHROME2,
             )
             out = decode(buffer)
+
 
             param = parse_j2k(buffer)
             assert param["precision"] == bit_depth
@@ -1441,6 +1481,9 @@ class TestEncodeBuffer:
             arr = np.random.randint(
                 low=minimum, high=maximum + 1, size=(rows, cols, planes), dtype="i4"
             )
+            if sys.byteorder == "big":
+                arr = arr.byteswap().view("<i4")
+
             buffer = encode_buffer(
                 arr.tobytes(),
                 cols,
@@ -1470,6 +1513,9 @@ class TestEncodeBuffer:
             maximum = 2**bit_depth - 1
             dtype = f"u{math.ceil(bit_depth / 8)}"
             arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype=dtype)
+            if sys.byteorder == "big":
+                arr = arr.byteswap().view(f"<{dtype}")
+
             buffer = encode_buffer(
                 arr.tobytes(),
                 cols,
@@ -1519,6 +1565,9 @@ class TestEncodeBuffer:
             arr = np.random.randint(
                 low=minimum, high=maximum + 1, size=(rows, cols), dtype=dtype
             )
+            if sys.byteorder == "big":
+                arr = arr.byteswap().view(f"<{dtype}")
+
             buffer = encode_buffer(
                 arr.tobytes(),
                 cols,
@@ -1616,7 +1665,7 @@ class TestEncodeBuffer:
             data = f.read()
 
         arr = decode(data)
-        assert "i2" == arr.dtype
+        assert "<i2" == arr.dtype
         assert (512, 512) == arr.shape
 
         # Test lossless
@@ -1778,17 +1827,17 @@ class TestGetBitsStored:
     """Tests for _get_bits_stored()"""
 
     def check_signed(self, nr_bits, minimin, minimax, maximax, maximin):
-        arr = np.asarray([minimin, minimax], dtype="i2")
+        arr = np.asarray([minimin, minimax], dtype="<i2")
         assert _get_bits_stored(arr) == nr_bits
-        arr = np.asarray([minimax - 1, minimax], dtype="i2")
+        arr = np.asarray([minimax - 1, minimax], dtype="<i2")
         assert _get_bits_stored(arr) == nr_bits
-        arr = np.asarray([minimin, minimin + 1], dtype="i2")
+        arr = np.asarray([minimin, minimin + 1], dtype="<i2")
         assert _get_bits_stored(arr) == nr_bits
-        arr = np.asarray([maximin, maximax], dtype="i2")
+        arr = np.asarray([maximin, maximax], dtype="<i2")
         assert _get_bits_stored(arr) == nr_bits
-        arr = np.asarray([0, maximax], dtype="i2")
+        arr = np.asarray([0, maximax], dtype="<i2")
         assert _get_bits_stored(arr) == nr_bits
-        arr = np.asarray([minimin, 0], dtype="i2")
+        arr = np.asarray([minimin, 0], dtype="<i2")
         assert _get_bits_stored(arr) == nr_bits
 
     def test_bool(self):
@@ -1801,91 +1850,91 @@ class TestGetBitsStored:
 
     def test_unsigned(self):
         """Test unsigned integer input."""
-        arr = np.asarray([0, 0], dtype="u2")
+        arr = np.asarray([0, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 1
-        arr = np.asarray([1, 0], dtype="u2")
+        arr = np.asarray([1, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 1
 
-        arr = np.asarray([2, 0], dtype="u2")
+        arr = np.asarray([2, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 2
-        arr = np.asarray([3, 0], dtype="u2")
+        arr = np.asarray([3, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 2
 
-        arr = np.asarray([4, 0], dtype="u2")
+        arr = np.asarray([4, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 3
-        arr = np.asarray([7, 0], dtype="u2")
+        arr = np.asarray([7, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 3
 
-        arr = np.asarray([8, 0], dtype="u2")
+        arr = np.asarray([8, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 4
-        arr = np.asarray([15, 0], dtype="u2")
+        arr = np.asarray([15, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 4
 
-        arr = np.asarray([16, 0], dtype="u2")
+        arr = np.asarray([16, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 5
-        arr = np.asarray([31, 0], dtype="u2")
+        arr = np.asarray([31, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 5
 
-        arr = np.asarray([32, 0], dtype="u2")
+        arr = np.asarray([32, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 6
-        arr = np.asarray([63, 0], dtype="u2")
+        arr = np.asarray([63, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 6
 
-        arr = np.asarray([64, 0], dtype="u2")
+        arr = np.asarray([64, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 7
-        arr = np.asarray([127, 0], dtype="u2")
+        arr = np.asarray([127, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 7
 
-        arr = np.asarray([128, 0], dtype="u2")
+        arr = np.asarray([128, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 8
-        arr = np.asarray([255, 0], dtype="u2")
+        arr = np.asarray([255, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 8
 
-        arr = np.asarray([256, 0], dtype="u2")
+        arr = np.asarray([256, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 9
-        arr = np.asarray([511, 0], dtype="u2")
+        arr = np.asarray([511, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 9
 
-        arr = np.asarray([512, 0], dtype="u2")
+        arr = np.asarray([512, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 10
-        arr = np.asarray([1023, 0], dtype="u2")
+        arr = np.asarray([1023, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 10
 
-        arr = np.asarray([1024, 0], dtype="u2")
+        arr = np.asarray([1024, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 11
-        arr = np.asarray([2047, 0], dtype="u2")
+        arr = np.asarray([2047, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 11
 
-        arr = np.asarray([2048, 0], dtype="u2")
+        arr = np.asarray([2048, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 12
-        arr = np.asarray([4095, 0], dtype="u2")
+        arr = np.asarray([4095, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 12
 
-        arr = np.asarray([4096, 0], dtype="u2")
+        arr = np.asarray([4096, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 13
-        arr = np.asarray([8191, 0], dtype="u2")
+        arr = np.asarray([8191, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 13
 
-        arr = np.asarray([8192, 0], dtype="u2")
+        arr = np.asarray([8192, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 14
-        arr = np.asarray([16383, 0], dtype="u2")
+        arr = np.asarray([16383, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 14
 
-        arr = np.asarray([16384, 0], dtype="u2")
+        arr = np.asarray([16384, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 15
-        arr = np.asarray([32767, 0], dtype="u2")
+        arr = np.asarray([32767, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 15
 
-        arr = np.asarray([32768, 0], dtype="u2")
+        arr = np.asarray([32768, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 16
-        arr = np.asarray([65535, 0], dtype="u2")
+        arr = np.asarray([65535, 0], dtype="<u2")
         assert _get_bits_stored(arr) == 16
 
     def test_signed(self):
         """Test signed integer input."""
-        arr = np.asarray([0, 0], dtype="i2")
+        arr = np.asarray([0, 0], dtype="<i2")
         assert _get_bits_stored(arr) == 1
-        arr = np.asarray([-1, 0], dtype="i2")
+        arr = np.asarray([-1, 0], dtype="<i2")
         assert _get_bits_stored(arr) == 1
 
         minimin, minimax = -2, 1

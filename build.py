@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 import shutil
+from struct import unpack
 import subprocess
 from typing import List, Any
 
@@ -24,6 +25,11 @@ def build(setup_kwargs: Any) -> Any:
 
     setup_oj()
 
+    # Determine if system is big endian or not
+    macros = [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
+    if unpack("h", b"\x00\x01")[0] == 1:
+        macros.append(("PYOJ_BIG_ENDIAN", None))
+
     ext = Extension(
         "_openjpeg",
         [os.fspath(p) for p in get_source_files()],
@@ -35,6 +41,7 @@ def build(setup_kwargs: Any) -> Any:
         ],
         extra_compile_args=[],
         extra_link_args=[],
+        define_macros=macros,
     )
 
     ext_modules = cythonize(

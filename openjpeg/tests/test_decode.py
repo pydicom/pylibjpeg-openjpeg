@@ -112,7 +112,7 @@ class TestDecode:
         assert isinstance(frame, bytes)
         arr = decode(frame)
         assert arr.flags.writeable
-        assert "int16" == arr.dtype
+        assert "<i2" == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
 
         # It'd be nice to standardise the pixel value testing...
@@ -130,7 +130,7 @@ class TestDecode:
         assert isinstance(frame, BytesIO)
         arr = decode(frame)
         assert arr.flags.writeable
-        assert "int16" == arr.dtype
+        assert "<i2" == arr.dtype
         assert (ds.Rows, ds.Columns) == arr.shape
 
         # It'd be nice to standardise the pixel value testing...
@@ -327,7 +327,7 @@ class TestDecode:
         with (d / "693.j2k").open("rb") as f:
             buffer = decode_pixel_data(f.read(), version=2)
             assert isinstance(buffer, bytearray)
-            arr = np.frombuffer(buffer, dtype="i2").reshape((512, 512))
+            arr = np.frombuffer(buffer, dtype="<i2").reshape((512, 512))
             assert arr[270, 55:65].tolist() == [
                 340,
                 815,
@@ -347,7 +347,7 @@ class TestDecode:
         with (d / "693.j2k").open("rb") as f:
             buffer = decode_pixel_data(f.read(), version=2)
             assert isinstance(buffer, bytearray)
-            arr = np.frombuffer(buffer, dtype="i2").reshape((512, 512))
+            arr = np.frombuffer(buffer, dtype="<i2").reshape((512, 512))
             assert arr[270, 55:65].tolist() == [
                 340,
                 815,
@@ -395,9 +395,9 @@ class TestDecodeDCM:
                 assert arr.dtype == "uint8"
         if 9 <= info[3] <= 16:
             if info[4] == 1:
-                assert arr.dtype == "int16"
+                assert arr.dtype == "<i2"
             else:
-                assert arr.dtype == "uint16"
+                assert arr.dtype == "<u2"
 
     @pytest.mark.parametrize("fname, info", REF_DCM["1.2.840.10008.1.2.4.91"])
     def test_jpeg2000i(self, fname, info):
@@ -429,6 +429,6 @@ class TestDecodeDCM:
                 assert arr.dtype == "uint8"
         if 9 <= info[3] <= 16:
             if info[4] == 1:
-                assert arr.dtype == "int16"
+                assert arr.dtype == "<i2"
             else:
-                assert arr.dtype == "uint16"
+                assert arr.dtype == "<u2"
