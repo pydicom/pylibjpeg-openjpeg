@@ -25,6 +25,7 @@ classifiers=[
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Medical Science Apps.",
     "Topic :: Software Development :: Libraries",
@@ -48,7 +49,7 @@ packages = [
     {include = "openjpeg" },
 ]
 readme = "README.md"
-version = "2.4.0"
+version = "2.5.0"
 
 
 [tool.poetry.dependencies]

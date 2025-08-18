@@ -781,20 +781,39 @@ extern int EncodeBuffer(
     OPJ_UINT64 nr_pixels = rows * columns;
     char *data = PyBytes_AsString(src);
     if (bytes_per_pixel == 1) {
+        unsigned char value;
+        unsigned char unsigned_mask = 0xFF >> (8 - bits_stored + is_signed);
+        unsigned char signed_mask = 0xFF << bits_stored;
+        unsigned char bit_flag = 1 << (bits_stored - 1);
         for (OPJ_UINT64 ii = 0; ii < nr_pixels; ii++)
         {
             for (p = 0; p < samples_per_pixel; p++)
             {
                 // comps[...].data[...] is OPJ_INT32 -> int32_t
-                image->comps[p].data[ii] = is_signed ? (signed char) *data : (unsigned char) *data;
+                value = (unsigned char) *data;
                 data++;
+
+                if (bits_stored < 8) {
+                    // Unsigned: zero out bits above `precision`
+                    // Signed: zero out bits above `precision` if value >= 0, otherwise
+                    //  set them to one
+                    if (is_signed && (bit_flag & value)) {
+                        value = value | signed_mask;
+                    } else {
+                        value = value & unsigned_mask;
+                    }
+                }
+
+                image->comps[p].data[ii] = is_signed ? (signed char) value : value;
             }
         }
     } else if (bytes_per_pixel == 2) {
         unsigned short value;
         unsigned char temp1;
         unsigned char temp2;
-
+        unsigned short unsigned_mask = 0xFFFF >> (16 - bits_stored);
+        unsigned short signed_mask = 0xFFFF << bits_stored;
+        unsigned short bit_flag = 1 << (bits_stored - 1);
         for (OPJ_UINT64 ii = 0; ii < nr_pixels; ii++)
         {
             for (p = 0; p < samples_per_pixel; p++)
@@ -803,7 +822,16 @@ extern int EncodeBuffer(
                 data++;
                 temp2 = (unsigned char) *data;
                 data++;
+
                 value = (unsigned short) ((temp2 << 8) + temp1);
+                if (bits_stored < 16) {
+                    if (is_signed && (bit_flag & value)) {
+                        value = value | signed_mask;
+                    } else {
+                        value = value & unsigned_mask;
+                    }
+                }
+
                 image->comps[p].data[ii] = is_signed ? (signed short) value : value;
             }
         }
@@ -813,7 +841,9 @@ extern int EncodeBuffer(
         unsigned char temp2;
         unsigned char temp3;
         unsigned char temp4;
-
+        unsigned long unsigned_mask = 0xFFFFFFFF >> (32 - bits_stored);
+        unsigned long signed_mask = 0xFFFFFFFF << bits_stored;
+        unsigned long bit_flag = 1 << (bits_stored - 1);
         for (OPJ_UINT64 ii = 0; ii < nr_pixels; ii++)
         {
             for (p = 0; p < samples_per_pixel; p++)
@@ -827,13 +857,16 @@ extern int EncodeBuffer(
                 temp4 = (unsigned char) * data;
                 data++;
 
-                value = (unsigned long)((temp4 << 24) + (temp3 << 16) + (temp2 << 8) + temp1);
-
-                if (is_signed) {
-                    image->comps[p].data[ii] = (long) value;
-                } else {
-                    image->comps[p].data[ii] = value;
+                value = (unsigned long) ((temp4 << 24) + (temp3 << 16) + (temp2 << 8) + temp1);
+                if (bits_stored < 32) {
+                    if (is_signed && (bit_flag & value)) {
+                        value = value | signed_mask;
+                    } else {
+                        value = value & unsigned_mask;
+                    }
                 }
+
+                image->comps[p].data[ii] = is_signed ? (long) value : value;
             }
         }
     }

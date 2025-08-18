@@ -3,8 +3,8 @@
 from io import BytesIO
 
 try:
-    from pydicom.encaps import generate_pixel_data_frame
-    from pydicom.pixel_data_handlers.util import (
+    from pydicom.encaps import generate_frames
+    from pydicom.pixels.utils import (
         reshape_pixel_array,
         pixel_dtype,
     )
@@ -72,10 +72,10 @@ def test_version():
     assert 5 == version[1]
 
 
-def generate_frames(ds):
+def get_frame_generator(ds):
     """Return a frame generator for DICOM datasets."""
     nr_frames = ds.get("NumberOfFrames", 1)
-    return generate_pixel_data_frame(ds.PixelData, nr_frames)
+    return generate_frames(ds.PixelData, number_of_frames=nr_frames)
 
 
 def test_get_format_raises():
@@ -91,7 +91,7 @@ def test_bad_decode():
     """Test trying to decode bad data."""
     index = get_indexed_datasets("1.2.840.10008.1.2.4.90")
     ds = index["966.dcm"]["ds"]
-    frame = next(generate_frames(ds))
+    frame = next(get_frame_generator(ds))
     msg = r"Error decoding the J2K data: failed to decode image"
     with pytest.raises(RuntimeError, match=msg):
         decode(frame)
@@ -108,7 +108,7 @@ class TestDecode:
         """Test decoding using bytes."""
         index = get_indexed_datasets("1.2.840.10008.1.2.4.90")
         ds = index["MR_small_jp2klossless.dcm"]["ds"]
-        frame = next(generate_frames(ds))
+        frame = next(get_frame_generator(ds))
         assert isinstance(frame, bytes)
         arr = decode(frame)
         assert arr.flags.writeable
@@ -126,7 +126,7 @@ class TestDecode:
         """Test decoding using file-like."""
         index = get_indexed_datasets("1.2.840.10008.1.2.4.90")
         ds = index["MR_small_jp2klossless.dcm"]["ds"]
-        frame = BytesIO(next(generate_frames(ds)))
+        frame = BytesIO(next(get_frame_generator(ds)))
         assert isinstance(frame, BytesIO)
         arr = decode(frame)
         assert arr.flags.writeable
@@ -144,7 +144,7 @@ class TestDecode:
         """Test decoding using invalid type raises."""
         index = get_indexed_datasets("1.2.840.10008.1.2.4.90")
         ds = index["MR_small_jp2klossless.dcm"]["ds"]
-        frame = tuple(next(generate_frames(ds)))
+        frame = tuple(next(get_frame_generator(ds)))
         assert not hasattr(frame, "tell") and not isinstance(frame, bytes)
 
         msg = (
@@ -159,7 +159,7 @@ class TestDecode:
         """Test decoding using invalid jpeg format raises."""
         index = get_indexed_datasets("1.2.840.10008.1.2.4.90")
         ds = index["MR_small_jp2klossless.dcm"]["ds"]
-        frame = next(generate_frames(ds))
+        frame = next(get_frame_generator(ds))
 
         msg = r"Unsupported 'j2k_format' value: 3"
         with pytest.raises(ValueError, match=msg):
@@ -170,7 +170,7 @@ class TestDecode:
         """Test decoding using invalid jpeg format raises."""
         index = get_indexed_datasets("1.2.840.10008.1.2.4.90")
         ds = index["US1_J2KR.dcm"]["ds"]
-        frame = next(generate_frames(ds))
+        frame = next(get_frame_generator(ds))
 
         arr = decode(frame)
         assert arr.flags.writeable
@@ -205,7 +205,7 @@ class TestDecode:
         """Test decoding using invalid jpeg format raises."""
         index = get_indexed_datasets("1.2.840.10008.1.2.4.90")
         ds = index["US1_J2KR.dcm"]["ds"]
-        frame = next(generate_frames(ds))
+        frame = next(get_frame_generator(ds))
 
         arr = decode(frame, reshape=False)
         assert arr.flags.writeable
@@ -216,7 +216,7 @@ class TestDecode:
         """Regression test for #30."""
         index = get_indexed_datasets("1.2.840.10008.1.2.4.90")
         ds = index["693_J2KR.dcm"]["ds"]
-        frame = next(generate_frames(ds))
+        frame = next(get_frame_generator(ds))
 
         arr = decode(frame)
         assert -2000 == arr[0, 0]
@@ -372,7 +372,7 @@ class TestDecodeDCM:
         # info: (rows, columns, spp, bps)
         index = get_indexed_datasets("1.2.840.10008.1.2.4.90")
         ds = index[fname]["ds"]
-        frame = next(generate_frames(ds))
+        frame = next(get_frame_generator(ds))
         arr = decode(BytesIO(frame), reshape=False)
         assert arr.flags.writeable
 
@@ -406,7 +406,7 @@ class TestDecodeDCM:
         index = get_indexed_datasets("1.2.840.10008.1.2.4.91")
         ds = index[fname]["ds"]
 
-        frame = next(generate_frames(ds))
+        frame = next(get_frame_generator(ds))
         arr = decode(BytesIO(frame), reshape=False)
         assert arr.flags.writeable
 
