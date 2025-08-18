@@ -37,5 +37,11 @@
 
 #ifndef _OPJ_COLOR_H_
 #define _OPJ_COLOR_H_
-    extern void color_sycc_to_rgb(opj_image_t *img);
-#endif
+
+extern void color_sycc_to_rgb(opj_image_t *img);
+extern void color_apply_icc_profile(opj_image_t *image);
+extern void color_cielab_to_rgb(opj_image_t *image);
+
+extern void color_cmyk_to_rgb(opj_image_t *image);
+extern void color_esycc_to_rgb(opj_image_t *image);
+#endif /* _OPJ_COLOR_H_ */
