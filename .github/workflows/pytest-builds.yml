@@ -25,6 +25,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         architecture: ${{ matrix.arch }}
+        allow-prereleases: true
 
     - name: Install package and dependencies
       run: |
@@ -59,6 +60,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+        allow-prereleases: true
 
     - name: Install package and dependencies
       run: |
@@ -82,7 +84,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
 
     steps:
     - uses: actions/checkout@v4
@@ -93,6 +95,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+        allow-prereleases: true
 
     - name: Install package and dependencies
       run: |
@@ -106,13 +109,14 @@ jobs:
         pytest --cov openjpeg openjpeg/tests
 
     - name: Install pydicom dev and rerun pytest (3.10+)
-      if: ${{ contains('3.10 3.11 3.12 3.13', matrix.python-version) }}
+      if: ${{ contains('3.10 3.11 3.12 3.13 3.14', matrix.python-version) }}
       run: |
         pip install pylibjpeg
         pip install git+https://github.com/pydicom/pydicom
         pytest --cov openjpeg openjpeg/tests
 
     - name: Switch to current pydicom release and rerun pytest
+      if: ${{ contains('3.10 3.11 3.12 3.13', matrix.python-version) }}
       run: |
         pip uninstall -y pydicom
         pip install pydicom pylibjpeg

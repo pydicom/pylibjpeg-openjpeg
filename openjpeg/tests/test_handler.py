@@ -4,8 +4,8 @@ import pytest
 
 try:
     from pydicom import __version__
-    from pydicom.encaps import generate_pixel_data_frame
-    from pydicom.pixel_data_handlers.util import (
+    from pydicom.encaps import generate_frames
+    from pydicom.pixels.utils import (
         reshape_pixel_array,
         pixel_dtype,
     )
@@ -21,10 +21,10 @@ if HAS_PYDICOM:
     PYD_VERSION = int(__version__.split(".")[0])
 
 
-def generate_frames(ds):
+def get_frame_generator(ds):
     """Return a frame generator for DICOM datasets."""
     nr_frames = ds.get("NumberOfFrames", 1)
-    return generate_pixel_data_frame(ds.PixelData, nr_frames)
+    return generate_frames(ds.PixelData, number_of_frames=nr_frames)
 
 
 @pytest.mark.skipif(not HAS_PYDICOM, reason="pydicom unavailable")
@@ -35,7 +35,7 @@ class TestHandler:
         """Test decoding using invalid type raises."""
         index = get_indexed_datasets("1.2.840.10008.1.2.4.90")
         ds = index["MR_small_jp2klossless.dcm"]["ds"]
-        frame = tuple(next(generate_frames(ds)))
+        frame = tuple(next(get_frame_generator(ds)))
         assert not hasattr(frame, "tell") and not isinstance(frame, bytes)
 
         msg = "a bytes-like object is required, not 'tuple'"
@@ -45,7 +45,7 @@ class TestHandler:
     def test_no_dataset(self):
         index = get_indexed_datasets("1.2.840.10008.1.2.4.90")
         ds = index["MR_small_jp2klossless.dcm"]["ds"]
-        frame = next(generate_frames(ds))
+        frame = next(get_frame_generator(ds))
         arr = decode_pixel_data(frame)
         assert arr.flags.writeable
         assert "uint8" == arr.dtype
@@ -636,7 +636,7 @@ class TestJPEG2000Lossless(HandlerTestBase):
         # Note: if PR is 1 but the JPEG data is unsigned then it should
         #   probably be converted to signed using 2s complement
         ds.pixel_array
-        frame = next(generate_frames(ds))
+        frame = next(get_frame_generator(ds))
         params = get_parameters(frame)
         assert params["is_signed"] is False
 
@@ -656,7 +656,7 @@ class TestJPEG2000Lossless(HandlerTestBase):
         # Note: if PR is 0 but the JPEG data is signed then... ?
         ds.pixel_array
 
-        frame = next(generate_frames(ds))
+        frame = next(get_frame_generator(ds))
         params = get_parameters(frame)
         assert params["is_signed"] is True
 

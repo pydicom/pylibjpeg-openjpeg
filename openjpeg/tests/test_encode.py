@@ -11,6 +11,7 @@ from openjpeg.utils import (
     encode_buffer,
     encode_pixel_data,
     decode,
+    decode_pixel_data,
     PhotometricInterpretation as PI,
     _get_bits_stored,
 )
@@ -1056,7 +1057,7 @@ class TestEncodeBuffer:
         assert out.dtype.kind == "u"
         assert np.array_equal(arr, out)
 
-    def test_lossless_unsigned_u1(self):
+    def test_lossless_u1(self):
         """Test encoding unsigned data for bit-depth 1-8"""
         rows = 123
         cols = 234
@@ -1128,7 +1129,35 @@ class TestEncodeBuffer:
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
 
-    def test_lossless_unsigned_u2(self):
+    def test_lossless_u1_overflow(self):
+        """Test encoding result when data exists in bits above the precision."""
+        arr = np.ones((64 * 64 - 4), dtype="u1")
+        src = [
+            # 8-bit value -> 6-bit value
+            #   |--->
+            0b1110_0000,  # 0b0010_0000
+            0b1111_1111,  # 0b0011_1111
+            0b0000_0000,  # 0b0000_0000
+            0b0000_0001,  # 0b0000_0001
+        ]
+        src = b"".join([v.to_bytes(length=1, byteorder="little") for v in src])
+        src += arr.tobytes()
+        buffer = encode_buffer(
+            src,
+            rows=64,
+            columns=64,
+            samples_per_pixel=1,
+            bits_stored=6,
+            is_signed=False,
+            photometric_interpretation=PI.MONOCHROME2,
+        )
+        out = decode_pixel_data(buffer, version=2)
+        assert out[0] == 0b0010_0000
+        assert out[1] == 0b0011_1111
+        assert out[2] == 0
+        assert out[3] == 1
+
+    def test_lossless_u2(self):
         """Test encoding unsigned data for bit-depth 9-16"""
         jpg = DIR_15444 / "2KLS" / "693.j2k"
         with open(jpg, "rb") as f:
@@ -1216,7 +1245,39 @@ class TestEncodeBuffer:
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
 
-    def test_lossless_unsigned_u4(self):
+    def test_lossless_u2_overflow(self):
+        """Test encoding result when data exists in bits above the precision."""
+        arr = np.ones((64 * 64 - 6), dtype="u2")
+        src = [
+            # 16-bit value -> 12-bit value
+            #      |--->
+            0b1111_0000_0000_0000,  # 0b0000_0000_0000_0000
+            0b1111_1111_1111_1111,  # 0b0000_1111_1111_1111
+            0b0000_1111_1111_1111,  # 0b0000_0011_1111_1111
+            0b0000_0000_0000_0000,  # 0b0000_0000_0000_0000
+            0b0000_0000_0000_0001,  # 0b0000_0000_0000_0001
+            0b1111_0000_1111_0000,  # 0b0000_0000_1111_0000
+        ]
+        src = b"".join([v.to_bytes(length=2, byteorder="little") for v in src])
+        src += arr.tobytes()
+        buffer = encode_buffer(
+            src,
+            rows=64,
+            columns=64,
+            samples_per_pixel=1,
+            bits_stored=12,
+            is_signed=False,
+            photometric_interpretation=PI.MONOCHROME2,
+        )
+        out = decode_pixel_data(buffer, version=2)
+        assert int.from_bytes(out[0:2], byteorder="little") ==0
+        assert int.from_bytes(out[2:4], byteorder="little") == 0b0000_1111_1111_1111
+        assert int.from_bytes(out[4:6], byteorder="little") == 0b0000_1111_1111_1111
+        assert int.from_bytes(out[6:8], byteorder="little") == 0
+        assert int.from_bytes(out[8:10], byteorder="little") == 1
+        assert int.from_bytes(out[10:12], byteorder="little") == 0b0000_0000_1111_0000
+
+    def test_lossless_u4(self):
         """Test encoding unsigned data for bit-depth 17-24"""
         rows = 123
         cols = 234
@@ -1274,10 +1335,48 @@ class TestEncodeBuffer:
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
 
-    def test_lossless_signed_i1(self):
+    def test_lossless_u4_overflow(self):
+        """Test encoding result when data exists in bits above the precision."""
+        arr = np.ones((64 * 64 - 6), dtype="u4")
+        src = [
+            # 32-bit value -> 24-bit value
+            #           |--->
+            0b1111_1111_0000_0000_0000_0000_0000_0000,
+            0b1111_1111_1111_1111_1111_1111_1111_1111,
+            0b0000_1111_1111_1111_1111_1111_1111_1111,
+            0b0000_0000_0000_0000_0000_0000_0000_0000,
+            0b0000_0000_0000_0000_0000_0000_0000_0001,
+            0b1111_0000_1111_0000_1111_0000_1111_0000,
+        ]
+        src = b"".join([v.to_bytes(length=4, byteorder="little") for v in src])
+        src += arr.tobytes()
+        buffer = encode_buffer(
+            src,
+            rows=64,
+            columns=64,
+            samples_per_pixel=1,
+            bits_stored=24,
+            is_signed=False,
+            photometric_interpretation=PI.MONOCHROME2,
+        )
+        out = decode_pixel_data(buffer, version=2)
+        assert int.from_bytes(out[0:4], byteorder="little") == 0
+        assert int.from_bytes(out[4:8], byteorder="little") == (
+            0b0000_0000_1111_1111_1111_1111_1111_1111
+        )
+        assert int.from_bytes(out[8:12], byteorder="little") == (
+            0b0000_0000_1111_1111_1111_1111_1111_1111
+        )
+        assert int.from_bytes(out[12:16], byteorder="little") == 0
+        assert int.from_bytes(out[16:20], byteorder="little") == 1
+        assert int.from_bytes(out[20:24], byteorder="little") == (
+            0b0000_0000_1111_0000_1111_0000_1111_0000
+        )
+
+    def test_lossless_i1(self):
         """Test encoding signed data for bit-depth 1-8"""
         rows = 123
-        cols = 543
+        cols = 234
         for bit_depth in range(2, 9):
             maximum = 2 ** (bit_depth - 1) - 1
             minimum = -(2 ** (bit_depth - 1))
@@ -1354,10 +1453,50 @@ class TestEncodeBuffer:
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
 
-    def test_lossless_signed_i2(self):
+    def test_lossless_i1_overflow(self):
+        """Test encoding result when data exists in bits above the precision."""
+        arr = np.ones((64 * 64 - 10), dtype="i1")
+        src = [
+            # 8-bit value -> 6-bit value
+            #   |--->
+            0b1110_0000,  # 0b1110_0000
+            0b1111_1111,  # 0b1111_1111
+            0b0000_0000,  # 0b0000_0000
+            0b0000_0001,  # 0b0000_0001
+            0b0001_1111,  # 0b0001_1111
+            0b1011_0100,  # 0b1111_0100
+            0b1111_0100,  # 0b1111_0100
+            0b1101_0100,  # 0b0001_0100
+            0b0110_1100,  # 0b1110_1100
+            0b0010_0011,  # 0b1110_0011
+        ]
+        src = b"".join([v.to_bytes(length=1, byteorder="little") for v in src])
+        src += arr.tobytes()
+        buffer = encode_buffer(
+            src,
+            rows=64,
+            columns=64,
+            samples_per_pixel=1,
+            bits_stored=6,
+            is_signed=True,
+            photometric_interpretation=PI.MONOCHROME2,
+        )
+        out = decode_pixel_data(buffer, version=2)
+        assert out[0] == 0b1110_0000
+        assert out[1] == 0b1111_1111
+        assert out[2] == 0b0000_0000
+        assert out[3] == 0b0000_0001
+        assert out[4] == 0b0001_1111
+        assert out[5] == 0b1111_0100
+        assert out[6] == 0b1111_0100
+        assert out[7] == 0b0001_0100
+        assert out[8] == 0b1110_1100
+        assert out[9] == 0b1110_0011
+
+    def test_lossless_i2(self):
         """Test encoding signed data for bit-depth 9-16"""
         rows = 123
-        cols = 543
+        cols = 234
         for bit_depth in range(9, 17):
             maximum = 2 ** (bit_depth - 1) - 1
             minimum = -(2 ** (bit_depth - 1))
@@ -1443,7 +1582,47 @@ class TestEncodeBuffer:
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
 
-    def test_lossless_signed_i4(self):
+    def test_lossless_i2_overflow(self):
+        """Test encoding result when data exists in bits above the precision."""
+        arr = np.ones((64 * 64 - 10), dtype="i2")
+        src = [
+            # 16-bit value -> 12-bit value
+            #      |--->
+            0b1111_0000_0000_0000,  # 0b0000_0000_0000_0000
+            0b1111_1111_1111_1111,  # 0b1111_1111_1111_1111
+            0b0000_1111_1111_1111,  # 0b1111_1111_1111_1111
+            0b0000_0000_0000_0000,  # 0b0000_0000_0000_0000
+            0b0000_0000_0000_0001,  # 0b0000_0000_0000_0001
+            0b1111_0000_1111_0000,  # 0b0000_0000_1111_0000
+            0b0000_0111_1111_1111,  # 0b0000_0111_1111_1111
+            0b1010_1001_1001_0110,  # 0b1111_1001_1001_0110
+            0b1010_0101_1001_0110,  # 0b0000_0101_1001_0110
+            0b0001_1101_1001_0110,  # 0b1111_1101_1001_0110
+        ]
+        src = b"".join([v.to_bytes(length=2, byteorder="little") for v in src])
+        src += arr.tobytes()
+        buffer = encode_buffer(
+            src,
+            rows=64,
+            columns=64,
+            samples_per_pixel=1,
+            bits_stored=12,
+            is_signed=True,
+            photometric_interpretation=PI.MONOCHROME2,
+        )
+        out = decode_pixel_data(buffer, version=2)
+        assert int.from_bytes(out[0:2], byteorder="little") == 0
+        assert int.from_bytes(out[2:4], byteorder="little") == 0b1111_1111_1111_1111
+        assert int.from_bytes(out[4:6], byteorder="little") == 0b1111_1111_1111_1111
+        assert int.from_bytes(out[6:8], byteorder="little") == 0
+        assert int.from_bytes(out[8:10], byteorder="little") == 1
+        assert int.from_bytes(out[10:12], byteorder="little") == 0b0000_0000_1111_0000
+        assert int.from_bytes(out[12:14], byteorder="little") == 0b0000_0111_1111_1111
+        assert int.from_bytes(out[14:16], byteorder="little") == 0b1111_1001_1001_0110
+        assert int.from_bytes(out[16:18], byteorder="little") == 0b0000_0101_1001_0110
+        assert int.from_bytes(out[18:20], byteorder="little") == 0b1111_1101_1001_0110
+
+    def test_lossless_i4(self):
         """Test encoding signed data for bit-depth 17-24"""
         rows = 123
         cols = 234
@@ -1504,6 +1683,60 @@ class TestEncodeBuffer:
 
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
+
+    def test_lossless_i4_overflow(self):
+        """Test encoding result when data exists in bits above the precision."""
+        arr = np.ones((64 * 64 - 10), dtype="i4")
+        src = [
+            # 32-bit value -> 24-bit value
+            #           |--->
+            0b1111_1111_0000_0000_0000_0000_0000_0000,
+            0b1111_1111_1111_1111_1111_1111_1111_1111,
+            0b0000_0000_1111_1111_1111_1111_1111_1111,
+            0b0000_0000_0000_0000_0000_0000_0000_0000,
+            0b0000_0000_0000_0000_0000_0000_0000_0001,
+            0b1111_0000_1111_0000_1111_0000_1111_0000,
+            0b0000_0000_0111_1111_1111_1111_1111_1111,
+            0b1100_1100_1010_1001_1001_0110_0111_1110,
+            0b1100_1100_0010_1001_1001_0110_0111_1110,
+            0b0000_0001_1101_1001_0110_0111_1110_1111,
+        ]
+        src = b"".join([v.to_bytes(length=4, byteorder="little") for v in src])
+        src += arr.tobytes()
+        buffer = encode_buffer(
+            src,
+            rows=64,
+            columns=64,
+            samples_per_pixel=1,
+            bits_stored=24,
+            is_signed=True,
+            photometric_interpretation=PI.MONOCHROME2,
+        )
+        out = decode_pixel_data(buffer, version=2)
+        assert int.from_bytes(out[0:4], byteorder="little") == 0
+        assert int.from_bytes(out[4:8], byteorder="little") == (
+            0b1111_1111_1111_1111_1111_1111_1111_1111
+        )
+        assert int.from_bytes(out[8:12], byteorder="little") == (
+            0b1111_1111_1111_1111_1111_1111_1111_1111
+        )
+        assert int.from_bytes(out[12:16], byteorder="little") == 0
+        assert int.from_bytes(out[16:20], byteorder="little") == 1
+        assert int.from_bytes(out[20:24], byteorder="little") == (
+            0b1111_1111_1111_0000_1111_0000_1111_0000
+        )
+        assert int.from_bytes(out[24:28], byteorder="little") == (
+            0b0000_0000_0111_1111_1111_1111_1111_1111
+        )
+        assert int.from_bytes(out[28:32], byteorder="little") == (
+            0b1111_1111_1010_1001_1001_0110_0111_1110
+        )
+        assert int.from_bytes(out[32:36], byteorder="little") == (
+            0b0000_0000_0010_1001_1001_0110_0111_1110
+        )
+        assert int.from_bytes(out[36:40], byteorder="little") == (
+            0b1111_1111_1101_1001_0110_0111_1110_1111
+        )
 
     def test_lossy_unsigned(self):
         """Test lossy encoding with unsigned data"""
@@ -1727,6 +1960,79 @@ class TestEncodeBuffer:
 
         buffer = encode_buffer(arr.tobytes(), **kwargs)
         assert buffer.startswith(b"\x00\x00\x00\x0c\x6a\x50\x20\x20\x0d\x0a\x87\x0a")
+
+    @pytest.mark.skip()
+    def test_unused_bits_u1(self):
+        """Test that bits above precision are ignored."""
+        rows = 123
+        cols = 234
+        for bit_depth in range(2, 9):
+            maximum = 2**bit_depth - 1
+            arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype="u1")
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                1,
+                bit_depth,
+                False,
+                photometric_interpretation=PI.MONOCHROME2,
+            )
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 1
+            assert param["components"] == 1
+
+            assert out.dtype.kind == "u"
+            assert np.array_equal(arr, out)
+
+            arr = np.random.randint(
+                0, high=maximum + 1, size=(rows, cols, 3), dtype="u1"
+            )
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                3,
+                bit_depth,
+                False,
+                photometric_interpretation=PI.RGB,
+                use_mct=False,
+            )
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 1
+            assert param["components"] == 3
+
+            assert out.dtype.kind == "u"
+            assert np.array_equal(arr, out)
+
+            arr = np.random.randint(
+                0, high=maximum + 1, size=(rows, cols, 4), dtype="u1"
+            )
+            buffer = encode_buffer(
+                arr.tobytes(),
+                cols,
+                rows,
+                4,
+                bit_depth,
+                False,
+                photometric_interpretation=5,
+                use_mct=False,
+            )
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 1
+            assert param["components"] == 4
+
+            assert out.dtype.kind == "u"
+            assert np.array_equal(arr, out)
 
 
 class TestEncodePixelData:

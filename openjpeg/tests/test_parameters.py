@@ -3,7 +3,7 @@
 import pytest
 
 try:
-    from pydicom.encaps import generate_pixel_data_frame
+    from pydicom.encaps import generate_frames
 
     HAS_PYDICOM = True
 except ImportError:
@@ -50,10 +50,10 @@ REF_DCM = {
 }
 
 
-def generate_frames(ds):
+def get_frame_generator(ds):
     """Return a frame generator for DICOM datasets."""
     nr_frames = ds.get("NumberOfFrames", 1)
-    return generate_pixel_data_frame(ds.PixelData, nr_frames)
+    return generate_frames(ds.PixelData, number_of_frames=nr_frames)
 
 
 def test_bad_decode():
@@ -87,7 +87,7 @@ class TestGetParametersDCM:
         index = get_indexed_datasets("1.2.840.10008.1.2.4.90")
         ds = index[fname]["ds"]
 
-        frame = next(generate_frames(ds))
+        frame = next(get_frame_generator(ds))
         params = get_parameters(frame)
 
         assert (info[0], info[1]) == (params["rows"], params["columns"])
@@ -101,7 +101,7 @@ class TestGetParametersDCM:
         index = get_indexed_datasets("1.2.840.10008.1.2.4.91")
         ds = index[fname]["ds"]
 
-        frame = next(generate_frames(ds))
+        frame = next(get_frame_generator(ds))
         params = get_parameters(frame)
 
         assert (info[0], info[1]) == (params["rows"], params["columns"])
@@ -114,7 +114,7 @@ class TestGetParametersDCM:
         """Test decoding using invalid type raises."""
         index = get_indexed_datasets("1.2.840.10008.1.2.4.90")
         ds = index["MR_small_jp2klossless.dcm"]["ds"]
-        frame = tuple(next(generate_frames(ds)))
+        frame = tuple(next(get_frame_generator(ds)))
         assert not hasattr(frame, "tell") and not isinstance(frame, bytes)
 
         msg = (
@@ -129,7 +129,7 @@ class TestGetParametersDCM:
         """Test decoding using invalid format raises."""
         index = get_indexed_datasets("1.2.840.10008.1.2.4.90")
         ds = index["693_J2KR.dcm"]["ds"]
-        frame = next(generate_frames(ds))
+        frame = next(get_frame_generator(ds))
         msg = r"Unsupported 'j2k_format' value: 3"
         with pytest.raises(ValueError, match=msg):
             get_parameters(frame, j2k_format=3)

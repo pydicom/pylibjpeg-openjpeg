@@ -1,0 +1,10 @@
+.. _v2.5.0:
+
+2.5.0
+=====
+
+Changes
+.......
+
+* Bits above the precision are now ignored when encoding (:issue:`104`)
+* Supported Python versions are 3.9 to 3.14.
