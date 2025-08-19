@@ -38,7 +38,6 @@ def build(setup_kwargs: Any) -> Any:
         language="c",
         include_dirs=[
             os.fspath(OPENJPEG_SRC),
-            # os.fspath(THIRDPARTY_SRC / "liblcms2" / "src"),
             os.fspath(THIRDPARTY_SRC / "liblcms2" / "include"),
             os.fspath(INTERFACE_SRC),
             numpy.get_include(),
