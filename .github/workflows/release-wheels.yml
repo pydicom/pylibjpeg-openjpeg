@@ -3,9 +3,9 @@ name: release-deploy
 on:
   release:
     types: [ published ]
-  push:
-    branches: [ main ]
-  pull_request:
+  # push:
+  #   branches: [ main ]
+  # pull_request:
 
 jobs:
   build-sdist:
