@@ -3,9 +3,9 @@ name: release-deploy
 on:
   release:
     types: [ published ]
-  # push:
-  #   branches: [ main ]
-  # pull_request:
+  push:
+    branches: [ main ]
+  pull_request:
 
 jobs:
   build-sdist:
@@ -166,7 +166,7 @@ jobs:
     - name: Install cibuildwheel
       run: |
         python -m pip install -U pip
-        python -m pip install cibuildwheel>=2.21
+        python -m pip install cibuildwheel>=3.1.0
 
     - name: Build wheels (non-MacOS arm64)
       env:
@@ -225,7 +225,7 @@ jobs:
         python-version: '3.9'
 
     - name: Install cibuildwheel
-      run: python -m pip install cibuildwheel>=2.21 wheel>=0.42
+      run: python -m pip install cibuildwheel>=3.1.0 wheel>=0.42
 
     - name: Build wheels
       env:
