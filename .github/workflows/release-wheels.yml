@@ -171,6 +171,7 @@ jobs:
     - name: Build wheels (non-MacOS arm64)
       env:
         CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.platform_id }}
+        CIBW_PLATFORM: linux, macos, windows
         CIBW_ARCHS: all
         CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux_image }}
         CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.manylinux_image }}
@@ -230,6 +231,7 @@ jobs:
     - name: Build wheels
       env:
         CIBW_BUILD: cp${{ matrix.python }}-*
+        CIBW_PLATFORM: macos
         CIBW_ARCHS_MACOS: arm64
         CIBW_BUILD_VERBOSITY: 1
       run: |
