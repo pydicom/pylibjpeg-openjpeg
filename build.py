@@ -11,6 +11,8 @@ PACKAGE_DIR = Path(__file__).parent / "openjpeg"
 LIB_DIR = Path(__file__).parent / "lib"
 BUILD_TOOLS = Path(__file__).parent / "build_tools"
 OPENJPEG_SRC = LIB_DIR / "openjpeg" / "src" / "lib" / "openjp2"
+THIRDPARTY_SRC = LIB_DIR / "openjpeg" / "thirdparty"
+BIN_SRC = LIB_DIR / "openjpeg" / "src" / "bin" / "common"
 INTERFACE_SRC = LIB_DIR / "interface"
 BUILD_DIR = LIB_DIR / "openjpeg" / "build"
 BACKUP_DIR = BUILD_TOOLS / "backup"
@@ -36,6 +38,7 @@ def build(setup_kwargs: Any) -> Any:
         language="c",
         include_dirs=[
             os.fspath(OPENJPEG_SRC),
+            os.fspath(THIRDPARTY_SRC / "liblcms2" / "include"),
             os.fspath(INTERFACE_SRC),
             numpy.get_include(),
         ],
@@ -83,6 +86,10 @@ def get_source_files() -> List[Path]:
         if fname.suffix == ".c":
             source_files.append(fname)
 
+    for name in (THIRDPARTY_SRC / "liblcms2" / "src").glob("*"):
+        if name.suffix == ".c":
+            source_files.append(name)
+
     source_files = [p.relative_to(Path(__file__).parent) for p in source_files]
     source_files.insert(0, PACKAGE_DIR / "_openjpeg.pyx")
 
@@ -100,6 +107,10 @@ def setup_oj() -> None:
 
     BACKUP_DIR.mkdir(exist_ok=True, parents=True)
 
+    # Copy the color space conversion files
+    for name in ("color.c", "color.h"):
+        shutil.copy(BIN_SRC / name, INTERFACE_SRC / name)
+
     shutil.copy(
         LIB_DIR / "openjpeg" / "CMakeLists.txt",
         BACKUP_DIR / "CMakeLists.txt.backup",
@@ -114,6 +125,7 @@ def setup_oj() -> None:
         BUILD_TOOLS / "cmake" / "CMakeLists.txt",
         LIB_DIR / "openjpeg" / "CMakeLists.txt",
     )
+
     # Edit openjpeg.c to remove the OPJ_API declaration
     with p_openjpeg.open("r") as f:
         data = f.readlines()
@@ -128,17 +140,22 @@ def setup_oj() -> None:
     if os.path.exists(BUILD_DIR):
         shutil.rmtree(BUILD_DIR)
 
-    try:
-        os.remove(INTERFACE_SRC / "opj_config.h")
-        os.remove(INTERFACE_SRC / "opj_config_private.h")
-    except:
-        pass
+    for name in ("opj_config.h", "opj_config_private.h"):
+        try:
+            os.remove(INTERFACE_SRC / name)
+        except:
+            pass
 
     os.mkdir(BUILD_DIR)
     cur_dir = os.getcwd()
     os.chdir(BUILD_DIR)
     subprocess.call(['cmake', os.fspath((LIB_DIR / "openjpeg").resolve(strict=True))])
     os.chdir(cur_dir)
+
+    shutil.copy(
+        BUILD_DIR / "src" / "bin" / "common" / "opj_apps_config.h",
+        INTERFACE_SRC / "opj_apps_config.h",
+    )
 
     # Turn off JPIP
     if os.path.exists(INTERFACE_SRC / "opj_config.h"):
