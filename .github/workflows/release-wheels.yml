@@ -17,7 +17,7 @@ jobs:
       with:
         submodules: true
 
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       name: Install Python
       with:
         python-version: '3.13'
@@ -158,7 +158,7 @@ jobs:
       with:
         platforms: arm64
 
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       name: Install Python
       with:
         python-version: '3.13'
@@ -219,7 +219,7 @@ jobs:
       with:
         submodules: true
 
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       name: Install Python
       with:
         python-version: '3.13'
@@ -253,7 +253,7 @@ jobs:
   #
   #   steps:
   #   - name: Set up Python ${{ matrix.python-version }}
-  #     uses: actions/setup-python@v5
+  #     uses: actions/setup-python@v6
   #     with:
   #       python-version: ${{ matrix.python-version }}
   #
