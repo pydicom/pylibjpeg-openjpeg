@@ -9,7 +9,7 @@
 
 ## pylibjpeg-openjpeg
 
-A Python 3.8+ wrapper for
+A Python 3.9+ wrapper for
 [openjpeg](https://github.com/uclouvain/openjpeg), with a focus on use as a plugin for [pylibjpeg](http://github.com/pydicom/pylibjpeg).
 
 Linux, OSX and Windows are all supported.
