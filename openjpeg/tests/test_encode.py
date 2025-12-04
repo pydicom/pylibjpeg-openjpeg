@@ -219,9 +219,9 @@ class TestEncode:
 
     def test_invalid_compression_ratios_raises(self):
         """Test an invalid 'compression_ratios' raises exceptions."""
-        msg = "More than 10 compression layers is not supported"
+        msg = "More than 100 compression layers is not supported"
         with pytest.raises(ValueError, match=msg):
-            encode_array(np.ones((1, 2), dtype="u1"), compression_ratios=[1] * 11)
+            encode_array(np.ones((1, 2), dtype="u1"), compression_ratios=[1] * 101)
 
         msg = (
             "Error encoding the data: invalid compression ratio, lowest value "
@@ -232,9 +232,9 @@ class TestEncode:
 
     def test_invalid_signal_noise_ratios_raises(self):
         """Test an invalid 'signal_noise_ratios' raises exceptions."""
-        msg = "More than 10 compression layers is not supported"
+        msg = "More than 100 compression layers is not supported"
         with pytest.raises(ValueError, match=msg):
-            encode_array(np.ones((1, 2), dtype="u1"), signal_noise_ratios=[1] * 11)
+            encode_array(np.ones((1, 2), dtype="u1"), signal_noise_ratios=[1] * 101)
 
         msg = (
             "Error encoding the data: invalid signal-to-noise ratio, lowest "
@@ -802,9 +802,9 @@ class TestEncodeBuffer:
 
     def test_invalid_compression_ratios_raises(self):
         """Test an invalid 'compression_ratios' raises exceptions."""
-        msg = "More than 10 compression layers is not supported"
+        msg = "More than 100 compression layers is not supported"
         with pytest.raises(ValueError, match=msg):
-            encode_buffer(b"\x00", 1, 1, 1, 8, False, compression_ratios=[1] * 11)
+            encode_buffer(b"\x00", 1, 1, 1, 8, False, compression_ratios=[1] * 101)
 
         msg = (
             "Error encoding the data: invalid compression ratio, lowest value "
@@ -815,9 +815,9 @@ class TestEncodeBuffer:
 
     def test_invalid_signal_noise_ratios_raises(self):
         """Test an invalid 'signal_noise_ratios' raises exceptions."""
-        msg = "More than 10 compression layers is not supported"
+        msg = "More than 100 compression layers is not supported"
         with pytest.raises(ValueError, match=msg):
-            encode_buffer(b"\x00", 1, 1, 1, 8, False, signal_noise_ratios=[1] * 11)
+            encode_buffer(b"\x00", 1, 1, 1, 8, False, signal_noise_ratios=[1] * 101)
 
         msg = (
             "Error encoding the data: invalid signal-to-noise ratio, lowest "

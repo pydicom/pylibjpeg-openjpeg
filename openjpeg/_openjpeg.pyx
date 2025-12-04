@@ -304,8 +304,8 @@ def encode_array(
             "Only one of 'compression_ratios' or 'signal_noise_ratios' is "
             "allowed when performing lossy compression"
         )
-    if len(compression_ratios) > 10 or len(signal_noise_ratios) > 10:
-        raise ValueError("More than 10 compression layers is not supported")
+    if len(compression_ratios) > 100 or len(signal_noise_ratios) > 100:
+        raise ValueError("More than 100 compression layers is not supported")
 
     # The destination for the encoded J2K codestream, needs to support BinaryIO
     dst = BytesIO()
@@ -449,8 +449,8 @@ def encode_buffer(
             "Only one of 'compression_ratios' or 'signal_noise_ratios' is "
             "allowed when performing lossy compression"
         )
-    if len(compression_ratios) > 10 or len(signal_noise_ratios) > 10:
-        raise ValueError("More than 10 compression layers is not supported")
+    if len(compression_ratios) > 100 or len(signal_noise_ratios) > 100:
+        raise ValueError("More than 100 compression layers is not supported")
 
     dst = BytesIO()
     return_code = EncodeBuffer(
