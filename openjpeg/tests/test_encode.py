@@ -70,6 +70,57 @@ def parse_j2k(buffer):
 
     return param
 
+def parse_codestream_markers(buffer):
+    offset = 0
+    markers = []
+    while offset < len(buffer):
+        symbol_code_bytes = buffer[offset: offset + 2]
+        marker = unpack(">H", symbol_code_bytes)[0]
+        offset += 2
+        if marker == 0xFF4F:
+            markers.append("SOC")
+        elif marker == 0xFF51:
+            markers.append("SIZ")
+            length_bytes = buffer[offset: offset + 2]
+            length = unpack(">H", length_bytes)[0]
+            offset += length
+        elif marker == 0xFF52:
+            markers.append("COD")
+            length_bytes = buffer[offset: offset + 2]
+            length = unpack(">H", length_bytes)[0]
+            offset += length
+        elif marker == 0xFF55:
+            markers.append("TLM")
+            length_bytes = buffer[offset: offset + 2]
+            length = unpack(">H", length_bytes)[0]
+            offset += length
+        elif marker == 0xFF58:
+            markers.append("PLT")
+            length_bytes = buffer[offset: offset + 2]
+            length = unpack(">H", length_bytes)[0]
+            offset += length
+        elif marker == 0xFF5C:
+            markers.append("QCD")
+            length_bytes = buffer[offset: offset + 2]
+            length = unpack(">H", length_bytes)[0]
+            offset += length
+        elif marker == 0xFF64:
+            markers.append("COM")
+            length_bytes = buffer[offset: offset + 2]
+            length = unpack(">H", length_bytes)[0]
+            offset += length
+        elif marker == 0xFF90:
+            markers.append("SOT")
+            length_bytes = buffer[offset: offset + 2]
+            length = unpack(">H", length_bytes)[0]
+            offset += length
+        elif marker == 0xFF93:
+            markers.append("SOD")
+            # If we get to here, we have the marker info we need
+            break
+        else:
+            raise Exception(f"unexpected marker: 0x{marker:04X}")
+    return markers
 
 class TestEncode:
     """Tests for encode_array()"""
@@ -700,7 +751,84 @@ class TestEncode:
 
         buffer = encode_array(arr, codec_format=1)
         assert buffer.startswith(b"\x00\x00\x00\x0c\x6a\x50\x20\x20\x0d\x0a\x87\x0a")
+        
+    def test_no_tlm_or_plt_explicit(self):
+        """Test encoding with no TLM or PLT, explicitly disabled"""
+        rows = 123
+        cols = 234
+        bit_depth = 8
+        maximum = 2**bit_depth - 1
+        dtype = f"u{math.ceil(bit_depth / 8)}"
+        arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype=dtype)
+        buffer = encode_array(arr, compression_ratios=[4, 2, 1], add_tlm=False, add_plt=False)
+        out = decode(buffer)
+        markers = parse_codestream_markers(buffer)
+        assert "TLM" not in markers
+        assert "PLT" not in markers
+        assert np.allclose(arr, out, atol=5)
 
+    def test_no_tlm_or_plt_default(self):
+        """Test encoding with no TLM or PLT, default options"""
+        rows = 123
+        cols = 234
+        bit_depth = 8
+        maximum = 2**bit_depth - 1
+        dtype = f"u{math.ceil(bit_depth / 8)}"
+        arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype=dtype)
+        buffer = encode_array(arr, compression_ratios=[4, 2, 1])
+        out = decode(buffer)
+        markers = parse_codestream_markers(buffer)
+        assert "TLM" not in markers
+        assert "PLT" not in markers
+        assert np.allclose(arr, out, atol=5)
+
+        
+    def test_tlm(self):
+        """Test encoding with TLM"""
+        rows = 123
+        cols = 234
+        bit_depth = 8
+        maximum = 2**bit_depth - 1
+        dtype = f"u{math.ceil(bit_depth / 8)}"
+        arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype=dtype)
+        buffer = encode_array(arr, compression_ratios=[4, 2, 1], add_tlm=True)
+        out = decode(buffer)
+        markers = parse_codestream_markers(buffer)
+        assert "TLM" in markers
+        assert "PLT" not in markers
+        assert np.allclose(arr, out, atol=5)
+        
+    def test_plt(self):
+        """Test encoding with PLT"""
+        rows = 123
+        cols = 234
+        bit_depth = 8
+        maximum = 2**bit_depth - 1
+        dtype = f"u{math.ceil(bit_depth / 8)}"
+        arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype=dtype)
+        buffer = encode_array(arr, compression_ratios=[4, 2, 1], add_plt=True)
+        out = decode(buffer)
+        markers = parse_codestream_markers(buffer)
+        assert "TLM" not in markers
+        assert "PLT" in markers
+        assert np.allclose(arr, out, atol=5)
+        
+    def test_tlm_and_plt(self):
+        """Test encoding with both TLM and PLT"""
+        rows = 123
+        cols = 234
+        bit_depth = 8
+        maximum = 2**bit_depth - 1
+        dtype = f"u{math.ceil(bit_depth / 8)}"
+        arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype=dtype)
+        buffer = encode_array(arr, compression_ratios=[4, 2, 1], add_plt=True, add_tlm=True)
+        out = decode(buffer)
+        param = parse_j2k(buffer)
+        assert param["precision"] == bit_depth
+        markers = parse_codestream_markers(buffer)
+        assert "TLM" in markers
+        assert "PLT" in markers
+        assert np.allclose(arr, out, atol=5)
 
 class TestEncodeBuffer:
     """Tests for _openjpeg.encode_buffer"""

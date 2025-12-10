@@ -37,7 +37,9 @@ extern int EncodeArray(
     int use_mct,
     PyObject *compression_ratios,
     PyObject *signal_noise_ratios,
-    int codec_format
+    int codec_format,
+    int add_tlm,
+    int add_plt
 )
 {
     /* Encode a numpy ndarray using JPEG 2000.
@@ -64,6 +66,10 @@ extern int EncodeArray(
         The format of the encoded JPEG 2000 data, one of:
         * ``0`` - OPJ_CODEC_J2K : JPEG-2000 codestream
         * ``1`` - OPJ_CODEC_JP2 : JP2 file format
+    add_tlm : int
+        Add tile-part data length markers (TLM). Supported values 0-1.
+    add_plt : int
+        Add packet length tile-part header markers (PLT). Supported values 0-1.
 
     Returns
     -------
@@ -409,6 +415,24 @@ extern int EncodeArray(
             py_error("Failed to set the encoding handler");
             return_code = 22;
             goto failure;
+    }
+
+    const char* extra_options[3] = { NULL, NULL, NULL };
+    int extra_option_index = 0;
+    if (add_plt) {
+        extra_options[extra_option_index] = "PLT=YES";
+        extra_option_index += 1;
+    }
+    if (add_tlm) {
+        extra_options[extra_option_index] = "TLM=YES";
+        extra_option_index += 1;
+    }
+    if (extra_option_index > 0) {
+        if (! opj_encoder_set_extra_options(codec, extra_options)) {
+            py_error("Failed to set extra options on the encoder");
+            return_code = 28;
+            goto failure;
+        }
     }
 
     /* Send info, warning, error message to Python logging */

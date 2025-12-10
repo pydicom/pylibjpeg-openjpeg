@@ -32,6 +32,8 @@ cdef extern int EncodeArray(
     PyObject* compression_ratios,
     PyObject* signal_noise_ratios,
     int codec_format,
+    bint add_tlm,
+    bint add_plt,
 )
 cdef extern int EncodeBuffer(
     PyObject* src,
@@ -213,6 +215,8 @@ def encode_array(
     List[float] compression_ratios,
     List[float] signal_noise_ratios,
     int codec_format,
+    bint add_tlm,
+    bint add_plt,
 ) -> Tuple[int, bytes]:
     """Return the JPEG 2000 compressed `arr`.
 
@@ -239,6 +243,10 @@ def encode_array(
 
         * ``0``: JPEG 2000 codestream only (default) (J2K/J2C format)
         * ``1``: A boxed JPEG 2000 codestream (JP2 format)
+    add_tlm : bool
+        If ``True`` then add tile-part length markers (TLM) to the codestream.
+    add_plt : bool
+        If ``True`` then add packet length tile-part header markers (PLT) to the codestream.
 
     Returns
     -------
@@ -318,6 +326,8 @@ def encode_array(
         <PyObject *> compression_ratios,
         <PyObject *> signal_noise_ratios,
         codec_format,
+        add_tlm,
+        add_plt,
     )
     return return_code, dst.getvalue()
 
