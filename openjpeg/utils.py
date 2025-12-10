@@ -434,6 +434,8 @@ def encode_array(
     compression_ratios: Union[List[float], None] = None,
     signal_noise_ratios: Union[List[float], None] = None,
     codec_format: int = 0,
+    add_tlm: bool = False,
+    add_plt: bool = False,
     **kwargs: Any,
 ) -> bytes:
     """Return the JPEG 2000 compressed `arr`.
@@ -523,6 +525,13 @@ def encode_array(
 
         * ``0``: JPEG 2000 codestream only (default) (J2K/J2C format)
         * ``1``: A boxed JPEG 2000 codestream (JP2 format)
+    add_tlm : bool, optional
+        Add tile-part length markers (TLM) to the codestream. This can help
+        to speed up decoding of parts of very large images for some decoders.
+    add_plt : bool, optional
+        Add packet length, tile-part length markers (PLT) to the codestream. This
+        can help to speed up decoding of parts of very large images for some
+        decoders.
 
     Returns
     -------
@@ -553,6 +562,8 @@ def encode_array(
         compression_ratios,
         signal_noise_ratios,
         codec_format,
+        add_tlm,
+        add_plt,
     )
 
     if return_code != 0:
