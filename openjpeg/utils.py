@@ -77,7 +77,7 @@ ENCODING_ERRORS = {
         "the value of the 'photometric_interpretation' parameter is not valid "
         "for the number of samples per pixel"
     ),
-    10: "the valid of the 'codec_format' paramter is invalid",
+    10: "the valid of the 'codec_format' parameter is invalid",
     11: "more than 100 'compression_ratios' is not supported",
     12: "invalid item in the 'compression_ratios' value",
     13: "invalid compression ratio, lowest value must be at least 1",
@@ -92,7 +92,7 @@ ENCODING_ERRORS = {
     24: "failed to create the output stream",
     25: "failure result from 'opj_start_compress()'",
     26: "failure result from 'opj_encode()'",
-    27: "failure result from 'opj_endt_compress()'",
+    27: "failure result from 'opj_end_compress()'",
     50: "the value of the 'bits_stored' parameter is invalid",
     51: "the value of the 'samples_per_pixel' parameter is invalid",
     52: "the value of the 'rows' is invalid, must be in [1, 65535]",
@@ -371,7 +371,7 @@ def get_parameters(
         ``{'columns': int, 'rows': int, 'colourspace': str,
         'samples_per_pixel: int, 'precision': int, `is_signed`: bool}``. Possible
         colour spaces are "unknown", "unspecified", "sRGB", "monochrome",
-        "YUV", "e-YCC" and "CYMK".
+        "YUV", "e-YCC" and "CMYK".
 
     Raises
     ------
@@ -500,7 +500,7 @@ def encode_array(
         * ``"YBR_RCT"`` for lossless encoding
         * ``"YBR_ICT"`` for lossy encoding
 
-        If MCT is not applied then *Photometric Intrepretation* should be the
+        If MCT is not applied then *Photometric Interpretation* should be the
         value corresponding to the unencoded dataset.
     compression_ratios : list[float], optional
         Required for lossy encoding, this is the compression ratio to use
@@ -665,7 +665,7 @@ def encode_buffer(
         * ``"YBR_RCT"`` for lossless encoding
         * ``"YBR_ICT"`` for lossy encoding
 
-        If MCT is not applied then *Photometric Intrepretation* should be the
+        If MCT is not applied then *Photometric Interpretation* should be the
         value corresponding to the unencoded dataset.
     compression_ratios : list[float], optional
         Required for lossy encoding, this is the compression ratio to use
