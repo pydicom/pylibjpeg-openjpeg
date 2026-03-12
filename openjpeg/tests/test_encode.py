@@ -51,10 +51,18 @@ def parse_j2k(buffer):
     # l_cod = buffer[o + 2 : o + 4]
     # s_cod = buffer[o + 4 : o + 5]
     sg_cod = buffer[o + 5 : o + 9]
+    # SPcod has variable length because of precincts. At least 5 bytes though.
+    sp_cod = buffer[o + 9 : o + 14]
 
     # progression_order = sg_cod[0]
     nr_layers = sg_cod[1:3]
     mct = sg_cod[3]  # 0 for none, 1 for applied
+
+    num_decomposition_levels = sp_cod[0]
+    # code_block_width = sp_cod[1]
+    # code_block_height = sp_cod[2]
+    # code_block_style = sp_cod[3]
+    transformation = sp_cod[4]
 
     param = {}
     if ssiz & 0x80:
@@ -67,6 +75,10 @@ def parse_j2k(buffer):
     param["components"] = nr_components
     param["mct"] = bool(mct)
     param["layers"] = unpack(">H", nr_layers)[0]
+    param["decomposition_levels"] = num_decomposition_levels
+    param["transformation"] = (
+        "9-7 Irreversible" if transformation == 0 else "5-3 Reversible"
+    )
 
     return param
 
@@ -411,6 +423,7 @@ class TestEncode:
         assert param["is_signed"] is False
         assert param["layers"] == 1
         assert param["components"] == 1
+        assert param["transformation"] == "5-3 Reversible"
 
         assert out.dtype.kind == "u"
         assert np.array_equal(mono, out)
@@ -426,6 +439,7 @@ class TestEncode:
         assert param["is_signed"] is False
         assert param["layers"] == 1
         assert param["components"] == 3
+        assert param["transformation"] == "5-3 Reversible"
 
         assert out.dtype.kind == "u"
         assert np.array_equal(arr, out)
@@ -445,6 +459,7 @@ class TestEncode:
             assert param["is_signed"] is False
             assert param["layers"] == 1
             assert param["components"] == 1
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
@@ -459,6 +474,7 @@ class TestEncode:
             assert param["is_signed"] is False
             assert param["layers"] == 1
             assert param["components"] == 3
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
@@ -473,6 +489,74 @@ class TestEncode:
             assert param["is_signed"] is False
             assert param["layers"] == 1
             assert param["components"] == 4
+            assert param["transformation"] == "5-3 Reversible"
+
+            assert out.dtype.kind == "u"
+            assert np.array_equal(arr, out)
+
+    def test_lossless_unsigned_explicit_layers(self):
+        """Test encoding unsigned data for bit-depth 1-16"""
+        rows = 123
+        cols = 234
+        for bit_depth in range(2, 17):
+            maximum = 2**bit_depth - 1
+            dtype = f"u{math.ceil(bit_depth / 8)}"
+            arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype=dtype)
+            buffer = encode_array(
+                arr,
+                photometric_interpretation=PI.MONOCHROME2,
+                transformation_type=0,
+                compression_ratios=[5, 2, 1],
+            )
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 3
+            assert param["components"] == 1
+            assert param["transformation"] == "5-3 Reversible"
+
+            assert out.dtype.kind == "u"
+            assert np.array_equal(arr, out)
+
+            arr = np.random.randint(
+                0, high=maximum + 1, size=(rows, cols, 3), dtype=dtype
+            )
+            buffer = encode_array(
+                arr,
+                photometric_interpretation=PI.RGB,
+                use_mct=False,
+                transformation_type=0,
+                compression_ratios=[5, 2, 1],
+            )
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 3
+            assert param["components"] == 3
+            assert param["transformation"] == "5-3 Reversible"
+
+            assert out.dtype.kind == "u"
+            assert np.array_equal(arr, out)
+
+            arr = np.random.randint(
+                0, high=maximum + 1, size=(rows, cols, 4), dtype=dtype
+            )
+            buffer = encode_array(
+                arr,
+                photometric_interpretation=5,
+                use_mct=False,
+                transformation_type=0,
+                compression_ratios=[5, 2, 1],
+            )
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 3
+            assert param["components"] == 4
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
@@ -493,6 +577,7 @@ class TestEncode:
             assert param["is_signed"] is False
             assert param["layers"] == 1
             assert param["components"] == 1
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
@@ -508,6 +593,55 @@ class TestEncode:
             assert param["is_signed"] is False
             assert param["layers"] == 1
             assert param["components"] == 3
+            assert param["transformation"] == "5-3 Reversible"
+
+            assert out.dtype.kind == "u"
+            assert np.array_equal(arr, out)
+
+    def test_lossless_unsigned_u4_explicit_layers(self):
+        """Test encoding unsigned data for bit-depth 17-32 with explicit number of layers"""
+        rows = 123
+        cols = 234
+        planes = 3
+        for bit_depth in range(17, 25):
+            maximum = 2**bit_depth - 1
+            arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype="u4")
+            buffer = encode_array(
+                arr,
+                photometric_interpretation=PI.MONOCHROME2,
+                transformation_type=0,
+                compression_ratios=[5, 2, 1],
+            )
+            out = decode(buffer)
+
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 3
+            assert param["components"] == 1
+            assert param["transformation"] == "5-3 Reversible"
+
+            assert out.dtype.kind == "u"
+            assert np.array_equal(arr, out)
+
+            arr = np.random.randint(
+                0, high=maximum + 1, size=(rows, cols, planes), dtype="u4"
+            )
+            buffer = encode_array(
+                arr,
+                photometric_interpretation=PI.RGB,
+                use_mct=False,
+                transformation_type=0,
+                compression_ratios=[5, 2, 1],
+            )
+            out = decode(buffer)
+
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 3
+            assert param["components"] == 3
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
@@ -531,6 +665,7 @@ class TestEncode:
             assert param["is_signed"] is True
             assert param["layers"] == 1
             assert param["components"] == 1
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
@@ -549,6 +684,7 @@ class TestEncode:
             assert param["is_signed"] is True
             assert param["layers"] == 1
             assert param["components"] == 3
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
@@ -564,6 +700,83 @@ class TestEncode:
             assert param["is_signed"] is True
             assert param["layers"] == 1
             assert param["components"] == 4
+            assert param["transformation"] == "5-3 Reversible"
+
+            assert out.dtype.kind == "i"
+            assert np.array_equal(arr, out)
+
+    def test_lossless_signed_explicit_layers(self):
+        """Test encoding signed data for bit-depth 1-16 with explicit number of layers"""
+        rows = 123
+        cols = 543
+        for bit_depth in range(2, 17):
+            maximum = 2 ** (bit_depth - 1) - 1
+            minimum = -(2 ** (bit_depth - 1))
+            dtype = f"i{math.ceil(bit_depth / 8)}"
+            arr = np.random.randint(
+                low=minimum, high=maximum + 1, size=(rows, cols), dtype=dtype
+            )
+            buffer = encode_array(
+                arr,
+                photometric_interpretation=PI.MONOCHROME2,
+                transformation_type=0,
+                compression_ratios=[5, 2, 1],
+            )
+            out = decode(buffer)
+
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is True
+            assert param["layers"] == 3
+            assert param["components"] == 1
+            assert param["transformation"] == "5-3 Reversible"
+
+            assert out.dtype.kind == "i"
+            assert np.array_equal(arr, out)
+
+            maximum = 2 ** (bit_depth - 1) - 1
+            minimum = -(2 ** (bit_depth - 1))
+            dtype = f"i{math.ceil(bit_depth / 8)}"
+            arr = np.random.randint(
+                low=minimum, high=maximum, size=(rows, cols, 3), dtype=dtype
+            )
+            buffer = encode_array(
+                arr,
+                photometric_interpretation=PI.RGB,
+                use_mct=False,
+                transformation_type=0,
+                compression_ratios=[5, 2, 1],
+            )
+            out = decode(buffer)
+
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is True
+            assert param["layers"] == 3
+            assert param["components"] == 3
+            assert param["transformation"] == "5-3 Reversible"
+
+            assert out.dtype.kind == "i"
+            assert np.array_equal(arr, out)
+
+            arr = np.random.randint(
+                low=minimum, high=maximum, size=(rows, cols, 4), dtype=dtype
+            )
+            buffer = encode_array(
+                arr,
+                photometric_interpretation=5,
+                use_mct=False,
+                transformation_type=0,
+                compression_ratios=[5, 2, 1],
+            )
+            out = decode(buffer)
+
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is True
+            assert param["layers"] == 3
+            assert param["components"] == 4
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
@@ -587,6 +800,7 @@ class TestEncode:
             assert param["is_signed"] is True
             assert param["layers"] == 1
             assert param["components"] == 1
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
@@ -602,6 +816,7 @@ class TestEncode:
             assert param["is_signed"] is True
             assert param["layers"] == 1
             assert param["components"] == 3
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
@@ -621,6 +836,7 @@ class TestEncode:
             assert param["is_signed"] is False
             assert param["layers"] == 3
             assert param["components"] == 1
+            assert param["transformation"] == "9-7 Irreversible"
 
             assert out.dtype.kind == "u"
             assert np.allclose(arr, out, atol=5)
@@ -632,12 +848,45 @@ class TestEncode:
             assert param["is_signed"] is False
             assert param["layers"] == 3
             assert param["components"] == 1
+            assert param["transformation"] == "9-7 Irreversible"
+
+            assert out.dtype.kind == "u"
+            assert np.allclose(arr, out, atol=5)
+
+    def test_lossy_unsigned(self):
+        """Test lossy encoding with unsigned data with one layer"""
+        rows = 123
+        cols = 234
+        for bit_depth in range(1, 17):
+            maximum = 2**bit_depth - 1
+            dtype = f"u{math.ceil(bit_depth / 8)}"
+            arr = np.random.randint(0, high=maximum + 1, size=(rows, cols), dtype=dtype)
+            buffer = encode_array(arr, transformation_type=1)
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 1
+            assert param["components"] == 1
+            assert param["transformation"] == "9-7 Irreversible"
+
+            assert out.dtype.kind == "u"
+            assert np.allclose(arr, out, atol=5)
+
+            buffer = encode_array(arr, transformation_type=1)
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is False
+            assert param["layers"] == 1
+            assert param["components"] == 1
+            assert param["transformation"] == "9-7 Irreversible"
 
             assert out.dtype.kind == "u"
             assert np.allclose(arr, out, atol=5)
 
     def test_lossy_signed(self):
-        """Test lossy encoding with unsigned data"""
+        """Test lossy encoding with signed data"""
         rows = 123
         cols = 234
         for bit_depth in range(1, 17):
@@ -654,6 +903,7 @@ class TestEncode:
             assert param["is_signed"] is True
             assert param["layers"] == 3
             assert param["components"] == 1
+            assert param["transformation"] == "9-7 Irreversible"
 
             assert out.dtype.kind == "i"
             assert np.allclose(arr, out, atol=5)
@@ -665,6 +915,42 @@ class TestEncode:
             assert param["is_signed"] is True
             assert param["layers"] == 3
             assert param["components"] == 1
+            assert param["transformation"] == "9-7 Irreversible"
+
+            assert out.dtype.kind == "i"
+            assert np.allclose(arr, out, atol=5)
+
+    def test_lossy_signed(self):
+        """Test lossy encoding with signed data with one layer"""
+        rows = 123
+        cols = 234
+        for bit_depth in range(1, 17):
+            maximum = 2 ** (bit_depth - 1) - 1
+            minimum = -(2 ** (bit_depth - 1))
+            dtype = f"i{math.ceil(bit_depth / 8)}"
+            arr = np.random.randint(
+                low=minimum, high=maximum + 1, size=(rows, cols), dtype=dtype
+            )
+            buffer = encode_array(arr, transformation_type=1)
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is True
+            assert param["layers"] == 1
+            assert param["components"] == 1
+            assert param["transformation"] == "9-7 Irreversible"
+
+            assert out.dtype.kind == "i"
+            assert np.allclose(arr, out, atol=5)
+
+            buffer = encode_array(arr, transformation_type=1)
+            out = decode(buffer)
+            param = parse_j2k(buffer)
+            assert param["precision"] == bit_depth
+            assert param["is_signed"] is True
+            assert param["layers"] == 1
+            assert param["components"] == 1
+            assert param["transformation"] == "9-7 Irreversible"
 
             assert out.dtype.kind == "i"
             assert np.allclose(arr, out, atol=5)
@@ -972,6 +1258,21 @@ class TestEncodeBuffer:
                 b"\x00\x01\x02\x03", 1, 1, 4, 8, False, photometric_interpretation=2
             )
 
+    def test_invalid_transformation_type(self):
+        """Test invalid explicit transformation type"""
+        msg = "Invalid 'transformation_type' value '2', must be 0, 1 or -1"
+        with pytest.raises(ValueError, match=msg):
+            encode_buffer(
+                b"\x00",
+                1,
+                1,
+                1,
+                bits_stored=8,
+                is_signed=False,
+                transformation_type=2,
+                compression_ratios=[1],
+            )
+
     def test_encoding_failures_raise(self):
         """Miscellaneous test to check that failures are handled properly."""
         # Not exhaustive!
@@ -1157,6 +1458,7 @@ class TestEncodeBuffer:
         assert param["is_signed"] is False
         assert param["layers"] == 1
         assert param["components"] == 1
+        assert param["transformation"] == "5-3 Reversible"
 
         assert out.dtype.kind == "u"
         assert np.array_equal(mono, out)
@@ -1180,6 +1482,7 @@ class TestEncodeBuffer:
         assert param["is_signed"] is False
         assert param["layers"] == 1
         assert param["components"] == 3
+        assert param["transformation"] == "5-3 Reversible"
 
         assert out.dtype.kind == "u"
         assert np.array_equal(arr, out)
@@ -1206,6 +1509,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is False
             assert param["layers"] == 1
             assert param["components"] == 1
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
@@ -1229,6 +1533,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is False
             assert param["layers"] == 1
             assert param["components"] == 3
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
@@ -1252,6 +1557,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is False
             assert param["layers"] == 1
             assert param["components"] == 4
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
@@ -1316,6 +1622,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is False
             assert param["layers"] == 1
             assert param["components"] == 1
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
@@ -1342,6 +1649,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is False
             assert param["layers"] == 1
             assert param["components"] == 3
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
@@ -1368,6 +1676,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is False
             assert param["layers"] == 1
             assert param["components"] == 4
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
@@ -1431,6 +1740,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is False
             assert param["layers"] == 1
             assert param["components"] == 1
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
@@ -1458,6 +1768,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is False
             assert param["layers"] == 1
             assert param["components"] == 3
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
@@ -1526,6 +1837,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is True
             assert param["layers"] == 1
             assert param["components"] == 1
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
@@ -1552,6 +1864,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is True
             assert param["layers"] == 1
             assert param["components"] == 3
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
@@ -1576,6 +1889,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is True
             assert param["layers"] == 1
             assert param["components"] == 4
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
@@ -1649,6 +1963,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is True
             assert param["layers"] == 1
             assert param["components"] == 1
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
@@ -1678,6 +1993,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is True
             assert param["layers"] == 1
             assert param["components"] == 3
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
@@ -1705,6 +2021,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is True
             assert param["layers"] == 1
             assert param["components"] == 4
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
@@ -1780,6 +2097,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is True
             assert param["layers"] == 1
             assert param["components"] == 1
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
@@ -1807,6 +2125,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is True
             assert param["layers"] == 1
             assert param["components"] == 3
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "i"
             assert np.array_equal(arr, out)
@@ -1891,6 +2210,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is False
             assert param["layers"] == 3
             assert param["components"] == 1
+            assert param["transformation"] == "9-7 Irreversible"
 
             assert out.dtype.kind == "u"
             assert np.allclose(arr, out, atol=5)
@@ -1910,6 +2230,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is False
             assert param["layers"] == 3
             assert param["components"] == 1
+            assert param["transformation"] == "9-7 Irreversible"
 
             assert out.dtype.kind == "u"
             assert np.allclose(arr, out, atol=5)
@@ -1943,6 +2264,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is True
             assert param["layers"] == 3
             assert param["components"] == 1
+            assert param["transformation"] == "9-7 Irreversible"
 
             assert out.dtype.kind == "i"
             assert np.allclose(arr, out, atol=5)
@@ -1962,6 +2284,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is True
             assert param["layers"] == 3
             assert param["components"] == 1
+            assert param["transformation"] == "9-7 Irreversible"
 
             assert out.dtype.kind == "i"
             assert np.allclose(arr, out, atol=5)
@@ -2111,6 +2434,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is False
             assert param["layers"] == 1
             assert param["components"] == 1
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
@@ -2134,6 +2458,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is False
             assert param["layers"] == 1
             assert param["components"] == 3
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
@@ -2157,6 +2482,7 @@ class TestEncodeBuffer:
             assert param["is_signed"] is False
             assert param["layers"] == 1
             assert param["components"] == 4
+            assert param["transformation"] == "5-3 Reversible"
 
             assert out.dtype.kind == "u"
             assert np.array_equal(arr, out)
