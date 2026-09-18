@@ -1,0 +1,9 @@
+.. _v2.6.0:
+
+2.6.0
+=====
+
+Changes
+.......
+
+* Supported Python versions are 3.10 to 3.15.

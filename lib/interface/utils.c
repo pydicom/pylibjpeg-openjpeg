@@ -24,7 +24,7 @@ void py_log(char *name, char *log_level, const char *log_msg)
     static PyObject *lib_name = NULL;
 
     // import logging
-    module = PyImport_ImportModuleNoBlock("logging");
+    module = PyImport_ImportModule("logging");
     if (module == NULL) {
         return;
     }
