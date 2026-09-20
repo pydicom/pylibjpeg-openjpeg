@@ -7,3 +7,4 @@ Changes
 .......
 
 * Supported Python versions are 3.10 to 3.15.
+* Update to openjpeg v2.5.4
