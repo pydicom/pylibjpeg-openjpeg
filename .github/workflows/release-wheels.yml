@@ -43,9 +43,6 @@ jobs:
         include:
           # Windows 32 bit
           - os: windows-latest
-            python: 39
-            platform_id: win32
-          - os: windows-latest
             python: 310
             platform_id: win32
           - os: windows-latest
@@ -59,13 +56,13 @@ jobs:
             platform_id: win32
           - os: windows-latest
             python: 314
+            platform_id: win32
+          - os: windows-latest
+            python: 315
             platform_id: win32
 
           # Windows 64 bit
           - os: windows-latest
-            python: 39
-            platform_id: win_amd64
-          - os: windows-latest
             python: 310
             platform_id: win_amd64
           - os: windows-latest
@@ -79,39 +76,39 @@ jobs:
             platform_id: win_amd64
           - os: windows-latest
             python: 314
+            platform_id: win_amd64
+          - os: windows-latest
+            python: 315
             platform_id: win_amd64
 
-          # Linux 64 bit manylinux2014
-          - os: ubuntu-latest
-            python: 39
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
+          # Linux 64 bit manylinux_2_28
           - os: ubuntu-latest
             python: 310
             platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
+            manylinux_image: manylinux_2_28
           - os: ubuntu-latest
             python: 311
             platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
+            manylinux_image: manylinux_2_28
           - os: ubuntu-latest
             python: 312
             platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
+            manylinux_image: manylinux_2_28
           - os: ubuntu-latest
             python: 313
             platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
+            manylinux_image: manylinux_2_28
           - os: ubuntu-latest
             python: 314
             platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
+            manylinux_image: manylinux_2_28
+          - os: ubuntu-latest
+            python: 315
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux_2_28
 
           # Linux aarch64
           - os: ubuntu-latest
-            python: 39
-            platform_id: manylinux_aarch64
-          - os: ubuntu-latest
             python: 310
             platform_id: manylinux_aarch64
           - os: ubuntu-latest
@@ -125,26 +122,29 @@ jobs:
             platform_id: manylinux_aarch64
           - os: ubuntu-latest
             python: 314
+            platform_id: manylinux_aarch64
+          - os: ubuntu-latest
+            python: 315
             platform_id: manylinux_aarch64
 
-          # MacOS 13 x86_64
-          - os: macos-13
-            python: 39
-            platform_id: macosx_x86_64
-          - os: macos-13
+          # MacOS 15-intel x86_64
+          - os: macos-15-intel
             python: 310
             platform_id: macosx_x86_64
-          - os: macos-13
+          - os: macos-15-intel
             python: 311
             platform_id: macosx_x86_64
-          - os: macos-13
+          - os: macos-15-intel
             python: 312
             platform_id: macosx_x86_64
-          - os: macos-13
+          - os: macos-15-intel
             python: 313
             platform_id: macosx_x86_64
-          - os: macos-13
+          - os: macos-15-intel
             python: 314
+            platform_id: macosx_x86_64
+          - os: macos-15-intel
+            python: 315
             platform_id: macosx_x86_64
 
     steps:
@@ -171,7 +171,7 @@ jobs:
     - name: Build wheels (non-MacOS arm64)
       env:
         CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.platform_id }}
-        CIBW_ARCHS: all
+        CIBW_ARCHS: ${{ contains(matrix.os, 'macos') && 'x86_64' || 'all' }}
         CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux_image }}
         CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.manylinux_image }}
         CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.manylinux_image }}
@@ -196,9 +196,6 @@ jobs:
         include:
         # MacOS 14 arm64
         - os: macos-14
-          python: 39
-          platform_id: macosx_arm64
-        - os: macos-14
           python: 310
           platform_id: macosx_arm64
         - os: macos-14
@@ -212,6 +209,9 @@ jobs:
           platform_id: macosx_arm64
         - os: macos-14
           python: 314
+          platform_id: macosx_arm64
+        - os: macos-14
+          python: 315
           platform_id: macosx_arm64
 
     steps:
