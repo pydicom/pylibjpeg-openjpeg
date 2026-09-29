@@ -436,6 +436,7 @@ def encode_array(
     codec_format: int = 0,
     add_tlm: bool = False,
     add_plt: bool = False,
+    transformation_type: int = -1,
     **kwargs: Any,
 ) -> bytes:
     """Return the JPEG 2000 compressed `arr`.
@@ -532,6 +533,10 @@ def encode_array(
         Add packet length, tile-part length markers (PLT) to the codestream. This
         can help to speed up decoding of parts of very large images for some
         decoders.
+    transformation_type: int, optional
+        Set the transformation type. 0 = 5-3 reversible, 1 = 9-7 irreversible,
+        -1 = (default) automatically determined from the compression_ratios or
+        signal_noise_ratios argument
 
     Returns
     -------
@@ -564,6 +569,7 @@ def encode_array(
         codec_format,
         add_tlm,
         add_plt,
+        transformation_type,
     )
 
     if return_code != 0:
@@ -592,6 +598,7 @@ def encode_buffer(
     codec_format: int = 0,
     add_tlm: bool = False,
     add_plt: bool = False,
+    transformation_type: int = -1,
     **kwargs: Any,
 ) -> bytes:
     """Return the JPEG 2000 compressed `src`.
@@ -697,6 +704,10 @@ def encode_buffer(
         Add packet length, tile-part length markers (PLT) to the codestream. This
         can help to speed up decoding of parts of very large images for some
         decoders.
+    transformation_type: int, optional
+        Set the transformation type. 0 = 5-3 reversible, 1 = 9-7 irreversible,
+        -1 = (default) automatically determined from the compression_ratios or
+        signal_noise_ratios argument
 
     Returns
     -------
@@ -724,6 +735,7 @@ def encode_buffer(
         codec_format,
         add_tlm,
         add_plt,
+        transformation_type,
     )
 
     if return_code != 0:

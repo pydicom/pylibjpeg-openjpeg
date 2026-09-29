@@ -34,6 +34,7 @@ cdef extern int EncodeArray(
     int codec_format,
     bint add_tlm,
     bint add_plt,
+    int transformation_type,
 )
 cdef extern int EncodeBuffer(
     PyObject* src,
@@ -50,6 +51,7 @@ cdef extern int EncodeBuffer(
     int codec_format,
     bint add_tlm,
     bint add_plt,
+    int transformation_type,
 )
 
 
@@ -219,6 +221,7 @@ def encode_array(
     int codec_format,
     bint add_tlm,
     bint add_plt,
+    int transformation_type,
 ) -> Tuple[int, bytes]:
     """Return the JPEG 2000 compressed `arr`.
 
@@ -249,6 +252,10 @@ def encode_array(
         If ``True`` then add tile-part length markers (TLM) to the codestream.
     add_plt : bool
         If ``True`` then add packet length tile-part header markers (PLT) to the codestream.
+    transformation_type: int
+        transformation type. 0 = 5-3 reversible, 1 = 9-7 irreversible,
+        -1 = automatically determined from the compression_ratios or signal_noise_ratios
+        argument
 
     Returns
     -------
@@ -330,6 +337,7 @@ def encode_array(
         codec_format,
         add_tlm,
         add_plt,
+        transformation_type,
     )
     return return_code, dst.getvalue()
 
@@ -348,6 +356,7 @@ def encode_buffer(
     int codec_format,
     bint add_tlm,
     bint add_plt,
+    int transformation_type,
 
 ) -> Tuple[int, bytes]:
     """Return the JPEG 2000 compressed `src`.
@@ -394,6 +403,10 @@ def encode_buffer(
         If ``True`` then add tile-part length markers (TLM) to the codestream.
     add_plt : bool
         If ``True`` then add packet length tile-part header markers (PLT) to the codestream.
+    transformation_type: int
+        transformation type. 0 = 5-3 reversible, 1 = 9-7 irreversible,
+        -1 = automatically determined from the compression_ratios or signal_noise_ratios
+        argument
 
     Returns
     -------
@@ -471,6 +484,12 @@ def encode_buffer(
     if len(compression_ratios) > 100 or len(signal_noise_ratios) > 100:
         raise ValueError("More than 100 compression layers is not supported")
 
+    if transformation_type not in (-1, 0, 1):
+        raise ValueError(
+            f"Invalid 'transformation_type' value '{transformation_type}', must be 0, 1 "
+            "or -1"
+        )
+
     dst = BytesIO()
     return_code = EncodeBuffer(
         <PyObject *> src,
@@ -487,5 +506,6 @@ def encode_buffer(
         codec_format,
         add_tlm,
         add_plt,
+        transformation_type,
     )
     return return_code, dst.getvalue()

@@ -39,7 +39,8 @@ extern int EncodeArray(
     PyObject *signal_noise_ratios,
     int codec_format,
     int add_tlm,
-    int add_plt
+    int add_plt,
+    int transformation_type
 )
 {
     /* Encode a numpy ndarray using JPEG 2000.
@@ -70,6 +71,10 @@ extern int EncodeArray(
         Add tile-part data length markers (TLM). Supported values 0-1.
     add_plt : int
         Add packet length tile-part header markers (PLT). Supported values 0-1.
+    transformation_type: int
+        Set the transformation type. 0 = 5-3 reversible, 1 = 9-7 irreversible,
+        -1 = automatically determined from the compression_ratios or
+        signal_noise_ratios argument
 
     Returns
     -------
@@ -246,6 +251,7 @@ extern int EncodeArray(
     if (nr_cr_layers > 0 || nr_snr_layers > 0) {
         // Lossy compression using compression ratios
         // For 1 quality layer we use reversible if CR is 1 or PSNR is 0
+        // unless overridden by the caller
         parameters.irreversible = 1;  // use DWT 9-7
         if (nr_cr_layers > 0) {
             if (nr_cr_layers > 100) {
@@ -306,6 +312,10 @@ extern int EncodeArray(
                 "Encoding using lossy compression based on peak signal-to-noise ratios"
             );
         }
+    }
+    if (transformation_type != -1) {
+        // Explicit requirement
+        parameters.irreversible = transformation_type;
     }
 
     py_debug("Input validation complete, setting up for encoding");
@@ -516,7 +526,8 @@ extern int EncodeBuffer(
     PyObject *signal_noise_ratios,
     int codec_format,
     int add_tlm,
-    int add_plt
+    int add_plt,
+    int transformation_type
 )
 {
     /* Encode image data using JPEG 2000.
@@ -544,10 +555,10 @@ extern int EncodeBuffer(
     use_mct : int
         Supported values 0-1, can't be used with subsampling
     compression_ratios : list[float]
-        Encode lossy with the specified compression ratio for each quality
+        Encode with the specified compression ratio for each quality
         layer. The ratio should be decreasing with increasing layer.
     signal_noise_ratios : list[float]
-        Encode lossy with the specified peak signal-to-noise ratio for each
+        Encode  with the specified peak signal-to-noise ratio for each
         quality layer. The ratio should be increasing with increasing layer.
     codec_format : int
         The format of the encoded JPEG 2000 data, one of:
@@ -557,6 +568,10 @@ extern int EncodeBuffer(
         Add tile-part data length markers (TLM). Supported values 0-1.
     add_plt : int
         Add packet length tile-part header markers (PLT). Supported values 0-1.
+    transformation_type: int
+        Set the transformation type. 0 = 5-3 reversible, 1 = 9-7 irreversible,
+        -1 = automatically determined from the compression_ratios or
+        signal_noise_ratios argument
 
     Returns
     -------
